@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'drawer.dart';
+import 'translation.dart';
+import 'wordbook.dart';
+
 // -----------------------------------------------------------------------------
 // Riverpod 状態管理
 //  - bottomNavIndexProvider = ボトムナビゲーションバーの選択状態を管理
@@ -136,80 +140,6 @@ class MainScreen extends ConsumerWidget {
 // -----------------------------------------------------------------------------
 // 画面の定義
 // -----------------------------------------------------------------------------
-
-// ドロワーの中身
-class MyDrawer extends StatelessWidget {
-  const MyDrawer({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          DrawerHeader(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            child: Text(
-              '保存した英文',
-              style: TextStyle(color: Colors.white, fontSize: 24),
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('設定'),
-            onTap: () {
-              // ドロワーを閉じる
-              Navigator.of(context).pop();
-              context.push('/setting');
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.help),
-            title: const Text('ヘルプ'),
-            onTap: () {
-              Navigator.of(context).pop();
-              context.push('/help');
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// 翻訳モード画面
-class TranslationModePage extends StatelessWidget {
-  const TranslationModePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        '翻訳モード',
-        textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 24),
-      ),
-    );
-  }
-}
-
-// 単語帳モード画面
-class WordbookModePage extends StatelessWidget {
-  const WordbookModePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        '単語帳モード',
-        textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 24),
-      ),
-    );
-  }
-}
 
 // 設定画面
 class SettingPage extends StatelessWidget {

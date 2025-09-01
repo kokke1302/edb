@@ -416,8 +416,8 @@ class _VocabularyInputSheetState extends State<VocabularyInputSheet> {
     // ダミーの訳語リスト
     List<Map<String, String>> dummyTranslations = [
       {'translation': widget.wordBlock.translation ?? '訳語なし', 'source': '内部辞書'},
-      {'translation': 'ペン', 'source': '単語帳 (ユーザー登録)', 'memo': 'お気に入りの文具'},
-      {'translation': '万年筆', 'source': '単語帳 (ユーザー登録)'},
+      {'translation': 'ペン', 'source': '単語帳', 'memo': 'お気に入りの文具'},
+      {'translation': '万年筆', 'source': '単語帳'},
     ];
 
     return Column(
