@@ -1,17 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'drawer.dart';
 import 'translation.dart';
-import 'wordbook.dart';
+import 'wordbook/wordbook.dart';
 
 // -----------------------------------------------------------------------------
 // Riverpod 状態管理
-//  - bottomNavIndexProvider = ボトムナビゲーションバーの選択状態を管理
+//  - BottomNavIndexNotifier = ボトムナビゲーションバーの選択状態を管理
+//  - bottomNavIndexProvider = インスタンス化
 // -----------------------------------------------------------------------------
 
-final bottomNavIndexProvider = StateProvider<int>((ref) => 0);
+// Notifierクラスを定義
+class BottomNavIndexNotifier extends Notifier<int> {
+  // stateの初期値を設定
+  @override
+  int build() {
+    return 0;
+  }
+
+  // stateを更新するメソッド
+  void setIndex(int newIndex) {
+    state = newIndex;
+  }
+}
+
+// Providerを定義
+final bottomNavIndexProvider = NotifierProvider<BottomNavIndexNotifier, int>(
+  () => BottomNavIndexNotifier(),
+);
 
 // -----------------------------------------------------------------------------
 // GoRouter ルーティングの設定
@@ -33,7 +52,7 @@ final _router = GoRouter(
         ),
         GoRoute(
           path: '/words',
-          builder: (context, state) => const WordbookModePage(),
+          builder: (context, state) => WordbookModePage(),
         ),
       ],
     ),
@@ -48,6 +67,8 @@ final _router = GoRouter(
 // -----------------------------------------------------------------------------
 
 void main() {
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
   runApp(const ProviderScope(child: EnglishLearningApp()));
 }
 
@@ -116,7 +137,7 @@ class MainScreen extends ConsumerWidget {
         currentIndex: currentIndex,
         onTap: (int newIndex) {
           // Riverpodでインデックスを更新
-          ref.read(bottomNavIndexProvider.notifier).state = newIndex;
+          ref.read(bottomNavIndexProvider.notifier).setIndex(newIndex);
           // GoRouterで新しいパスに遷移
           switch (newIndex) {
             case 0:
