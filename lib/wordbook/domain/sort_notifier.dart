@@ -1,21 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum SortField { createdAt, title }
+import 'package:edb/wordbook/data/sort_setting.dart';
 
-enum SortOrder { asc, desc }
-
-// ソート設定を格納するクラス
-class SortSetting {
-  final SortField field;
-  final SortOrder order;
-
-  const SortSetting({required this.field, required this.order});
-
-  // 変更用メソッド
-  SortSetting copyWith({SortField? field, SortOrder? order}) {
-    return SortSetting(field: field ?? this.field, order: order ?? this.order);
-  }
-}
+// ソート設定の状態を管理する
+final sortSettingProvider = NotifierProvider<SortSettingNotifier, SortSetting>(
+  () => SortSettingNotifier(),
+);
 
 class SortSettingNotifier extends Notifier<SortSetting> {
   @override
@@ -39,8 +29,3 @@ class SortSettingNotifier extends Notifier<SortSetting> {
     state = SortSetting(field: SortField.createdAt, order: SortOrder.desc);
   }
 }
-
-// ソート設定の状態を管理する
-final sortSettingProvider = NotifierProvider<SortSettingNotifier, SortSetting>(
-  () => SortSettingNotifier(),
-);

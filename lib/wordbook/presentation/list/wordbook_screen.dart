@@ -3,11 +3,12 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:just_throttle_it/just_throttle_it.dart';
 
-import '../../state/list_notifier.dart';
-import '../../state/list_state.dart';
-import '../../state/search_word.dart';
-import 'list_footer.dart';
-import 'card.dart';
+import 'package:edb/wordbook/domain/list_notifier.dart';
+import 'package:edb/wordbook/data/list_state.dart';
+import 'package:edb/wordbook/data/search_word.dart';
+import 'package:edb/wordbook/presentation/list/initial_error.dart';
+import 'package:edb/wordbook/presentation/list/list_footer.dart';
+import 'package:edb/wordbook/presentation/list/card2.dart';
 
 class WordbookScreen extends HookConsumerWidget {
   const WordbookScreen({super.key});
@@ -18,7 +19,6 @@ class WordbookScreen extends HookConsumerWidget {
     final searchQuery = ref.watch(searchWordProvider);
     // 単語リストを監視
     final wordListState = ref.watch(wordListProvider);
-    final wordListNotifier = ref.read(wordListProvider.notifier);
     // スクロールコントローラとリスナーの準備
     final scrollController = useScrollController();
 
@@ -28,19 +28,20 @@ class WordbookScreen extends HookConsumerWidget {
         final position = scrollController.position;
         final bool isEnd = position.pixels >= position.maxScrollExtent;
 
+        final wordListNotifier = ref.read(wordListProvider.notifier);
+
         // 発火時のWordListStateと入力済文字列について
         final currentList = ref.read(wordListProvider).value;
+        if (currentList == null) return; // 初期ロード中・初期エラー時はスキップ
+
         final currentQuery = ref.read(searchWordProvider);
-        if (currentList != null && // 初期ロード中・初期エラーではない
-            // 初期エラーはAsyncErrorを持つが、WordListStateを持たないため、.valueプロパティはnullを返す。
-            currentList.endStatus == EndStatus.normal && // 途中ロード中・途中エラーでない
+        if (currentList.endStatus == EndStatus.normal && // 途中ロード中・途中エラーでない
             !currentList.isDataEnd && // データ終端でない
             isEnd) {
           // データロードメソッドを呼び出す
-          Throttle.milliseconds(
-            500,
-            () => wordListNotifier.loadNextPage(queryText: currentQuery),
-          );
+          Throttle.milliseconds(500, () {
+            wordListNotifier.loadNextPage(queryText: currentQuery);
+          });
         }
       }
 
@@ -54,21 +55,23 @@ class WordbookScreen extends HookConsumerWidget {
       // AsyncValueの状態に基づいてUIを構築
       body: RefreshIndicator(
         onRefresh: () async {
-          await wordListNotifier.reload(queryText: searchQuery);
+          await ref
+              .read(wordListProvider.notifier)
+              .reload(queryText: searchQuery);
         },
         child: wordListState.when(
           // 初回ロード中
           loading: () => const Center(child: CircularProgressIndicator()),
 
           // 初回エラー
-          error: (err, stack) => _MyInitialError(err),
+          error: (err, stack) => MyInitialError(error: err),
 
           // データあり（WordListState）
           data: (wordListState) {
             final wordEntries = wordListState.words;
 
             // データ終端であり、リストが空の場合
-            if (wordEntries.isEmpty && wordListState.isDataEnd) {
+            if (wordListState.isDataEnd && wordEntries.isEmpty) {
               final message = searchQuery.isEmpty
                   ? '単語帳にはまだ単語が登録されていません。'
                   : '「$searchQuery」に一致する単語は見つかりませんでした。';
@@ -93,32 +96,6 @@ class WordbookScreen extends HookConsumerWidget {
             );
           },
         ),
-      ),
-    );
-  }
-}
-
-// ===============================================
-// 初回ロード　デザイン
-// ===============================================
-
-class _MyInitialError extends ConsumerWidget {
-  final Object error;
-  const _MyInitialError(this.error);
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text('データの初期ロードに失敗しました。'),
-          Text(error.toString()),
-          ElevatedButton(
-            onPressed: () => ref.invalidate(wordListProvider),
-            child: const Text('リトライ'),
-          ),
-        ],
       ),
     );
   }

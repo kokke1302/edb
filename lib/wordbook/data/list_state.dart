@@ -1,4 +1,4 @@
-import '../../db/app_database.dart';
+import 'package:edb/db/app_database.dart';
 
 enum EndStatus { normal, loading, error }
 

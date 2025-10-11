@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../state/sort_setting.dart';
+import 'package:edb/wordbook/data/sort_setting.dart';
+import 'package:edb/wordbook/domain/sort_notifier.dart';
 
 // 順序（order）を変更するボタン (例としてIconButton)
 class SortOrderButton extends ConsumerWidget {
@@ -10,7 +11,6 @@ class SortOrderButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentSetting = ref.watch(sortSettingProvider);
-    final sortSettingNotifier = ref.read(sortSettingProvider.notifier);
 
     // 次のソート順序
     final nextOrder = currentSetting.order == SortOrder.asc
@@ -26,6 +26,7 @@ class SortOrderButton extends ConsumerWidget {
       icon: Icon(icon),
       onPressed: () {
         // ソート順序を変更
+        final sortSettingNotifier = ref.read(sortSettingProvider.notifier);
         sortSettingNotifier.setOrder(nextOrder);
       },
     );
@@ -40,8 +41,6 @@ class SortDropdownMenu extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // 現在のソート設定
     final currentSetting = ref.watch(sortSettingProvider);
-    // ソート設定
-    final sortSettingNotifier = ref.read(sortSettingProvider.notifier);
 
     return DropdownButton<SortField>(
       value: currentSetting.field,
@@ -49,12 +48,13 @@ class SortDropdownMenu extends ConsumerWidget {
       onChanged: (SortField? newField) {
         if (newField != null && newField != currentSetting.field) {
           // ソート項目を変更
+          final sortSettingNotifier = ref.read(sortSettingProvider.notifier);
           sortSettingNotifier.setField(newField);
         }
       },
       items: const <DropdownMenuItem<SortField>>[
         DropdownMenuItem(value: SortField.createdAt, child: Text('作成日時')),
-        DropdownMenuItem(value: SortField.title, child: Text('単語タイトル')),
+        DropdownMenuItem(value: SortField.englishWord, child: Text('単語タイトル')),
       ],
     );
   }

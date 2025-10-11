@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'setting_dialog.dart';
+import 'package:edb/wordbook/presentation/search_fab/setting_dialog.dart';
 
 class MySettingFab extends StatelessWidget {
   const MySettingFab({super.key});
@@ -16,7 +16,7 @@ class MySettingFab extends StatelessWidget {
           context: context,
           barrierDismissible: true, // ダイアログの外側をタップして閉じれる
           builder: (BuildContext dialogContext) {
-            return FilterSettingsWidget();
+            return SettingsSheet();
           },
         );
       },

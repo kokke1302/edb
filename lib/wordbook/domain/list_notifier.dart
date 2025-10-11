@@ -1,9 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../db/app_database.dart';
-import '../../db/database_provider.dart';
-import 'sort_setting.dart';
-import 'list_state.dart';
+import 'package:edb/db/app_database.dart';
+import 'package:edb/wordbook/data/list_state.dart';
+import 'package:edb/wordbook/domain/list_repository.dart';
+import 'package:edb/wordbook/domain/sort_notifier.dart';
+
+// Provider を定義 (AsyncNotifier<WordListState> に型変更)
+final wordListProvider =
+    AsyncNotifierProvider.autoDispose<WordListNotifier, WordListState>(
+      () => WordListNotifier(),
+    );
 
 /// WordListStateとロジックを管理
 class WordListNotifier extends AsyncNotifier<WordListState> {
@@ -94,7 +100,7 @@ class WordListNotifier extends AsyncNotifier<WordListState> {
     required int limit,
     required String queryText,
   }) async {
-    final repository = ref.read(vocabularyRepositoryProvider);
+    final repository = ref.read(listRepositoryProvider);
     final sortSetting = ref.read(sortSettingProvider);
 
     // 遅延をシミュレート
@@ -116,9 +122,3 @@ class WordListNotifier extends AsyncNotifier<WordListState> {
     return entries;
   }
 }
-
-// Provider を定義 (AsyncNotifier<WordListState> に型変更)
-final wordListProvider =
-    AsyncNotifierProvider.autoDispose<WordListNotifier, WordListState>(
-      () => WordListNotifier(),
-    );

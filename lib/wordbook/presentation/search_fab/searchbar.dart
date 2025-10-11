@@ -2,21 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../state/list_notifier.dart';
-import '../../state/search_word.dart';
+import 'package:edb/wordbook/domain/list_notifier.dart';
+import 'package:edb/wordbook/data/search_word.dart';
 
-// MySearchBar ウィジェットの定義
 class MySearchBar extends HookConsumerWidget {
   const MySearchBar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 確定文字列やWordListに付随する関数
-    final searchQueryNotifier = ref.read(searchWordProvider.notifier);
-    final wordListNotifier = ref.read(wordListProvider.notifier);
-
+    // 検索文字列
     final searchQuery = ref.watch(searchWordProvider);
-
+    // 検索バー内の文字列（初期値は現在の検索文字列）
     final textEditingController = useTextEditingController(text: searchQuery);
 
     Widget refreshIcon() {
@@ -24,30 +20,34 @@ class MySearchBar extends HookConsumerWidget {
         return IconButton(
           icon: const Icon(Icons.clear),
           onPressed: () {
-            // 入力内容をクリアし、検索を再実行
+            // 入力内容をクリア
             textEditingController.text = '';
+            ref.read(searchWordProvider.notifier).refresh();
           },
         );
       } else {
-        return SizedBox.shrink();
+        return const SizedBox.shrink();
       }
     }
 
     return TextField(
-      // Row/Expandedを削除し、TextFieldを直接配置
       controller: textEditingController,
+
+      // 見た目を検索バーっぽくする
       decoration: InputDecoration(
         labelText: '検索キーワード',
-        border: const OutlineInputBorder(), // constを追加
+        border: const OutlineInputBorder(),
         prefixIcon: const Icon(Icons.search),
-        // clearボタンをSuffixIconとして統合
-        suffixIcon: refreshIcon(), // refreshIconをsuffixIconに設定
+        suffixIcon: refreshIcon(),
       ),
+
       // 確定ボタン（Enter）を押したとき
       onSubmitted: (text) {
-        searchQueryNotifier.setSearchQuery(text);
-        wordListNotifier.reload(queryText: text);
-        // ダイアログ内のTextFieldでEnterを押した後もダイアログを閉じる
+        // 検索文字列の確定
+        ref.read(searchWordProvider.notifier).setSearchQuery(text);
+        // データベースにクエリを投げる
+        ref.read(wordListProvider.notifier).reload(queryText: text);
+        // シートを閉じる
         Navigator.pop(context);
       },
     );

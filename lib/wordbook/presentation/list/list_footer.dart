@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../state/search_word.dart';
-import '../../state/list_notifier.dart';
-import '../../state/list_state.dart';
+import 'package:edb/wordbook/data/list_state.dart';
+import 'package:edb/wordbook/data/search_word.dart';
+import 'package:edb/wordbook/domain/list_notifier.dart';
 
 // ===============================================
 // 途中ロード　判定ロジック
@@ -15,23 +15,29 @@ class MyListFooter extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // WordListクラスを取り出す
-    final state = ref.read(wordListProvider).value;
+    final asyncState = ref.watch(wordListProvider);
 
-    // 終端での状態判定
-    switch (state!.endStatus) {
-      // 途中ロード中
-      case EndStatus.loading:
-        return const _MyLoadingFooter();
+    if (asyncState case AsyncData(:final value)) {
+      // 終端での状態判定
+      switch (value.endStatus) {
+        // 途中ロード中
+        case EndStatus.loading:
+          return const _MyLoadingFooter();
 
-      // 途中エラー場合
-      case EndStatus.error:
-        return _MyErrorFooter();
+        // 途中エラー場合
+        case EndStatus.error:
+          return const _MyErrorFooter();
 
-      // 通常時
-      case EndStatus.normal:
-        // isDataEndがtrueの場合は最終端、スクロール中
-        return state.isDataEnd ? const _MyEndFooter() : const SizedBox.shrink();
+        // 通常時
+        case EndStatus.normal:
+          // isDataEndがtrueの場合は最終端、スクロール中
+          return value.isDataEnd
+              ? const _MyEndFooter()
+              : const SizedBox.shrink();
+      }
     }
+
+    return const SizedBox.shrink();
   }
 }
 
@@ -58,8 +64,6 @@ class _MyErrorFooter extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final wordListNotifier = ref.read(wordListProvider.notifier);
-
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -71,6 +75,7 @@ class _MyErrorFooter extends ConsumerWidget {
             // リトライ時は、loadNextPageを再試行させる
             child: const Text('リトライ'),
             onPressed: () {
+              final wordListNotifier = ref.read(wordListProvider.notifier);
               final searchQuery = ref.read(searchWordProvider);
               wordListNotifier.loadNextPage(queryText: searchQuery);
             },
