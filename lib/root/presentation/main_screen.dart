@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:edb/drawer.dart';
 import 'package:edb/root/data/bottom_index.dart';
 import 'package:edb/root/presentation/setting_fab.dart';
+import 'package:edb/root/presentation/translate_fab.dart';
 
 // -----------------------------------------------------------------------------
 // MainScreen (共通のScaffold)
@@ -30,15 +31,7 @@ class MainScreen extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min, // Column が占有する高さを最小限に抑える
           crossAxisAlignment: CrossAxisAlignment.end, // ボタンを右端に寄せる
           children: [
-            FloatingActionButton(
-              heroTag: 'fab_bookmark_sentence',
-              onPressed: () {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('翻訳を開始します')));
-              },
-              child: const Icon(Icons.bookmark_add_outlined),
-            ),
+            MyTranslateFab(),
             const SizedBox(height: 10),
             FloatingActionButton(
               heroTag: 'fab_bookmark_sentence',

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:edb/translation.dart';
+import 'package:edb/translation/presentation/translation.dart';
 import 'package:edb/wordbook/presentation/list/wordbook_screen.dart';
 import 'package:edb/root/presentation/main_screen.dart';
 
