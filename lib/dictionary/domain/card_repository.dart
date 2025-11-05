@@ -4,17 +4,16 @@ import 'package:edb/db/app_database.dart';
 import 'package:edb/db/vocaburary_repository.dart';
 
 // すべてのビジネスロジック（CRUD, ページング）を担当する
-final batchRepositoryProvider = Provider<BatchRepository>((ref) {
+final cardRepositoryProvider = Provider<CardRepository>((ref) {
   final db = ref.watch(databaseProvider);
-  return BatchRepository(db);
+  return CardRepository(db);
 });
 
-// 一括で単語の訳語を取得する
-class BatchRepository extends VocabularyRepository {
-  BatchRepository(super.db);
+class CardRepository extends VocabularyRepository {
+  CardRepository(super.db);
 
   // ===============================================
-  // R: Read (ページングとフィルタリング)
+  // R: Read ()
   // ===============================================
   Future<List<Vocabulary>> fetchTranslationsBatch(
     Set<String> lookupKeys,

@@ -65,7 +65,7 @@ class MyDrawer extends StatelessWidget {
               ],
             ),
           ),
-          const Divider(),
+          Divider(color: Theme.of(context).colorScheme.outlineVariant),
           ListTile(
             leading: const Icon(Icons.settings),
             title: const Text('設定'),

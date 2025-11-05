@@ -9,6 +9,7 @@ import 'package:edb/wordbook/data/search_word.dart';
 import 'package:edb/wordbook/presentation/list/initial_error.dart';
 import 'package:edb/wordbook/presentation/list/list_footer.dart';
 import 'package:edb/wordbook/presentation/list/card2.dart';
+import 'package:edb/wordbook/presentation/list/setting_fab.dart';
 
 class WordbookScreen extends HookConsumerWidget {
   const WordbookScreen({super.key});
@@ -96,6 +97,24 @@ class WordbookScreen extends HookConsumerWidget {
             );
           },
         ),
+      ),
+
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min, // Column が占有する高さを最小限に抑える
+        crossAxisAlignment: CrossAxisAlignment.end, // ボタンを右端に寄せる
+        children: [
+          const MySettingFab(),
+          const SizedBox(height: 10),
+          FloatingActionButton(
+            heroTag: 'fab_add_word',
+            onPressed: () {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('単語を登録します')));
+            },
+            child: const Icon(Icons.add),
+          ),
+        ],
       ),
     );
   }

@@ -4,7 +4,7 @@ import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
-import 'database_initializer.dart';
+import 'package:edb/db/database_initializer.dart';
 
 /// ネイティブ環境用の QueryExecutor を返す関数
 QueryExecutor constructDb() {

@@ -5,46 +5,13 @@ import 'package:edb/translation/data/token.dart';
 import 'package:edb/translation/domain/translation_notifier.dart';
 import 'package:edb/translation/presentation/text_field.dart';
 import 'package:edb/translation/presentation/word_block.dart';
+import 'package:edb/translation/presentation/translate_fab.dart';
 
 class TranslationModePage extends ConsumerWidget {
   const TranslationModePage({super.key});
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // トークン配列を監視
-    final state = ref.watch(translationProvider);
-    // MainScreenのFABと連携するため、この画面側で処理をキックする
-    // TODO: MainScreenのFABのonPressedから、このNotifierのprocessTranslation()を呼び出すロジックを実装する必要がある
-
-    return Column(
-      children: [
-        // 英文入力エリア
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: const MyTextField(),
-        ),
-
-        // 単語ブロック表示エリア
-        Expanded(
-          child: state.isProcessing
-              ? const Center(child: CircularProgressIndicator())
-              // 垂直スクロールできるようにする
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: _WordBlocksArea(tokens: state.tokens),
-                ),
-        ),
-      ],
-    );
-  }
-}
-
-// 改行ロジック
-class _WordBlocksArea extends StatelessWidget {
-  final List<Token> tokens;
-  const _WordBlocksArea({required this.tokens});
-
-  List<Widget> buildWordBlocksWithBreaks() {
+  // 改行ロジック
+  List<Widget> _buildWordBlocksWithBreaks({required List<Token> tokens}) {
     final List<Widget> widgets = [];
 
     for (final token in tokens) {
@@ -61,14 +28,56 @@ class _WordBlocksArea extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      // 横並び・自動改行
-      alignment: WrapAlignment.center, // 中央揃え
-      spacing: 8.0, // 単語ブロック間の水平方向の間隔
-      runSpacing: 8.0, // 単語ブロック行間の垂直方向の間隔
-      // 内部メソッドで生成したウィジェットリストを使用
-      children: buildWordBlocksWithBreaks(),
+  Widget build(BuildContext context, WidgetRef ref) {
+    // トークン配列を監視
+    final state = ref.watch(translationProvider);
+
+    return Scaffold(
+      body: Column(
+        children: [
+          // 英文入力エリア
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: const MyTextField(),
+          ),
+
+          // 単語ブロック表示エリア
+          Expanded(
+            child: state.isProcessing
+                ? const Center(child: CircularProgressIndicator())
+                // 垂直スクロールできるようにする
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.all(16.0),
+                    // 横並び・自動改行
+                    child: Wrap(
+                      alignment: WrapAlignment.center, // 中央揃え
+                      spacing: 8.0, // 単語ブロック間の水平方向の間隔
+                      runSpacing: 8.0, // 単語ブロック行間の垂直方向の間隔
+                      children: _buildWordBlocksWithBreaks(
+                        tokens: state.tokens,
+                      ), // 改行を含む
+                    ),
+                  ),
+          ),
+        ],
+      ),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min, // Column が占有する高さを最小限に抑える
+        crossAxisAlignment: CrossAxisAlignment.end, // ボタンを右端に寄せる
+        children: [
+          MyTranslateFab(),
+          const SizedBox(height: 10),
+          FloatingActionButton(
+            heroTag: 'fab_bookmark_sentence',
+            onPressed: () {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('英文を保存します')));
+            },
+            child: const Icon(Icons.bookmark_add_outlined),
+          ),
+        ],
+      ),
     );
   }
 }

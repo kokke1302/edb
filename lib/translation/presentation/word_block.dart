@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:edb/translation/data/token.dart';
+import 'package:edb/dictionary/presentation/dictionary_sheet.dart';
 
 class WordBlock extends StatelessWidget {
   final Token token;
@@ -12,12 +13,18 @@ class WordBlock extends StatelessWidget {
     return InkWell(
       onTap: () {
         if (token.isWord) {
-          // TODO: 辞書機能シート（VocabularyInputSheet）をshowModalBottomSheetで表示するロジックを実装
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('${token.word} がタップされました')));
+          showModalBottomSheet(
+            context: context,
+            showDragHandle: true,
+            isScrollControlled: true, // 高さが可変になるように設定
+            builder: (BuildContext context) {
+              // 作成したVocabularyInputSheetを呼び出す
+              return VocabularyInputSheet(token: token);
+            },
+          );
         }
       },
+
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
         decoration: BoxDecoration(
@@ -33,18 +40,15 @@ class WordBlock extends StatelessWidget {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             // 下段に日本語訳
-            if (token.resolvedTranslation != null &&
-                token.resolvedTranslation!.isNotEmpty)
-              Text(
-                token.resolvedTranslation!,
-                style: TextStyle(fontSize: 14, color: Colors.blue.shade700),
-              ),
-            if (token.resolvedTranslation == null ||
-                token.resolvedTranslation!.isEmpty)
-              const Text(
-                '-',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
+            token.resolvedTranslation.isNotEmpty
+                ? Text(
+                    token.resolvedTranslation,
+                    style: TextStyle(fontSize: 14, color: Colors.blue.shade700),
+                  )
+                : const Text(
+                    '-',
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
           ],
         ),
       ),

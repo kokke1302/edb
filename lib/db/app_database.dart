@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '_connection_web.dart' if (dart.library.io) '_connection_native.dart';
 
-part 'app_database.g.dart';
+part 'package:edb/db/app_database.g.dart';
 
 // 単語帳テーブル（VocabularyEntry）
 class Vocabularies extends Table {

@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
-import 'database_initializer.dart'; // dbFileName を使用するため
+import 'package:edb/db/database_initializer.dart'; // dbFileName を使用するため
 
 /// Web環境用の QueryExecutor を返す関数
 QueryExecutor constructDb() {

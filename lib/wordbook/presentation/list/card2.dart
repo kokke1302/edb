@@ -50,10 +50,10 @@ class MyWordCard extends StatelessWidget {
                 ),
 
                 // 垂直の区切り線
-                const VerticalDivider(
+                VerticalDivider(
                   width: 1,
                   thickness: 1,
-                  color: Colors.grey,
+                  color: Theme.of(context).colorScheme.outlineVariant,
                 ),
 
                 // 右側: 日本語訳

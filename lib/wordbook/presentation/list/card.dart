@@ -54,7 +54,10 @@ class MyWordCard extends StatelessWidget {
               entry.japaneseTranslation,
               style: const TextStyle(fontSize: 15, color: Colors.black87),
             ),
-            const Divider(height: 16),
+            Divider(
+              color: Theme.of(context).colorScheme.outlineVariant,
+              height: 16,
+            ),
 
             // 4行目: Memo
             Text(

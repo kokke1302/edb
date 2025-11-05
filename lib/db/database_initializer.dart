@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 
-import 'app_database.dart';
+import 'package:edb/db/app_database.dart';
 
 const String dbFileName = 'db.sqlite';
 
