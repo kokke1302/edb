@@ -65,7 +65,7 @@ class _MySheetEnd extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.end, // ボタンを右寄せに
+      mainAxisAlignment: MainAxisAlignment.spaceBetween, // ボタンを右寄せに
       children: <Widget>[
         // リセットボタン
         TextButton(
@@ -82,23 +82,28 @@ class _MySheetEnd extends ConsumerWidget {
           child: const Text('リセット'),
         ),
 
-        // キャンセルボタン
-        const SizedBox(width: 8),
-        TextButton(
-          onPressed: () => Navigator.pop(context), // シートを閉じる
-          child: const Text('キャンセル'),
-        ),
-        const SizedBox(width: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            // キャンセルボタン
+            const SizedBox(width: 8),
+            TextButton(
+              onPressed: () => Navigator.pop(context), // シートを閉じる
+              child: const Text('キャンセル'),
+            ),
+            const SizedBox(width: 8),
 
-        // 決定ボタン
-        ElevatedButton(
-          onPressed: () {
-            final searchWord = ref.read(searchWordProvider);
-            final wordListNotifier = ref.read(wordListProvider.notifier);
-            wordListNotifier.reload(queryText: searchWord);
-            Navigator.pop(context);
-          },
-          child: const Text('決定'),
+            // 決定ボタン
+            ElevatedButton(
+              onPressed: () {
+                final searchWord = ref.read(searchWordProvider);
+                final wordListNotifier = ref.read(wordListProvider.notifier);
+                wordListNotifier.reload(queryText: searchWord);
+                Navigator.pop(context);
+              },
+              child: const Text('決定'),
+            ),
+          ],
         ),
       ],
     );

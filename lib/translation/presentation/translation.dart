@@ -16,7 +16,7 @@ class TranslationModePage extends ConsumerWidget {
 
     for (final token in tokens) {
       // 本来の単語ブロックを追加
-      widgets.add(WordBlock(token: token));
+      widgets.add(WordBlock(id: token.id));
 
       // 【改行条件】Tokenがピリオド(.)の場合、その直後に改行用ダミーtokenを挿入する
       if (token.word == '.') {
@@ -30,7 +30,7 @@ class TranslationModePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // トークン配列を監視
-    final state = ref.watch(translationProvider);
+    final chain = ref.watch(translationProvider);
 
     return Scaffold(
       body: Column(
@@ -43,7 +43,7 @@ class TranslationModePage extends ConsumerWidget {
 
           // 単語ブロック表示エリア
           Expanded(
-            child: state.isProcessing
+            child: chain.isProcessing
                 ? const Center(child: CircularProgressIndicator())
                 // 垂直スクロールできるようにする
                 : SingleChildScrollView(
@@ -54,7 +54,7 @@ class TranslationModePage extends ConsumerWidget {
                       spacing: 8.0, // 単語ブロック間の水平方向の間隔
                       runSpacing: 8.0, // 単語ブロック行間の垂直方向の間隔
                       children: _buildWordBlocksWithBreaks(
-                        tokens: state.tokens,
+                        tokens: chain.tokens,
                       ), // 改行を含む
                     ),
                   ),

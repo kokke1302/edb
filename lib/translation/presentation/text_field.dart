@@ -10,9 +10,9 @@ class MyTextField extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // トークン配列を監視
-    final state = ref.watch(translationProvider);
+    final chain = ref.watch(translationProvider);
     // textField内文字列
-    final textController = useTextEditingController(text: state.originalText);
+    final textController = useTextEditingController(text: chain.originalText);
 
     Widget refreshIcon() {
       if (textController.text.isNotEmpty) {

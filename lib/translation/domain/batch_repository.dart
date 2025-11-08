@@ -20,11 +20,10 @@ class BatchRepository extends VocabularyRepository {
     Set<String> lookupKeys,
   ) async {
     final query = db.select(db.vocabularies)
-      ..where((v) {
-        return v.englishWord.isIn(lookupKeys);
-      });
-
-    // 必要なカラムのみを選択的に取得（パフォーマンス改善）
+      // 1. englishWord が lookupKeys に含まれていること
+      ..where((v) => v.englishWord.isIn(lookupKeys))
+      // 2. isHidden が false であること
+      ..where((v) => v.isHidden.equals(false));
     return await query.get();
   }
 }

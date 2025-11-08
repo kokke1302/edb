@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '_connection_web.dart' if (dart.library.io) '_connection_native.dart';
 
-part 'package:edb/db/app_database.g.dart';
+part 'app_database.g.dart';
 
 // 単語帳テーブル（VocabularyEntry）
 class Vocabularies extends Table {
@@ -21,7 +21,7 @@ class InternalDictionaries extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get key => text()();
   TextColumn get word => text()();
-  TextColumn get mean => text().nullable()();
+  TextColumn get mean => text()();
   TextColumn get memo => text().nullable()();
 }
 

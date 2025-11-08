@@ -4,12 +4,11 @@ import 'package:just_throttle_it/just_throttle_it.dart';
 import 'package:edb/translation/data/token.dart';
 import 'package:edb/translation/data/translation_state.dart';
 import 'package:edb/translation/domain/text_processor.dart';
-import 'package:edb/dictionary/data/card_state.dart';
 
 final translationProvider =
-    NotifierProvider<TranslationNotifier, TranslationState>(() {
-      return TranslationNotifier();
-    });
+    NotifierProvider<TranslationNotifier, TranslationState>(
+      () => TranslationNotifier(),
+    );
 
 class TranslationNotifier extends Notifier<TranslationState> {
   @override
@@ -18,25 +17,12 @@ class TranslationNotifier extends Notifier<TranslationState> {
   }
 
   // 特定の単語の訳語を更新するメソッドを追加
-  void updateTokenTranslation({
-    required Token target,
-    required CardEntry card,
-  }) {
-    // 処理中の場合は更新しない
-    if (state.isProcessing) return;
-
-    // 現在のトークンリストをコピーし、該当トークンを新しいインスタンスに置き換える
-    final List<Token> updatedTokens = state.tokens.map((token) {
-      if (token.id == target.id) {
-        // changeTranslationで新しいTokenインスタンスを生成
-        final newTranslation = card.isShow ? '' : card.translation;
-        return token.changeTranslation(newTranslation: newTranslation);
-      }
-      return token;
-    }).toList();
-
-    // 状態全体を新しいトークンリストで更新し、UIを再構築させる
-    state = state.copyWith(tokens: updatedTokens);
+  void updateToken({required Token updatedToken}) {
+    state = state.copyWith(
+      tokens: state.tokens.map((token) {
+        return token.id == updatedToken.id ? updatedToken : token;
+      }).toList(),
+    );
   }
 
   // 英文入力エリアの更新時

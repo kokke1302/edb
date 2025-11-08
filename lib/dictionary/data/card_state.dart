@@ -1,27 +1,35 @@
+import 'package:edb/translation/data/base_style.dart';
+
 class CardEntry {
+  final int id;
   final String translation;
-  final bool isShow;
+  final bool isShow; // default
+  final bool nowShow;
   final String memo;
-  final bool isRegistered;
+  final Based based;
 
   CardEntry({
+    required this.id,
     required this.translation,
     required this.isShow,
+    required this.nowShow,
     this.memo = '',
-    required this.isRegistered,
+    required this.based,
   });
 
   CardEntry copyWith({
     String? translation,
-    bool? isShow,
+    bool? nowShow,
     String? memo,
-    bool? isRegistered,
+    Based? based,
   }) {
     return CardEntry(
+      id: id,
       translation: translation ?? this.translation,
-      isShow: isShow ?? this.isShow,
+      isShow: isShow,
+      nowShow: nowShow ?? this.nowShow,
       memo: memo ?? this.memo,
-      isRegistered: isRegistered ?? this.isRegistered,
+      based: based ?? this.based,
     );
   }
 }

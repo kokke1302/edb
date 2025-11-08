@@ -1,4 +1,9 @@
 import 'package:drift/drift.dart';
+import 'dart:io';
+import 'package:path/path.dart' as p;
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:edb/db/app_database.dart';
 
@@ -11,7 +16,7 @@ class DatabaseInitializer {
 
   // 単語帳データ投入関数
   Future<void> insertManualVocabularies() async {
-    print('INFO: 手動初期データ投入を開始...');
+    print('INFO: 単語帳初期データ投入を開始...');
 
     final countStatement = countAll();
     final currentCount =
@@ -64,9 +69,48 @@ class DatabaseInitializer {
         );
       });
 
-      print('INFO: 手動初期データ ${initialData.length} 件の投入が完了しました。');
+      print('INFO: 単語帳初期データ ${initialData.length} 件の投入が完了しました。');
     } else {
-      print('INFO: 行数が0以上です。手動初期データ投入をスキップします。');
+      print('INFO: 行数が0以上です。単語帳初期データ投入をスキップします。');
+    }
+  }
+
+  // ネイティブ環境での初回起動時のみ、アセットの辞書ファイルをDBパスにコピー
+  static Future<void> ensureDictionaryCopied() async {
+    // Web環境ではこの処理は不要
+    if (kIsWeb) {
+      print('INFO: Web環境です。ファイルコピー処理をスキップします。');
+      return;
+    }
+
+    // 1. データベース格納ディレクトリとファイルパスを取得
+    final dbFolder = await getApplicationSupportDirectory();
+    final dbFilePath = p.join(dbFolder.path, dbFileName);
+    final file = File(dbFilePath);
+
+    // 2. データベースファイルが既に存在する場合、コピーはスキップ
+    if (await file.exists()) {
+      print('INFO: データベースファイル（$dbFilePath）は既に存在します。コピーをスキップします。');
+      return;
+    }
+
+    // 3. データベースファイルが存在しない場合のみ、アセットからコピーを開始
+    print('INFO: データベースファイルが存在しません。アセットからのコピーを開始します。');
+
+    const String assetPath = 'assets/output.sqlite3';
+    try {
+      final data = await rootBundle.load(assetPath);
+      final bytes = data.buffer.asUint8List(
+        data.offsetInBytes,
+        data.lengthInBytes,
+      );
+
+      // ファイルを直接書き込み
+      await file.writeAsBytes(bytes, flush: true);
+      print('INFO: 内部辞書ファイル（$assetPath）のコピーが完了しました。');
+    } catch (e) {
+      print('ERROR: プリパッケージドデータベースのコピー中にエラーが発生しました: $e');
+      rethrow;
     }
   }
 }

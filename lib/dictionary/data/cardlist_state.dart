@@ -24,4 +24,18 @@ class CardListState {
       dictionaryWords: dictionaryWords ?? this.dictionaryWords,
     );
   }
+
+  CardEntry targetCard({required String id}) {
+    if (showWord != null && showWord!.id == id) return showWord!;
+
+    for (final card in vocabularyWords) {
+      if (card.id == id) return card;
+    }
+
+    for (final card in dictionaryWords) {
+      if (card.id == id) return card;
+    }
+
+    throw Exception('Card with id $id not found');
+  }
 }

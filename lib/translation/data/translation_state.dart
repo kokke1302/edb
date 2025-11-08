@@ -22,4 +22,13 @@ class TranslationState {
       isProcessing: isProcessing ?? this.isProcessing,
     );
   }
+
+  Token targetToken({required int id}) {
+    for (final token in tokens) {
+      if (token.id == id) {
+        return token;
+      }
+    }
+    throw Exception('Token with id $id not found');
+  }
 }

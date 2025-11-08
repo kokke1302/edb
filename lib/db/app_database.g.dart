@@ -865,9 +865,9 @@ class $InternalDictionariesTable extends InternalDictionaries
   late final GeneratedColumn<String> mean = GeneratedColumn<String>(
     'mean',
     aliasedName,
-    true,
+    false,
     type: DriftSqlType.string,
-    requiredDuringInsert: false,
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _memoMeta = const VerificationMeta('memo');
   @override
@@ -916,6 +916,8 @@ class $InternalDictionariesTable extends InternalDictionaries
         _meanMeta,
         mean.isAcceptableOrUnknown(data['mean']!, _meanMeta),
       );
+    } else if (isInserting) {
+      context.missing(_meanMeta);
     }
     if (data.containsKey('memo')) {
       context.handle(
@@ -947,7 +949,7 @@ class $InternalDictionariesTable extends InternalDictionaries
       mean: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}mean'],
-      ),
+      )!,
       memo: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}memo'],
@@ -966,13 +968,13 @@ class InternalDictionary extends DataClass
   final int id;
   final String key;
   final String word;
-  final String? mean;
+  final String mean;
   final String? memo;
   const InternalDictionary({
     required this.id,
     required this.key,
     required this.word,
-    this.mean,
+    required this.mean,
     this.memo,
   });
   @override
@@ -981,9 +983,7 @@ class InternalDictionary extends DataClass
     map['id'] = Variable<int>(id);
     map['key'] = Variable<String>(key);
     map['word'] = Variable<String>(word);
-    if (!nullToAbsent || mean != null) {
-      map['mean'] = Variable<String>(mean);
-    }
+    map['mean'] = Variable<String>(mean);
     if (!nullToAbsent || memo != null) {
       map['memo'] = Variable<String>(memo);
     }
@@ -995,7 +995,7 @@ class InternalDictionary extends DataClass
       id: Value(id),
       key: Value(key),
       word: Value(word),
-      mean: mean == null && nullToAbsent ? const Value.absent() : Value(mean),
+      mean: Value(mean),
       memo: memo == null && nullToAbsent ? const Value.absent() : Value(memo),
     );
   }
@@ -1009,7 +1009,7 @@ class InternalDictionary extends DataClass
       id: serializer.fromJson<int>(json['id']),
       key: serializer.fromJson<String>(json['key']),
       word: serializer.fromJson<String>(json['word']),
-      mean: serializer.fromJson<String?>(json['mean']),
+      mean: serializer.fromJson<String>(json['mean']),
       memo: serializer.fromJson<String?>(json['memo']),
     );
   }
@@ -1020,7 +1020,7 @@ class InternalDictionary extends DataClass
       'id': serializer.toJson<int>(id),
       'key': serializer.toJson<String>(key),
       'word': serializer.toJson<String>(word),
-      'mean': serializer.toJson<String?>(mean),
+      'mean': serializer.toJson<String>(mean),
       'memo': serializer.toJson<String?>(memo),
     };
   }
@@ -1029,13 +1029,13 @@ class InternalDictionary extends DataClass
     int? id,
     String? key,
     String? word,
-    Value<String?> mean = const Value.absent(),
+    String? mean,
     Value<String?> memo = const Value.absent(),
   }) => InternalDictionary(
     id: id ?? this.id,
     key: key ?? this.key,
     word: word ?? this.word,
-    mean: mean.present ? mean.value : this.mean,
+    mean: mean ?? this.mean,
     memo: memo.present ? memo.value : this.memo,
   );
   InternalDictionary copyWithCompanion(InternalDictionariesCompanion data) {
@@ -1078,7 +1078,7 @@ class InternalDictionariesCompanion
   final Value<int> id;
   final Value<String> key;
   final Value<String> word;
-  final Value<String?> mean;
+  final Value<String> mean;
   final Value<String?> memo;
   const InternalDictionariesCompanion({
     this.id = const Value.absent(),
@@ -1091,10 +1091,11 @@ class InternalDictionariesCompanion
     this.id = const Value.absent(),
     required String key,
     required String word,
-    this.mean = const Value.absent(),
+    required String mean,
     this.memo = const Value.absent(),
   }) : key = Value(key),
-       word = Value(word);
+       word = Value(word),
+       mean = Value(mean);
   static Insertable<InternalDictionary> custom({
     Expression<int>? id,
     Expression<String>? key,
@@ -1115,7 +1116,7 @@ class InternalDictionariesCompanion
     Value<int>? id,
     Value<String>? key,
     Value<String>? word,
-    Value<String?>? mean,
+    Value<String>? mean,
     Value<String?>? memo,
   }) {
     return InternalDictionariesCompanion(
@@ -1618,7 +1619,7 @@ typedef $$InternalDictionariesTableCreateCompanionBuilder =
       Value<int> id,
       required String key,
       required String word,
-      Value<String?> mean,
+      required String mean,
       Value<String?> memo,
     });
 typedef $$InternalDictionariesTableUpdateCompanionBuilder =
@@ -1626,7 +1627,7 @@ typedef $$InternalDictionariesTableUpdateCompanionBuilder =
       Value<int> id,
       Value<String> key,
       Value<String> word,
-      Value<String?> mean,
+      Value<String> mean,
       Value<String?> memo,
     });
 
@@ -1771,7 +1772,7 @@ class $$InternalDictionariesTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> key = const Value.absent(),
                 Value<String> word = const Value.absent(),
-                Value<String?> mean = const Value.absent(),
+                Value<String> mean = const Value.absent(),
                 Value<String?> memo = const Value.absent(),
               }) => InternalDictionariesCompanion(
                 id: id,
@@ -1785,7 +1786,7 @@ class $$InternalDictionariesTableTableManager
                 Value<int> id = const Value.absent(),
                 required String key,
                 required String word,
-                Value<String?> mean = const Value.absent(),
+                required String mean,
                 Value<String?> memo = const Value.absent(),
               }) => InternalDictionariesCompanion.insert(
                 id: id,

@@ -1,25 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:edb/translation/data/token.dart';
+import 'package:edb/translation/domain/translation_notifier.dart';
 import 'package:edb/dictionary/presentation/dictionary_sheet.dart';
+import 'package:edb/dictionary/data/token_id.dart';
 
-class WordBlock extends StatelessWidget {
-  final Token token;
-  const WordBlock({super.key, required this.token});
+class WordBlock extends ConsumerWidget {
+  final int id;
+  const WordBlock({super.key, required this.id});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final token = ref.read(translationProvider).targetToken(id: id);
     // 単語ブロック全体をGestureDetectorでラップし、タップで辞書機能シートへ遷移
     return InkWell(
       onTap: () {
         if (token.isWord) {
+          ref.read(tokenIdProvider.notifier).updateNum(id);
           showModalBottomSheet(
             context: context,
             showDragHandle: true,
             isScrollControlled: true, // 高さが可変になるように設定
             builder: (BuildContext context) {
-              // 作成したVocabularyInputSheetを呼び出す
-              return VocabularyInputSheet(token: token);
+              return const VocabularyInputSheet();
             },
           );
         }
@@ -40,7 +43,7 @@ class WordBlock extends StatelessWidget {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             // 下段に日本語訳
-            token.resolvedTranslation.isNotEmpty
+            token.nowShow
                 ? Text(
                     token.resolvedTranslation,
                     style: TextStyle(fontSize: 14, color: Colors.blue.shade700),

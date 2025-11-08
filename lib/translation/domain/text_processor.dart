@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/db/app_database.dart';
+import 'package:edb/translation/data/base_style.dart';
 import 'package:edb/translation/data/token.dart';
 import 'package:edb/translation/domain/batch_repository.dart';
 
@@ -40,14 +41,19 @@ class TextProcessor {
 
     // 5. トークンに訳語を割り当てる (メモリ内処理)
     List<Token> translatedTokens = tokens.map((token) {
-      // 句読点や訳語検索不要なものはそのまま
+      // 句読点はそのまま
       if (!token.isWord || token.lookupKey.isEmpty) return token;
 
       // Mapから訳語を取得。非表示単語は空文字を投入。
       final String assignedTranslation = translationMap[token.lookupKey] ?? '';
+      final bool isShow = assignedTranslation.isNotEmpty;
 
       // 訳語がMap内に存在すれば割り当てる
-      return token.changeTranslation(newTranslation: assignedTranslation);
+      return token.copyWith(
+        resolvedTranslation: assignedTranslation,
+        isShow: isShow,
+        nowShow: isShow,
+      );
     }).toList();
 
     return translatedTokens;
@@ -62,10 +68,10 @@ class TextProcessor {
     final List<Token> tokens = [];
     int id = 1;
     for (final match in matches) {
-      final String tokenText = match.group(0)!;
+      final String tokenText = match.group(0)!.trim();
 
       // トークンが空白文字のみの場合はスキップ
-      if (tokenText.trim().isEmpty) continue;
+      if (tokenText.isEmpty) continue;
 
       // 単語であることの判定（トークンに\w(単語文字)が含まれているか）
       final bool isWord = RegExp(r'\w').hasMatch(tokenText);
@@ -74,7 +80,13 @@ class TextProcessor {
       final String lookupKey = isWord ? tokenText.toLowerCase() : '';
 
       tokens.add(
-        Token(id: id, word: tokenText, lookupKey: lookupKey, isWord: isWord),
+        Token(
+          id: id,
+          word: tokenText,
+          lookupKey: lookupKey,
+          isWord: isWord,
+          based: Based.process,
+        ),
       );
 
       id++;

@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:edb/translation/data/token.dart';
 import 'package:edb/translation/domain/translation_notifier.dart';
-import 'package:edb/dictionary/data/card_state.dart';
+import 'package:edb/dictionary/data/token_id.dart';
 import 'package:edb/dictionary/domain/cardlist_notifier.dart';
+import 'package:edb/dictionary/presentation/registered_card.dart';
+import 'package:edb/dictionary/presentation/dictionary_card.dart';
 
 // 辞書機能シート
 class VocabularyInputSheet extends ConsumerWidget {
-  final Token token;
-  const VocabularyInputSheet({super.key, required this.token});
+  const VocabularyInputSheet({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final currentId = ref.watch(tokenIdProvider);
     final cards = ref.watch(cardListProvider);
+    final token = ref.watch(translationProvider).targetToken(id: currentId);
 
     // 以下のContainerがモーダルシート全体を占める
     return Container(
@@ -66,12 +68,8 @@ class VocabularyInputSheet extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // isShow
                         if (list.showWord != null)
-                          RegisteredListTile(
-                            token: token,
-                            card: list.showWord!,
-                          ),
+                          RegisteredCared(card: list.showWord!),
 
                         Divider(
                           color: Theme.of(context).colorScheme.outlineVariant,
@@ -84,7 +82,7 @@ class VocabularyInputSheet extends ConsumerWidget {
 
                         // 登録済みリストを展開
                         ...list.vocabularyWords.map((entry) {
-                          return RegisteredListTile(token: token, card: entry);
+                          return RegisteredCared(card: entry);
                         }),
 
                         Divider(
@@ -98,7 +96,7 @@ class VocabularyInputSheet extends ConsumerWidget {
 
                         // 内部辞書リストを展開
                         ...list.dictionaryWords.map((entry) {
-                          return DictionaryListTile(card: entry);
+                          return DictionaryCard(card: entry);
                         }),
 
                         // オリジナル登録フィールドへ遷移するセクション（リストの最後に配置）
@@ -130,133 +128,6 @@ class VocabularyInputSheet extends ConsumerWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class RegisteredListTile extends ConsumerWidget {
-  final Token token;
-  final CardEntry card;
-
-  const RegisteredListTile({
-    super.key,
-    required this.token,
-    required this.card,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Card(
-      elevation: card.isShow ? 4 : 1, // 影
-      margin: const EdgeInsets.only(bottom: 8.0),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Text(
-                    card.translation,
-                    style: Theme.of(context).textTheme.titleMedium,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    // 訳を表示するかどうか (Switch) - isRegisteredの場合のみ表示
-                    if (card.isRegistered) ...[
-                      IconButton(
-                        onPressed: () {
-                          // シートのリスト管理
-                          ref
-                              .watch(cardListProvider.notifier)
-                              .toggleVisibility(entry: card);
-                          // token配列更新
-                          ref
-                              .watch(translationProvider.notifier)
-                              .updateTokenTranslation(
-                                target: token,
-                                card: card,
-                              );
-                        },
-                        icon: card.isShow
-                            ? const Icon(Icons.visibility)
-                            : const Icon(Icons.visibility_off),
-                        tooltip: card.isShow ? '訳語を非表示にする' : '訳語を表示する',
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    IconButton(
-                      onPressed: () {},
-                      icon: Icon(
-                        Icons.book,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      tooltip: '単語帳を編集/確認',
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            // Memoの表示
-            if (card.memo.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 6.0),
-                child: Text(
-                  'メモ: ${card.memo}',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall!.copyWith(color: colorScheme.outline),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class DictionaryListTile extends StatelessWidget {
-  final CardEntry card;
-
-  const DictionaryListTile({super.key, required this.card});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(card.translation, style: const TextStyle(fontSize: 16)),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.book_outlined),
-                ),
-              ],
-            ),
-            // Memoの表示
-            if (card.memo.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 4.0),
-                child: Text(
-                  'Memo: ${card.memo}',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ),
-          ],
-        ),
       ),
     );
   }

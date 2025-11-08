@@ -13,6 +13,8 @@ void main() async {
   // ウィジェットバインディングを初期化
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 辞書DBコピー処理
+  await DatabaseInitializer.ensureDictionaryCopied();
   // AppDatabaseのインスタンスを取得
   final appDb = AppDatabase();
   // 単語帳初期データ投入を実行
