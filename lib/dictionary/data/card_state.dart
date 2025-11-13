@@ -1,4 +1,4 @@
-import 'package:edb/translation/data/base_style.dart';
+enum Based { vocabularies, dictionary }
 
 class CardEntry {
   final int id;
@@ -13,23 +13,18 @@ class CardEntry {
     required this.translation,
     required this.isShow,
     required this.nowShow,
-    this.memo = '',
+    required this.memo,
     required this.based,
   });
 
-  CardEntry copyWith({
-    String? translation,
-    bool? nowShow,
-    String? memo,
-    Based? based,
-  }) {
+  CardEntry nowShowChange({bool? nowShow}) {
     return CardEntry(
       id: id,
-      translation: translation ?? this.translation,
+      translation: translation,
       isShow: isShow,
       nowShow: nowShow ?? this.nowShow,
-      memo: memo ?? this.memo,
-      based: based ?? this.based,
+      memo: memo,
+      based: based,
     );
   }
 }

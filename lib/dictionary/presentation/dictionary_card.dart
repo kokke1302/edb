@@ -4,21 +4,29 @@ import 'package:edb/dictionary/data/card_state.dart';
 
 class DictionaryCard extends StatelessWidget {
   final CardEntry card;
-
   const DictionaryCard({super.key, required this.card});
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
+      elevation: card.nowShow ? 4 : 1, // 影
+      margin: const EdgeInsets.only(bottom: 8.0),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 上段
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(card.translation, style: const TextStyle(fontSize: 16)),
+                Text(
+                  card.translation,
+                  style: Theme.of(context).textTheme.titleMedium,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 IconButton(
                   onPressed: () {
                     ScaffoldMessenger.of(
@@ -29,13 +37,16 @@ class DictionaryCard extends StatelessWidget {
                 ),
               ],
             ),
-            // Memoの表示
+
+            // 下段
             if (card.memo.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.only(top: 4.0),
+                padding: const EdgeInsets.only(top: 6.0),
                 child: Text(
-                  'Memo: ${card.memo}',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  card.memo,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall!.copyWith(color: colorScheme.outline),
                 ),
               ),
           ],

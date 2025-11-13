@@ -44,11 +44,17 @@ class TranslationNotifier extends Notifier<TranslationState> {
 
   // 解析のトリガー
   void _processTranslation() async {
+    // 英文
     final textToProcess = state.originalText.trim();
-    if (state.isProcessing) return;
+
+    // 空の場合
     if (textToProcess.isEmpty) {
-      state = state.copyWith(tokens: []);
+      state = state.copyWith(tokens: [], isProcessing: false);
+      return;
     }
+
+    // 解析を重複させない
+    if (state.isProcessing) return;
 
     // 処理中フラグを立ててUIをブロック/インジケータ表示
     state = state.copyWith(isProcessing: true);
@@ -58,6 +64,12 @@ class TranslationNotifier extends Notifier<TranslationState> {
       final List<Token> newTokens = await ref
           .read(textProcessorProvider)
           .tokenizeAndTranslate(textToProcess);
+
+      for (final news in newTokens) {
+        print(
+          'id: ${news.id}, word: ${news.word}, isWord: ${news.isWord}, resolvedTranslation: ${news.resolvedTranslation}, nowShow: ${news.nowShow}, vocId: ${news.vocId}',
+        );
+      }
 
       // 処理結果で状態を更新
       state = state.copyWith(tokens: newTokens);

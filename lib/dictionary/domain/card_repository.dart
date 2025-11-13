@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/db/app_database.dart';
-import 'package:edb/translation/data/base_style.dart';
 import 'package:edb/dictionary/data/card_state.dart';
 import 'package:edb/db/vocaburary_repository.dart';
 
@@ -21,7 +20,7 @@ class CardRepository extends VocabularyRepository {
   // 単語帳（Vocabularies）から特定の英単語に対応する訳語を取得し、CardEntryのリストとして返す
   Future<List<CardEntry>>? fetchVocabularyEntries(String englishWord) async {
     final query = db.select(db.vocabularies)
-      ..where((v) => v.englishWord.equals(englishWord));
+      ..where((v) => v.englishWord.equals(englishWord.toLowerCase()));
 
     final vocabularies = await query.get();
 
@@ -37,7 +36,7 @@ class CardRepository extends VocabularyRepository {
         isShow: isShow,
         nowShow: isShow,
         memo: v.memo ?? '',
-        based: Based.vocabularies, // 単語帳のエントリなので常にtrue
+        based: Based.vocabularies,
       );
     }).toList();
   }
@@ -49,7 +48,7 @@ class CardRepository extends VocabularyRepository {
   // 内部辞書（InternalDictionaries）から特定の単語に対応する訳語を取得し、CardEntryのリストとして返す
   Future<List<CardEntry>>? fetchDictionaryEntries(String wordKey) async {
     final query = db.select(db.internalDictionaries)
-      ..where((d) => d.key.equals(wordKey));
+      ..where((d) => d.key.equals(wordKey.toLowerCase()));
 
     final dictionaries = await query.get();
 
@@ -58,10 +57,10 @@ class CardRepository extends VocabularyRepository {
       return CardEntry(
         id: d.id,
         translation: d.mean,
-        isShow: false, // 内部辞書のエントリは基本的に非表示
-        nowShow: false,
+        isShow: false, // 内部辞書のエントリでは使わない
+        nowShow: false, // 内部辞書のエントリでは使わない
         memo: d.memo ?? '',
-        based: Based.dictionary, // 内部辞書のエントリなので常にfalse
+        based: Based.dictionary,
       );
     }).toList();
   }

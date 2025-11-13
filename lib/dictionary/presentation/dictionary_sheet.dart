@@ -63,6 +63,15 @@ class VocabularyInputSheet extends ConsumerWidget {
               // コンテンツの高さがmaxHeightを超えるときのみスクロールを有効にする
               child: SingleChildScrollView(
                 child: cards.when(
+                  loading: () => const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 32.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+
+                  error: (err, stack) => Center(child: Text('エラー: $err')),
+
                   data: (list) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -115,14 +124,6 @@ class VocabularyInputSheet extends ConsumerWidget {
                       ],
                     );
                   },
-
-                  loading: () => const Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 32.0),
-                      child: CircularProgressIndicator(),
-                    ),
-                  ),
-                  error: (err, stack) => Center(child: Text('エラー: $err')),
                 ),
               ),
             ),

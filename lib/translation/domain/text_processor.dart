@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/db/app_database.dart';
-import 'package:edb/translation/data/base_style.dart';
 import 'package:edb/translation/data/token.dart';
 import 'package:edb/translation/domain/batch_repository.dart';
 
@@ -17,13 +16,41 @@ class TextProcessor {
 
   /// 英文を解析し、訳語が割り当てられたTokenのリストを返す
   Future<List<Token>> tokenizeAndTranslate(String text) async {
+    final List<Token> initialTokens = [];
+
+    // (ハイフン単語 | アポストロフィ単語 | シンプル単語 | 句読点 | 空白)のまとまりに分ける
+    final matches = RegExp(
+      r"(\w+-\w+|\w+'\w+|\w+|[^\w\s]+|\s+)",
+    ).allMatches(text);
+
     // 1. テキストのトークン化と検索キーの生成
-    List<Token> tokens = _tokenizeAndGenerateKeys(text);
+    int currentId = 1;
+    for (final match in matches) {
+      final String tokenText = match.group(0)!;
+
+      // 空白のみのトークンは無視
+      if (tokenText.trim().isEmpty) continue;
+
+      final Token token = Token(
+        id: currentId,
+        word: tokenText,
+        isWord: RegExp(r'\w').hasMatch(tokenText),
+
+        // 辞書検索後のフィールド
+        resolvedTranslation: '',
+        nowShow: false,
+        vocId: -1,
+      );
+
+      // Token.fromText ファクトリで初期Tokenを生成
+      initialTokens.add(token);
+      currentId++;
+    }
 
     // 2. 一括検索のためのユニークキー収集
-    final Set<String> lookupKeys = tokens
-        .where((t) => t.isWord && t.lookupKey.isNotEmpty)
-        .map((t) => t.lookupKey)
+    final Set<String> lookupKeys = initialTokens
+        .where((t) => t.isWord && t.word.isNotEmpty)
+        .map((t) => t.word.toLowerCase())
         .toSet();
 
     // 3. DictionaryServiceによる訳語の一括検索
@@ -31,67 +58,28 @@ class TextProcessor {
         .read(batchRepositoryProvider)
         .fetchTranslationsBatch(lookupKeys);
 
-    // 4. <検索キー: 訳語>のMapを作成
-    final Map<String, String?> translationMap = {
-      for (var entry in vocabularyEntries)
-        // 非表示指示の場合、訳語を代入しない
-        if (entry.isHidden == false)
-          entry.englishWord: entry.japaneseTranslation,
+    // 4. <検索キー: 単語帳DBエントリー>のMapを作成
+    final Map<String, Vocabulary> translationMap = {
+      for (var entry in vocabularyEntries) entry.englishWord: entry,
     };
 
-    // 5. トークンに訳語を割り当てる (メモリ内処理)
-    List<Token> translatedTokens = tokens.map((token) {
-      // 句読点はそのまま
-      if (!token.isWord || token.lookupKey.isEmpty) return token;
+    // 5. トークンに訳語を割り当てる
+    List<Token> translatedTokens = initialTokens.map((initialToken) {
+      // MapからVocabularyエントリを取得。
+      final Vocabulary? vocabularyEntry =
+          translationMap[initialToken.word.toLowerCase()];
 
-      // Mapから訳語を取得。非表示単語は空文字を投入。
-      final String assignedTranslation = translationMap[token.lookupKey] ?? '';
-      final bool isShow = assignedTranslation.isNotEmpty;
+      // 辞書検索が不要/失敗した場合は、初期Tokenをそのまま返す
+      if (!initialToken.isWord || vocabularyEntry == null) return initialToken;
 
-      // 訳語がMap内に存在すれば割り当てる
-      return token.copyWith(
-        resolvedTranslation: assignedTranslation,
-        isShow: isShow,
-        nowShow: isShow,
+      return initialToken.copyWith(
+        // 辞書検索後のフィールド追加
+        resolvedTranslation: vocabularyEntry.japaneseTranslation,
+        nowShow: !vocabularyEntry.isHidden,
+        vocId: vocabularyEntry.id,
       );
     }).toList();
 
     return translatedTokens;
-  }
-
-  /// 英文を単語と句読点に分割し、検索キー（小文字）を生成する。
-  List<Token> _tokenizeAndGenerateKeys(String text) {
-    // (ハイフン単語 | アポストロフィ単語 | シンプル単語 | 句読点 | 空白)のまとまりに分ける
-    final RegExp regex = RegExp(r"(\w+-\w+|\w+'\w+|\w+|[^\w\s]+|\s+)");
-    final matches = regex.allMatches(text);
-
-    final List<Token> tokens = [];
-    int id = 1;
-    for (final match in matches) {
-      final String tokenText = match.group(0)!.trim();
-
-      // トークンが空白文字のみの場合はスキップ
-      if (tokenText.isEmpty) continue;
-
-      // 単語であることの判定（トークンに\w(単語文字)が含まれているか）
-      final bool isWord = RegExp(r'\w').hasMatch(tokenText);
-
-      // 検索キーとして小文字化
-      final String lookupKey = isWord ? tokenText.toLowerCase() : '';
-
-      tokens.add(
-        Token(
-          id: id,
-          word: tokenText,
-          lookupKey: lookupKey,
-          isWord: isWord,
-          based: Based.process,
-        ),
-      );
-
-      id++;
-    }
-
-    return tokens;
   }
 }

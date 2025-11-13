@@ -59,6 +59,7 @@ class WordListNotifier extends AsyncNotifier<WordListState> {
 
       // 新しいリストと状態を更新
       final updatedWords = [...currentState.words, ...newEntries];
+
       state = AsyncData(
         WordListState(
           words: updatedWords,
@@ -66,8 +67,9 @@ class WordListNotifier extends AsyncNotifier<WordListState> {
           isDataEnd: newEntries.length < _pageSize,
         ),
       );
-    } catch (e, stack) {
-      // エラーが発生した場合
+    }
+    // エラーが発生した場合
+    catch (e, stack) {
       state = AsyncError<WordListState>(e, stack)
           // 既存のリストを保持したままエラーフラグを立てる
           .whenData((data) => data.copyWith(endStatus: EndStatus.error));
@@ -86,6 +88,7 @@ class WordListNotifier extends AsyncNotifier<WordListState> {
         limit: _pageSize,
         queryText: queryText,
       );
+
       return WordListState(
         words: initialList,
         endStatus: EndStatus.normal,
@@ -103,7 +106,7 @@ class WordListNotifier extends AsyncNotifier<WordListState> {
     final repository = ref.read(listRepositoryProvider);
     final sortSetting = ref.read(sortSettingProvider);
 
-    // 遅延をシミュレート
+    // TODO: 遅延をシミュレート
     await Future.delayed(const Duration(milliseconds: 500));
 
     // ページングメソッド

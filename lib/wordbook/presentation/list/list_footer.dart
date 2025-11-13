@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/wordbook/data/list_state.dart';
-import 'package:edb/wordbook/data/search_word.dart';
+import 'package:edb/wordbook/domain/search_word.dart';
 import 'package:edb/wordbook/domain/list_notifier.dart';
 
 // ===============================================
@@ -30,13 +30,13 @@ class MyListFooter extends ConsumerWidget {
 
         // 通常時
         case EndStatus.normal:
-          // isDataEndがtrueの場合は最終端、スクロール中
           return value.isDataEnd
-              ? const _MyEndFooter()
-              : const SizedBox.shrink();
+              ? const _MyEndFooter() // 最終端
+              : const SizedBox.shrink(); // スクロール中
       }
     }
 
+    // 初期ロードが正常でない場合、フッターは何も表示しない
     return const SizedBox.shrink();
   }
 }
@@ -75,9 +75,10 @@ class _MyErrorFooter extends ConsumerWidget {
             // リトライ時は、loadNextPageを再試行させる
             child: const Text('リトライ'),
             onPressed: () {
-              final wordListNotifier = ref.read(wordListProvider.notifier);
               final searchQuery = ref.read(searchWordProvider);
-              wordListNotifier.loadNextPage(queryText: searchQuery);
+              ref
+                  .read(wordListProvider.notifier)
+                  .loadNextPage(queryText: searchQuery);
             },
           ),
         ],

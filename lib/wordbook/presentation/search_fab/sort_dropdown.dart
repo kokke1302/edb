@@ -26,8 +26,7 @@ class SortOrderButton extends ConsumerWidget {
       icon: Icon(icon),
       onPressed: () {
         // ソート順序を変更
-        final sortSettingNotifier = ref.read(sortSettingProvider.notifier);
-        sortSettingNotifier.setOrder(nextOrder);
+        ref.read(sortSettingProvider.notifier).setOrder(nextOrder);
       },
     );
   }
@@ -48,8 +47,7 @@ class SortDropdownMenu extends ConsumerWidget {
       onChanged: (SortField? newField) {
         if (newField != null && newField != currentSetting.field) {
           // ソート項目を変更
-          final sortSettingNotifier = ref.read(sortSettingProvider.notifier);
-          sortSettingNotifier.setField(newField);
+          ref.read(sortSettingProvider.notifier).setField(newField);
         }
       },
       items: const <DropdownMenuItem<SortField>>[

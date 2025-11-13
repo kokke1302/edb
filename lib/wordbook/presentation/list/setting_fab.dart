@@ -16,7 +16,7 @@ class MySettingFab extends StatelessWidget {
           context: context,
           barrierDismissible: true, // ダイアログの外側をタップして閉じれる
           builder: (BuildContext dialogContext) {
-            return SettingsSheet();
+            return const SettingsSheet();
           },
         );
       },

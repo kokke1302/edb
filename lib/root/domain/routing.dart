@@ -10,33 +10,36 @@ import 'package:edb/root/presentation/main_screen.dart';
 //  - ShellRoute = 共通するUIの部分（MainScreen）
 // -----------------------------------------------------------------------------
 
-final _router = GoRouter(
-  initialLocation: '/translate',
-  routes: [
-    ShellRoute(
-      builder: (context, state, child) {
-        return MainScreen(child: child);
-      },
-      routes: [
-        // ボトムナビゲーションバーで切り替える画面
-        GoRoute(
-          path: '/translate',
-          builder: (context, state) => const TranslationModePage(),
-        ),
-        GoRoute(
-          path: '/words',
-          builder: (context, state) => const WordbookScreen(),
-        ),
-      ],
-    ),
-    // 独立した画面
-    GoRoute(path: '/setting', builder: (context, state) => const SettingPage()),
-    GoRoute(path: '/help', builder: (context, state) => const HelpPage()),
-  ],
-);
-
 class EnglishLearningApp extends StatelessWidget {
   const EnglishLearningApp({super.key});
+
+  static final _router = GoRouter(
+    initialLocation: '/translate',
+    routes: [
+      ShellRoute(
+        builder: (context, state, child) {
+          return MainScreen(child: child);
+        },
+        routes: [
+          // ボトムナビゲーションバーで切り替える画面
+          GoRoute(
+            path: '/translate',
+            builder: (context, state) => const TranslationModePage(),
+          ),
+          GoRoute(
+            path: '/words',
+            builder: (context, state) => const WordbookScreen(),
+          ),
+        ],
+      ),
+      // 独立した画面
+      GoRoute(
+        path: '/setting',
+        builder: (context, state) => const SettingPage(),
+      ),
+      GoRoute(path: '/help', builder: (context, state) => const HelpPage()),
+    ],
+  );
 
   @override
   Widget build(BuildContext context) {

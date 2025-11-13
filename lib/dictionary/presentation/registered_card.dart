@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:edb/translation/data/base_style.dart';
 import 'package:edb/dictionary/data/card_state.dart';
 import 'package:edb/dictionary/domain/cardlist_notifier.dart';
 

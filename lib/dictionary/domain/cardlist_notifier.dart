@@ -1,11 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:edb/translation/data/token.dart';
 import 'package:edb/dictionary/data/card_state.dart';
 import 'package:edb/dictionary/data/cardlist_state.dart';
 import 'package:edb/dictionary/data/token_id.dart';
 import 'package:edb/dictionary/domain/card_repository.dart';
-import 'package:edb/translation/data/base_style.dart';
-import 'package:edb/translation/data/token.dart';
 import 'package:edb/translation/domain/translation_notifier.dart';
 
 // Riverpod Providerの定義
@@ -25,89 +24,43 @@ class CardListNotifier extends AsyncNotifier<CardListState> {
     final List<CardEntry> allVocabularyWords =
         await ref
             .read(cardRepositoryProvider)
-            .fetchVocabularyEntries(token.lookupKey) ??
+            .fetchVocabularyEntries(token.word) ??
         [];
 
     // 辞書DBからRead
     final List<CardEntry> dictionaryWords =
         await ref
             .read(cardRepositoryProvider)
-            .fetchDictionaryEntries(token.lookupKey) ??
+            .fetchDictionaryEntries(token.word) ??
         [];
 
-    // Case 1: 非表示の場合 (token.nowShow が false)
-    if (!token.nowShow) {
-      final resetVocabularyWords = allVocabularyWords
-          .map((entry) => entry.copyWith(nowShow: false))
-          .toList();
-
-      return CardListState(
-        showWord: null,
-        vocabularyWords: resetVocabularyWords,
-        dictionaryWords: dictionaryWords,
-      );
-    }
-
-    // Case 2: テキスト処理由来の場合 (最初の解析結果)
-    if (token.based == Based.process) {
-      final CardEntry? defaultShowWord = allVocabularyWords
-          .where((entry) => entry.translation == token.resolvedTranslation)
-          .firstOrNull;
-
-      // 正常時
-      if (defaultShowWord != null) {
-        final vocabularyWords = allVocabularyWords
-            .where((entry) => entry.id != defaultShowWord.id)
-            .map((entry) => entry.copyWith(nowShow: false))
-            .toList();
-
-        return CardListState(
-          showWord: defaultShowWord.copyWith(nowShow: true),
-          vocabularyWords: vocabularyWords,
-          dictionaryWords: dictionaryWords,
-        );
-      }
-      // Token に resolvedTranslation があるが、単語帳DBに見つからない場合
-      else {
-        // 一旦 Case 1 に近い状態で返す。
-        final resetVocabularyWords = allVocabularyWords
-            .map((entry) => entry.copyWith(nowShow: false))
-            .toList();
-
-        return CardListState(
-          showWord: null,
-          vocabularyWords: resetVocabularyWords,
-          dictionaryWords: dictionaryWords,
-        );
-      }
-    }
-
-    // Case 3: 単語帳操作由来の場合 (toggleVisibility 実行後)
-    if (token.based == Based.vocabularies) {
-      // Token に設定されている訳語と一致する CardEntry を探す
+    // ===============================================
+    // 単語帳登録済単語　かつ　nowShow = true
+    // ===============================================
+    if (token.vocId >= 0 && token.nowShow) {
       final CardEntry? nowEntry = allVocabularyWords
-          .where((entry) => entry.translation == token.resolvedTranslation)
+          .where((entry) => entry.id == token.vocId)
           .firstOrNull;
 
       if (nowEntry != null) {
-        // showWord 以外のエントリ (nowShow: false にリセット)
         final vocabularyWords = allVocabularyWords
             .where((entry) => entry.id != nowEntry.id)
-            .map((entry) => entry.copyWith(nowShow: false))
+            .map((entry) => entry.nowShowChange(nowShow: false))
             .toList();
 
-        // showWord は nowShow: true にして返す
         return CardListState(
-          showWord: nowEntry.copyWith(nowShow: true),
+          showWord: nowEntry.nowShowChange(nowShow: true),
           vocabularyWords: vocabularyWords,
           dictionaryWords: dictionaryWords,
         );
       }
     }
 
-    // 上記のどのケースにも当てはまらない、またはデータが見つからなかった場合のフォールバック
+    // ===============================================
+    // 単語帳未登録単語　または　nowShow = false　または　例外
+    // ===============================================
     final resetVocabularyWords = allVocabularyWords
-        .map((entry) => entry.copyWith(nowShow: false))
+        .map((entry) => entry.nowShowChange(nowShow: false))
         .toList();
 
     return CardListState(
@@ -121,7 +74,6 @@ class CardListNotifier extends AsyncNotifier<CardListState> {
   void toggleVisibility({required CardEntry entry}) {
     final targetId = ref.read(tokenIdProvider);
     final token = ref.read(translationProvider).targetToken(id: targetId);
-    final translationNotifier = ref.read(translationProvider.notifier);
 
     if (entry.based != Based.vocabularies) return; // 単語帳以外からは受け付けない
 
@@ -135,40 +87,47 @@ class CardListNotifier extends AsyncNotifier<CardListState> {
 
       // 対象のentryが現在のshowWordの場合
       if (entry == currentList.showWord) {
-        // 表示を消す
+        // 表示を更新
         updatedToken = token.copyWith(resolvedTranslation: '', nowShow: false);
 
-        // nowShowをfalseにしてnewVocabularyWordsに加える
-        newVocabularyWords.add(entry.copyWith(nowShow: false));
         // newShowWordを消去
         newShowWord = null;
+
+        // nowShowをfalseにしてnewVocabularyWordsに加える
+        newVocabularyWords.add(entry.nowShowChange(nowShow: false));
       }
       // 対象のentryがvocabularyWordsのリストに含まれる場合
       else {
+        // どちらにも存在しない、エラー的なカードは処理しない
         final index = newVocabularyWords.indexOf(entry);
+        if (index == -1) return;
 
-        if (index != -1) {
-          // tokenの更新
-          updatedToken = token.copyWith(
-            resolvedTranslation: entry.translation,
-            nowShow: true,
-            based: Based.vocabularies, // 単語帳由来に設定
+        // 表示を更新
+        updatedToken = token.copyWith(
+          resolvedTranslation: entry.translation,
+          nowShow: true,
+        );
+
+        // 新しいshowWordは、選択されたエントリのnowShowをtrueにしたもの
+        newShowWord = newVocabularyWords
+            .removeAt(index) // return: 該当するCardEntry
+            .nowShowChange(nowShow: true);
+
+        // showWordが元から存在する場合、vocabularyWordsに追加する
+        if (currentList.showWord != null) {
+          final oldShowWord = currentList.showWord!.nowShowChange(
+            nowShow: false,
           );
-
-          // 新しいshowWordは、選択されたエントリのnowShowをtrueにしたもの
-          newShowWord = newVocabularyWords
-              .removeAt(index)
-              .copyWith(nowShow: true);
-          // 現在のshowWordをnowShowがfalseになった状態でvocabularyWordsに追加する
-          if (currentList.showWord != null) {
-            final oldShowWord = currentList.showWord!.copyWith(nowShow: false);
-            newVocabularyWords.add(oldShowWord);
-          }
+          newVocabularyWords.add(oldShowWord);
         }
       }
 
-      translationNotifier.updateToken(updatedToken: updatedToken);
+      // 翻訳ブロックの表示を更新
+      ref
+          .read(translationProvider.notifier)
+          .updateToken(updatedToken: updatedToken);
 
+      // カードリストの表示を更新
       state = AsyncValue.data(
         currentList.copyWith(
           showWord: newShowWord,

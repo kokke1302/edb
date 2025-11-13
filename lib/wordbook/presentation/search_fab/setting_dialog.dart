@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/wordbook/domain/list_notifier.dart';
-import 'package:edb/wordbook/data/search_word.dart';
+import 'package:edb/wordbook/domain/search_word.dart';
 import 'package:edb/wordbook/domain/sort_notifier.dart';
+import 'package:edb/wordbook/domain/typing_word.dart';
 import 'package:edb/wordbook/presentation/search_fab/searchbar.dart';
 import 'package:edb/wordbook/presentation/search_fab/sort_dropdown.dart';
 
@@ -72,6 +73,7 @@ class _MySheetEnd extends ConsumerWidget {
           onPressed: () {
             // 検索文字列を初期化
             ref.read(searchWordProvider.notifier).refresh();
+            ref.read(typingWordProvider.notifier).refresh();
             // 順序・対象をリセット
             ref.read(sortSettingProvider.notifier).reset();
             // リストを初期化
@@ -96,9 +98,15 @@ class _MySheetEnd extends ConsumerWidget {
             // 決定ボタン
             ElevatedButton(
               onPressed: () {
-                final searchWord = ref.read(searchWordProvider);
-                final wordListNotifier = ref.read(wordListProvider.notifier);
-                wordListNotifier.reload(queryText: searchWord);
+                final typingWord = ref.read(typingWordProvider);
+                // データベースにクエリを投げる
+                ref
+                    .read(wordListProvider.notifier)
+                    .reload(queryText: typingWord);
+                // 検索文字列の確定
+                ref
+                    .read(searchWordProvider.notifier)
+                    .setSearchQuery(typingWord);
                 Navigator.pop(context);
               },
               child: const Text('決定'),

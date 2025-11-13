@@ -61,11 +61,12 @@ class TranslationModePage extends ConsumerWidget {
           ),
         ],
       ),
+
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min, // Column が占有する高さを最小限に抑える
         crossAxisAlignment: CrossAxisAlignment.end, // ボタンを右端に寄せる
         children: [
-          MyTranslateFab(),
+          const MyTranslateFab(),
           const SizedBox(height: 10),
           FloatingActionButton(
             heroTag: 'fab_bookmark_sentence',

@@ -3,7 +3,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:edb/wordbook/domain/list_notifier.dart';
-import 'package:edb/wordbook/data/search_word.dart';
+import 'package:edb/wordbook/domain/search_word.dart';
+import 'package:edb/wordbook/domain/typing_word.dart';
 
 class MySearchBar extends HookConsumerWidget {
   const MySearchBar({super.key});
@@ -23,6 +24,7 @@ class MySearchBar extends HookConsumerWidget {
             // 入力内容をクリア
             textEditingController.text = '';
             ref.read(searchWordProvider.notifier).refresh();
+            ref.read(typingWordProvider.notifier).refresh();
           },
         );
       } else {
@@ -41,7 +43,11 @@ class MySearchBar extends HookConsumerWidget {
         suffixIcon: refreshIcon(),
       ),
 
-      // 確定ボタン（Enter）を押したとき
+      onChanged: (text) {
+        ref.read(typingWordProvider.notifier).setQuery(text);
+      },
+
+      // Enterを押したとき
       onSubmitted: (text) {
         // 検索文字列の確定
         ref.read(searchWordProvider.notifier).setSearchQuery(text);
