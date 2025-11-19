@@ -2,7 +2,6 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/db/app_database.dart';
-import 'package:edb/db/vocaburary_repository.dart';
 import 'package:edb/wordbook/data/sort_setting.dart';
 
 // すべてのビジネスロジック（CRUD, ページング）を担当する
@@ -11,8 +10,9 @@ final listRepositoryProvider = Provider<ListRepository>((ref) {
   return ListRepository(db);
 });
 
-class ListRepository extends VocabularyRepository {
-  ListRepository(super.db);
+class ListRepository {
+  final AppDatabase db;
+  ListRepository(this.db);
 
   // ===============================================
   // R: Read (ページングとフィルタリング)

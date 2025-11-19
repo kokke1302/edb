@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:edb/root/presentation/main_screen.dart';
 import 'package:edb/translation/presentation/translation.dart';
 import 'package:edb/wordbook/presentation/list/wordbook_screen.dart';
-import 'package:edb/root/presentation/main_screen.dart';
+import 'package:edb/dictionary/data/card_state.dart';
+import 'package:edb/register/presentation/registration_page.dart';
 
 // -----------------------------------------------------------------------------
 // GoRouter ルーティングの設定
@@ -33,6 +35,18 @@ class EnglishLearningApp extends StatelessWidget {
         ],
       ),
       // 独立した画面
+      GoRoute(
+        path: '/registration',
+        builder: (context, state) {
+          // 1. クエリパラメータから vocId を取得（単語帳からの編集時）
+          // 2. extra から CardEntry を取得（内部辞書からの新規登録時）
+          final initialCardEntry = state.extra is CardEntry
+              ? state.extra as CardEntry
+              : null;
+
+          return EntryScreen(initialCardEntry: initialCardEntry);
+        },
+      ),
       GoRoute(
         path: '/setting',
         builder: (context, state) => const SettingPage(),

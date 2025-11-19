@@ -61,7 +61,7 @@ class MyWordCard extends StatelessWidget {
 
             // 4行目: Memo
             Text(
-              'メモ: ${entry.memo ?? 'メモなし'}',
+              'メモ: ${entry.memo}',
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(fontSize: 13, color: Colors.grey[700]),

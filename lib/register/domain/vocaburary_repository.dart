@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/db/app_database.dart';
+import 'package:edb/register/data/registration_state.dart';
 
 // VocabularyRepositoryのインスタンスを提供する
 // すべてのビジネスロジック（CRUD, ページング）を担当する
@@ -19,26 +20,20 @@ class VocabularyRepository {
   // C: Create (単語の挿入)
   // ===============================================
 
-  // 新しく挿入された単語データを返す
-  Future<Vocabulary> addVocabulary({
-    required String englishWord,
-    required String japaneseTranslation,
-    String? memo,
-  }) async {
+  Future<bool> addVocabulary({required RegistrationState state}) async {
+    if (state.existingVocId == -1) return false;
+
     // VocabularyCompanion: 仮で行を作る
     final companion = VocabulariesCompanion.insert(
-      englishWord: englishWord,
-      japaneseTranslation: japaneseTranslation,
-      memo: Value(memo), // Value(): null対策
-      // createdAt: デフォルト値 currentDayAndTime を使用するため、指定不要
+      englishWord: state.englishWord,
+      japaneseTranslation: state.japaneseTranslation,
+      isHidden: state.isHidden,
+      memo: state.memo,
     );
 
     // 仮の行を実際に挿入し、挿入された場所のIDを受け取る
     final id = await db.into(db.vocabularies).insert(companion);
-
-    // そのIDを使って、挿入後の完全なデータを取得し返す
-    final query = db.select(db.vocabularies)..where((v) => v.id.equals(id));
-    return query.getSingle();
+    return !id.isNaN;
   }
 
   // ===============================================
@@ -46,28 +41,38 @@ class VocabularyRepository {
   // ===============================================
 
   // 更新された行の数を返す
-  Future<int> updateVocabulary({
-    required int id,
-    String? englishWord,
-    String? japaneseTranslation,
-    String? memo,
-  }) {
+  Future<int> updateVocabulary({required RegistrationState state}) {
+    if (state.existingVocId == -1) return Future.value(0);
+
     // 更新したい行のidを探す
-    final query = db.update(db.vocabularies)..where((v) => v.id.equals(id));
+    final query = db.update(db.vocabularies)
+      ..where((v) => v.id.equals(state.existingVocId));
+
+    // 排他制御
+    if (!state.isHidden) _setAllOthersHidden(word: state.englishWord);
 
     // どう変更するか
     final companion = VocabulariesCompanion(
-      id: Value.absent(),
-      englishWord: englishWord != null
-          ? Value(englishWord) // Value(): 値をカッコ内の文字列に変更
-          : const Value.absent(), // absent(): 値はそのまま
-      japaneseTranslation: japaneseTranslation != null
-          ? Value(japaneseTranslation)
-          : const Value.absent(),
-      memo: memo != null ? Value(memo) : const Value.absent(),
+      englishWord: Value(state.englishWord),
+      japaneseTranslation: Value(state.japaneseTranslation),
+      isHidden: Value(state.isHidden),
+      memo: Value(state.memo),
     );
 
     // 上書き
+    return query.write(companion);
+  }
+
+  // 同じ英単語に紐づく全てのエントリのisHiddenをtrueに更新
+  Future<int> _setAllOthersHidden({required String word}) {
+    final query = db.update(db.vocabularies)
+      ..where((v) => v.englishWord.equals(word));
+
+    final companion = const VocabulariesCompanion(
+      isHidden: Value(true), // isHiddenを強制的に true にする
+      id: Value.absent(),
+    );
+
     return query.write(companion);
   }
 

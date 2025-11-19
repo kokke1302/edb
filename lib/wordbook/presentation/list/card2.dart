@@ -89,7 +89,7 @@ class MyWordCard extends StatelessWidget {
                 // メモ
                 Expanded(
                   child: Text(
-                    entry.memo ?? '',
+                    entry.memo,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 13, color: Colors.grey[700]),

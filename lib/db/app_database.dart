@@ -10,8 +10,8 @@ class Vocabularies extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get englishWord => text()();
   TextColumn get japaneseTranslation => text()();
-  BoolColumn get isHidden => boolean().withDefault(const Constant(false))();
-  TextColumn get memo => text().nullable()();
+  BoolColumn get isHidden => boolean()();
+  TextColumn get memo => text()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }

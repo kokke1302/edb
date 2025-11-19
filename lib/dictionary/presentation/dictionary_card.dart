@@ -4,7 +4,13 @@ import 'package:edb/dictionary/data/card_state.dart';
 
 class DictionaryCard extends StatelessWidget {
   final CardEntry card;
-  const DictionaryCard({super.key, required this.card});
+  final VoidCallback onEditPressed;
+
+  const DictionaryCard({
+    super.key,
+    required this.card,
+    required this.onEditPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,11 +34,7 @@ class DictionaryCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 IconButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(const SnackBar(content: Text('登録画面へ')));
-                  },
+                  onPressed: onEditPressed,
                   icon: const Icon(Icons.book_outlined),
                 ),
               ],

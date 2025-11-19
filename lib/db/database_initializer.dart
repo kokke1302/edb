@@ -31,32 +31,32 @@ class DatabaseInitializer {
         VocabulariesCompanion.insert(
           englishWord: 'this',
           japaneseTranslation: 'これ',
-          isHidden: const Value(false),
-          memo: const Value('あああ'),
+          isHidden: false,
+          memo: 'あああ',
         ),
         VocabulariesCompanion.insert(
           englishWord: 'is',
           japaneseTranslation: 'です',
-          isHidden: const Value(false),
-          memo: const Value(''),
+          isHidden: false,
+          memo: '',
         ),
         VocabulariesCompanion.insert(
           englishWord: 'test',
           japaneseTranslation: 'テスト',
-          isHidden: const Value(false),
-          memo: const Value(''),
+          isHidden: false,
+          memo: '',
         ),
         VocabulariesCompanion.insert(
           englishWord: 'sentence',
           japaneseTranslation: '文章',
-          isHidden: const Value(true),
-          memo: const Value(''),
+          isHidden: true,
+          memo: '',
         ),
         VocabulariesCompanion.insert(
           englishWord: 'hello',
           japaneseTranslation: 'こんにちは',
-          isHidden: const Value(false),
-          memo: const Value('挨拶'),
+          isHidden: false,
+          memo: '挨拶',
         ),
       ];
 

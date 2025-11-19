@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:edb/translation/domain/translation_notifier.dart';
 import 'package:edb/dictionary/data/token_id.dart';
+import 'package:edb/dictionary/data/cardlist_state.dart';
 import 'package:edb/dictionary/domain/cardlist_notifier.dart';
 import 'package:edb/dictionary/presentation/registered_card.dart';
 import 'package:edb/dictionary/presentation/dictionary_card.dart';
@@ -14,8 +16,8 @@ class VocabularyInputSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentId = ref.watch(tokenIdProvider);
-    final cards = ref.watch(cardListProvider);
     final token = ref.watch(translationProvider).targetToken(id: currentId);
+    final cards = ref.watch(cardListProvider);
 
     // 以下のContainerがモーダルシート全体を占める
     return Container(
@@ -72,64 +74,78 @@ class VocabularyInputSheet extends ConsumerWidget {
 
                   error: (err, stack) => Center(child: Text('エラー: $err')),
 
-                  data: (list) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (list.showWord != null)
-                          RegisteredCared(card: list.showWord!),
-
-                        Divider(
-                          color: Theme.of(context).colorScheme.outlineVariant,
-                        ),
-                        const Text(
-                          '単語帳からの候補',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-
-                        // 登録済みリストを展開
-                        ...list.vocabularyWords.map((entry) {
-                          return RegisteredCared(card: entry);
-                        }),
-
-                        Divider(
-                          color: Theme.of(context).colorScheme.outlineVariant,
-                        ),
-                        const Text(
-                          '内部辞書からの候補',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-
-                        // 内部辞書リストを展開
-                        ...list.dictionaryWords.map((entry) {
-                          return DictionaryCard(card: entry);
-                        }),
-
-                        // オリジナル登録フィールドへ遷移するセクション（リストの最後に配置）
-                        const SizedBox(height: 8),
-                        ListTile(
-                          title: const Text('オリジナル訳語を登録'),
-                          trailing: const Icon(Icons.edit),
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('TODO: オリジナル登録画面へ遷移'),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    );
-                  },
+                  data: (list) => _buildCardList(context: context, list: list),
                 ),
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  // CardListStateを正常に読み込めた場合
+  Widget _buildCardList({
+    required BuildContext context,
+    required CardListState list,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (list.showWord != null)
+          RegisteredCared(
+            card: list.showWord!,
+            onEditPressed: () {
+              Navigator.of(context).pop();
+              context.go(
+                '/registration?vocId=${list.showWord!.id}',
+                extra: list.showWord!,
+              );
+            },
+          ),
+
+        Divider(color: Theme.of(context).colorScheme.outlineVariant),
+        const Text('単語帳からの候補', style: TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+
+        // 登録済みリストを展開
+        ...list.vocabularyWords.map((entry) {
+          return RegisteredCared(
+            card: entry,
+            onEditPressed: () {
+              Navigator.of(context).pop();
+              context.go('/registration?vocId=${entry.id}', extra: entry);
+            },
+          );
+        }),
+
+        Divider(color: Theme.of(context).colorScheme.outlineVariant),
+        const Text('内部辞書からの候補', style: TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+
+        // 内部辞書リストを展開
+        ...list.dictionaryWords.map((entry) {
+          return DictionaryCard(
+            card: entry,
+            onEditPressed: () {
+              Navigator.of(context).pop();
+              context.go('/registration', extra: entry);
+            },
+          );
+        }),
+
+        // オリジナル登録フィールドへ遷移するセクション（リストの最後に配置）
+        const SizedBox(height: 8),
+        ListTile(
+          title: const Text('オリジナル訳語を登録'),
+          trailing: const Icon(Icons.edit),
+          onTap: () {
+            Navigator.of(context).pop();
+            context.go('/registration');
+          },
+        ),
+      ],
     );
   }
 }

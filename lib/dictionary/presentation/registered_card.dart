@@ -6,7 +6,13 @@ import 'package:edb/dictionary/domain/cardlist_notifier.dart';
 
 class RegisteredCared extends ConsumerWidget {
   final CardEntry card;
-  const RegisteredCared({super.key, required this.card});
+  final VoidCallback onEditPressed;
+
+  const RegisteredCared({
+    super.key,
+    required this.card,
+    required this.onEditPressed,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -53,11 +59,7 @@ class RegisteredCared extends ConsumerWidget {
                       const SizedBox(width: 8),
                     ],
                     IconButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(const SnackBar(content: Text('登録画面へ')));
-                      },
+                      onPressed: onEditPressed,
                       icon: Icon(
                         Icons.book,
                         color: colorScheme.onSurfaceVariant,

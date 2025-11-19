@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/db/app_database.dart';
 import 'package:edb/dictionary/data/card_state.dart';
-import 'package:edb/db/vocaburary_repository.dart';
 
 // すべてのビジネスロジック（CRUD, ページング）を担当する
 final cardRepositoryProvider = Provider<CardRepository>((ref) {
@@ -10,8 +9,9 @@ final cardRepositoryProvider = Provider<CardRepository>((ref) {
   return CardRepository(db);
 });
 
-class CardRepository extends VocabularyRepository {
-  CardRepository(super.db);
+class CardRepository {
+  final AppDatabase db;
+  CardRepository(this.db);
 
   // ===============================================
   // R: Read (特定の単語に対する単語帳エントリ)
@@ -35,7 +35,7 @@ class CardRepository extends VocabularyRepository {
         translation: v.japaneseTranslation,
         isShow: isShow,
         nowShow: isShow,
-        memo: v.memo ?? '',
+        memo: v.memo,
         based: Based.vocabularies,
       );
     }).toList();

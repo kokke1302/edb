@@ -53,20 +53,19 @@ class $VocabulariesTable extends Vocabularies
     aliasedName,
     false,
     type: DriftSqlType.bool,
-    requiredDuringInsert: false,
+    requiredDuringInsert: true,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
       'CHECK ("is_hidden" IN (0, 1))',
     ),
-    defaultValue: const Constant(false),
   );
   static const VerificationMeta _memoMeta = const VerificationMeta('memo');
   @override
   late final GeneratedColumn<String> memo = GeneratedColumn<String>(
     'memo',
     aliasedName,
-    true,
+    false,
     type: DriftSqlType.string,
-    requiredDuringInsert: false,
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
@@ -144,12 +143,16 @@ class $VocabulariesTable extends Vocabularies
         _isHiddenMeta,
         isHidden.isAcceptableOrUnknown(data['is_hidden']!, _isHiddenMeta),
       );
+    } else if (isInserting) {
+      context.missing(_isHiddenMeta);
     }
     if (data.containsKey('memo')) {
       context.handle(
         _memoMeta,
         memo.isAcceptableOrUnknown(data['memo']!, _memoMeta),
       );
+    } else if (isInserting) {
+      context.missing(_memoMeta);
     }
     if (data.containsKey('created_at')) {
       context.handle(
@@ -191,7 +194,7 @@ class $VocabulariesTable extends Vocabularies
       memo: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}memo'],
-      ),
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -214,7 +217,7 @@ class Vocabulary extends DataClass implements Insertable<Vocabulary> {
   final String englishWord;
   final String japaneseTranslation;
   final bool isHidden;
-  final String? memo;
+  final String memo;
   final DateTime createdAt;
   final DateTime updatedAt;
   const Vocabulary({
@@ -222,7 +225,7 @@ class Vocabulary extends DataClass implements Insertable<Vocabulary> {
     required this.englishWord,
     required this.japaneseTranslation,
     required this.isHidden,
-    this.memo,
+    required this.memo,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -233,9 +236,7 @@ class Vocabulary extends DataClass implements Insertable<Vocabulary> {
     map['english_word'] = Variable<String>(englishWord);
     map['japanese_translation'] = Variable<String>(japaneseTranslation);
     map['is_hidden'] = Variable<bool>(isHidden);
-    if (!nullToAbsent || memo != null) {
-      map['memo'] = Variable<String>(memo);
-    }
+    map['memo'] = Variable<String>(memo);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -247,7 +248,7 @@ class Vocabulary extends DataClass implements Insertable<Vocabulary> {
       englishWord: Value(englishWord),
       japaneseTranslation: Value(japaneseTranslation),
       isHidden: Value(isHidden),
-      memo: memo == null && nullToAbsent ? const Value.absent() : Value(memo),
+      memo: Value(memo),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -265,7 +266,7 @@ class Vocabulary extends DataClass implements Insertable<Vocabulary> {
         json['japaneseTranslation'],
       ),
       isHidden: serializer.fromJson<bool>(json['isHidden']),
-      memo: serializer.fromJson<String?>(json['memo']),
+      memo: serializer.fromJson<String>(json['memo']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -278,7 +279,7 @@ class Vocabulary extends DataClass implements Insertable<Vocabulary> {
       'englishWord': serializer.toJson<String>(englishWord),
       'japaneseTranslation': serializer.toJson<String>(japaneseTranslation),
       'isHidden': serializer.toJson<bool>(isHidden),
-      'memo': serializer.toJson<String?>(memo),
+      'memo': serializer.toJson<String>(memo),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -289,7 +290,7 @@ class Vocabulary extends DataClass implements Insertable<Vocabulary> {
     String? englishWord,
     String? japaneseTranslation,
     bool? isHidden,
-    Value<String?> memo = const Value.absent(),
+    String? memo,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Vocabulary(
@@ -297,7 +298,7 @@ class Vocabulary extends DataClass implements Insertable<Vocabulary> {
     englishWord: englishWord ?? this.englishWord,
     japaneseTranslation: japaneseTranslation ?? this.japaneseTranslation,
     isHidden: isHidden ?? this.isHidden,
-    memo: memo.present ? memo.value : this.memo,
+    memo: memo ?? this.memo,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -359,7 +360,7 @@ class VocabulariesCompanion extends UpdateCompanion<Vocabulary> {
   final Value<String> englishWord;
   final Value<String> japaneseTranslation;
   final Value<bool> isHidden;
-  final Value<String?> memo;
+  final Value<String> memo;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   const VocabulariesCompanion({
@@ -375,12 +376,14 @@ class VocabulariesCompanion extends UpdateCompanion<Vocabulary> {
     this.id = const Value.absent(),
     required String englishWord,
     required String japaneseTranslation,
-    this.isHidden = const Value.absent(),
-    this.memo = const Value.absent(),
+    required bool isHidden,
+    required String memo,
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   }) : englishWord = Value(englishWord),
-       japaneseTranslation = Value(japaneseTranslation);
+       japaneseTranslation = Value(japaneseTranslation),
+       isHidden = Value(isHidden),
+       memo = Value(memo);
   static Insertable<Vocabulary> custom({
     Expression<int>? id,
     Expression<String>? englishWord,
@@ -407,7 +410,7 @@ class VocabulariesCompanion extends UpdateCompanion<Vocabulary> {
     Value<String>? englishWord,
     Value<String>? japaneseTranslation,
     Value<bool>? isHidden,
-    Value<String?>? memo,
+    Value<String>? memo,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
   }) {
@@ -1185,8 +1188,8 @@ typedef $$VocabulariesTableCreateCompanionBuilder =
       Value<int> id,
       required String englishWord,
       required String japaneseTranslation,
-      Value<bool> isHidden,
-      Value<String?> memo,
+      required bool isHidden,
+      required String memo,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
@@ -1196,7 +1199,7 @@ typedef $$VocabulariesTableUpdateCompanionBuilder =
       Value<String> englishWord,
       Value<String> japaneseTranslation,
       Value<bool> isHidden,
-      Value<String?> memo,
+      Value<String> memo,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
@@ -1361,7 +1364,7 @@ class $$VocabulariesTableTableManager
                 Value<String> englishWord = const Value.absent(),
                 Value<String> japaneseTranslation = const Value.absent(),
                 Value<bool> isHidden = const Value.absent(),
-                Value<String?> memo = const Value.absent(),
+                Value<String> memo = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => VocabulariesCompanion(
@@ -1378,8 +1381,8 @@ class $$VocabulariesTableTableManager
                 Value<int> id = const Value.absent(),
                 required String englishWord,
                 required String japaneseTranslation,
-                Value<bool> isHidden = const Value.absent(),
-                Value<String?> memo = const Value.absent(),
+                required bool isHidden,
+                required String memo,
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => VocabulariesCompanion.insert(
