@@ -21,7 +21,9 @@ class MyTextField extends HookConsumerWidget {
           onPressed: () {
             textController.text = '';
             // 英文格納Stateにリセットを通知
-            ref.read(translationProvider.notifier).updateOriginalText('');
+            ref
+                .read(translationProvider.notifier)
+                .updateOriginalText(newText: '');
           },
         );
       } else {
@@ -38,7 +40,9 @@ class MyTextField extends HookConsumerWidget {
         suffixIcon: refreshIcon(),
       ),
       onChanged: (text) {
-        ref.read(translationProvider.notifier).updateOriginalText(text);
+        ref
+            .read(translationProvider.notifier)
+            .updateOriginalText(newText: text);
       },
     );
   }

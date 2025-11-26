@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:edb/translation/domain/translation_notifier.dart';
 import 'package:edb/dictionary/data/token_id.dart';
+import 'package:edb/dictionary/data/card_state.dart';
 import 'package:edb/dictionary/data/cardlist_state.dart';
 import 'package:edb/dictionary/domain/cardlist_notifier.dart';
 import 'package:edb/dictionary/presentation/registered_card.dart';
 import 'package:edb/dictionary/presentation/dictionary_card.dart';
+import 'package:edb/translation/domain/translation_notifier.dart';
+import 'package:edb/register/data/card_receiver.dart';
 
 // 辞書機能シート
 class VocabularyInputSheet extends ConsumerWidget {
@@ -74,7 +76,12 @@ class VocabularyInputSheet extends ConsumerWidget {
 
                   error: (err, stack) => Center(child: Text('エラー: $err')),
 
-                  data: (list) => _buildCardList(context: context, list: list),
+                  data: (list) => _buildCardList(
+                    context: context,
+                    ref: ref,
+                    tokenWord: token.word,
+                    list: list,
+                  ),
                 ),
               ),
             ),
@@ -87,6 +94,8 @@ class VocabularyInputSheet extends ConsumerWidget {
   // CardListStateを正常に読み込めた場合
   Widget _buildCardList({
     required BuildContext context,
+    required WidgetRef ref,
+    required String tokenWord,
     required CardListState list,
   }) {
     return Column(
@@ -94,16 +103,7 @@ class VocabularyInputSheet extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (list.showWord != null)
-          RegisteredCared(
-            card: list.showWord!,
-            onEditPressed: () {
-              Navigator.of(context).pop();
-              context.go(
-                '/registration?vocId=${list.showWord!.id}',
-                extra: list.showWord!,
-              );
-            },
-          ),
+          RegisteredCared(englishWord: tokenWord, card: list.showWord!),
 
         Divider(color: Theme.of(context).colorScheme.outlineVariant),
         const Text('単語帳からの候補', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -111,13 +111,7 @@ class VocabularyInputSheet extends ConsumerWidget {
 
         // 登録済みリストを展開
         ...list.vocabularyWords.map((entry) {
-          return RegisteredCared(
-            card: entry,
-            onEditPressed: () {
-              Navigator.of(context).pop();
-              context.go('/registration?vocId=${entry.id}', extra: entry);
-            },
-          );
+          return RegisteredCared(englishWord: tokenWord, card: entry);
         }),
 
         Divider(color: Theme.of(context).colorScheme.outlineVariant),
@@ -126,13 +120,7 @@ class VocabularyInputSheet extends ConsumerWidget {
 
         // 内部辞書リストを展開
         ...list.dictionaryWords.map((entry) {
-          return DictionaryCard(
-            card: entry,
-            onEditPressed: () {
-              Navigator.of(context).pop();
-              context.go('/registration', extra: entry);
-            },
-          );
+          return DictionaryCard(englishWord: tokenWord, card: entry);
         }),
 
         // オリジナル登録フィールドへ遷移するセクション（リストの最後に配置）
@@ -141,8 +129,20 @@ class VocabularyInputSheet extends ConsumerWidget {
           title: const Text('オリジナル訳語を登録'),
           trailing: const Icon(Icons.edit),
           onTap: () {
-            Navigator.of(context).pop();
-            context.go('/registration');
+            ref
+                .read(cardReceiver.notifier)
+                .receiveCard(
+                  newCard: CardEntry(
+                    id: -1,
+                    translation: '',
+                    isShow: true,
+                    nowShow: false,
+                    memo: '',
+                    based: Based.init,
+                  ),
+                  newWord: tokenWord,
+                );
+            context.push('/registration');
           },
         ),
       ],

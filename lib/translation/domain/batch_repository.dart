@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/db/app_database.dart';
@@ -21,7 +22,7 @@ class BatchRepository {
   ) async {
     final query = db.select(db.vocabularies)
       // englishWord が lookupKeys に含まれている
-      ..where((v) => v.englishWord.isIn(lookupKeys));
+      ..where((v) => v.englishWord.lower().isIn(lookupKeys));
     return await query.get();
   }
 }

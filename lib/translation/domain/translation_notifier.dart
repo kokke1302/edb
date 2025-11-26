@@ -23,15 +23,18 @@ class TranslationNotifier extends Notifier<TranslationState> {
         return token.id == updatedToken.id ? updatedToken : token;
       }).toList(),
     );
+    // print('tranceration change');
   }
 
   // 英文入力エリアの更新時
-  void updateOriginalText(String newText) {
+  void updateOriginalText({required String newText}) {
     if (state.originalText == newText) return;
+
+    final nowTokens = state.tokens;
     state = state.copyWith(originalText: newText);
 
     Throttle.milliseconds(500, () {
-      _processTranslation();
+      _processTranslation(nowTokens: nowTokens);
     });
   }
 
@@ -43,7 +46,7 @@ class TranslationNotifier extends Notifier<TranslationState> {
   }
 
   // 解析のトリガー
-  void _processTranslation() async {
+  void _processTranslation({List<Token>? nowTokens}) async {
     // 英文
     final textToProcess = state.originalText.trim();
 
@@ -60,16 +63,26 @@ class TranslationNotifier extends Notifier<TranslationState> {
     state = state.copyWith(isProcessing: true);
 
     try {
+      final List<Token> newTokens;
       // TextProcessorを呼び出して、トークン化と訳語の割り当てを同時に行う
-      final List<Token> newTokens = await ref
-          .read(textProcessorProvider)
-          .tokenizeAndTranslate(textToProcess);
-
-      for (final news in newTokens) {
-        print(
-          'id: ${news.id}, word: ${news.word}, isWord: ${news.isWord}, resolvedTranslation: ${news.resolvedTranslation}, nowShow: ${news.nowShow}, vocId: ${news.vocId}',
-        );
+      if (nowTokens != null) {
+        newTokens = await ref
+            .read(textProcessorProvider)
+            .incrementalTranslation(
+              nowTokens: nowTokens,
+              newText: state.originalText,
+            );
+      } else {
+        newTokens = await ref
+            .read(textProcessorProvider)
+            .fullTranslation(text: state.originalText);
       }
+
+      // for (final news in newTokens) {
+      //   print(
+      //     'id: ${news.id}, word: ${news.word}, isWord: ${news.isWord}, resolvedTranslation: ${news.resolvedTranslation}, nowShow: ${news.nowShow}, vocId: ${news.vocId}',
+      //   );
+      // }
 
       // 処理結果で状態を更新
       state = state.copyWith(tokens: newTokens);

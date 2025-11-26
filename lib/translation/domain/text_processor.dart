@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:diffutil_dart/diffutil.dart';
 
 import 'package:edb/db/app_database.dart';
 import 'package:edb/translation/data/token.dart';
@@ -14,8 +15,8 @@ class TextProcessor {
   final Ref ref;
   TextProcessor(this.ref);
 
-  /// 英文を解析し、訳語が割り当てられたTokenのリストを返す
-  Future<List<Token>> tokenizeAndTranslate(String text) async {
+  // テキストをトークン化し、検索キーを生成する共通ロジック
+  List<Token> _tokenizeText({required String text}) {
     final List<Token> initialTokens = [];
 
     // (ハイフン単語 | アポストロフィ単語 | シンプル単語 | 句読点 | 空白)のまとまりに分ける
@@ -46,6 +47,127 @@ class TextProcessor {
       initialTokens.add(token);
       currentId++;
     }
+    return initialTokens;
+  }
+
+  Future<List<Token>> incrementalTranslation({
+    required List<Token> nowTokens,
+    required String newText,
+  }) async {
+    // 1. テキストのトークン化
+    final List<Token> newTokensInitial = _tokenizeText(text: newText);
+
+    // 2. 差分計算のためのリストを準備 (Tokenの word 文字列のリスト)
+    final List<String> oldWords = nowTokens.map((t) => t.word).toList();
+    final List<String> newWords = newTokensInitial.map((t) => t.word).toList();
+
+    // 3. 文字列リストで差分を計算
+    final diffResult = calculateListDiff<String>(oldWords, newWords);
+
+    // このリストに差分操作を適用し、構造を変更していく
+    List<Token> finalTranslatedTokens = List.from(nowTokens);
+    // 新しく翻訳が必要なトークンのリスト
+    Map<int, Token> tokensToTranslate = {};
+
+    // 4. 差分操作を逆順に適用
+    for (final update in diffResult.getUpdates().toList().reversed) {
+      update.when(
+        // [挿入] 新しいトークンを指定位置に追加
+        insert: (pos, count) {
+          final List<Token> insertedTokens = newTokensInitial.sublist(
+            pos,
+            pos + count,
+          );
+
+          // 最終Token配列に追加
+          finalTranslatedTokens.insertAll(pos, insertedTokens);
+          // 翻訳タスクを追加
+          for (int i = 0; i < insertedTokens.length; i++) {
+            tokensToTranslate[pos + i] = insertedTokens[i];
+          }
+        },
+
+        // [削除] 指定位置の古いトークンを削除
+        remove: (pos, count) =>
+            finalTranslatedTokens.removeRange(pos, pos + count),
+
+        // [変更] 指定位置のトークンを、新しいトークンで置き換える。
+        change: (pos, payload) {
+          // insert/remove になるため、changeは発生しないか、無視できるはず
+          // もし発生しても、そのトークンは新しく翻訳が必要なトークンとして扱う
+          final Token newToken = newTokensInitial[pos];
+          finalTranslatedTokens[pos] = newToken;
+          tokensToTranslate[pos] = newToken;
+        },
+
+        // [移動] トークンの移動insert(to) で挿入する。
+        move: (from, to) {
+          // removeAt(from): 削除, 対象をreturn
+          final Token movedToken = finalTranslatedTokens.removeAt(from);
+          // insert(to): 挿入
+          finalTranslatedTokens.insert(to, movedToken);
+        },
+      );
+    }
+
+    // 5. 辞書検索が必要なTokenのユニークキーを収集
+    final Set<String> lookupKeys = tokensToTranslate.values
+        .where((t) => t.isWord && t.word.isNotEmpty)
+        .map((t) => t.word.toLowerCase())
+        .toSet();
+
+    // 6. DictionaryServiceによる訳語の一括検索
+    final List<Vocabulary> vocabularyEntries = await ref
+        .read(batchRepositoryProvider)
+        .fetchTranslationsBatch(lookupKeys);
+
+    // 7. <検索キー: 単語帳DBエントリー>のMapを作成
+    final Map<String, Vocabulary> translationMap = {};
+    for (final entry in vocabularyEntries) {
+      final key = entry.englishWord.toLowerCase();
+
+      final bool shouldReplace =
+          translationMap[key] == null ||
+          (translationMap[key]!.isHidden && !entry.isHidden);
+      if (shouldReplace) translationMap[key] = entry;
+    }
+
+    // トークンに訳語を割り当てる
+    for (final entry in tokensToTranslate.entries) {
+      final int pos = entry.key;
+      final Token tokenToUpdate = entry.value;
+
+      // MapからVocabularyエントリを取得。
+      final Vocabulary? vocabularyEntry =
+          translationMap[tokenToUpdate.word.toLowerCase()];
+
+      // 辞書検索が不要した場合は、更新せずにスキップ
+      if (!tokenToUpdate.isWord) continue;
+
+      // 最終リスト内のトークンを、訳語情報を割り当てた新しいインスタンスで置き換える
+      if (vocabularyEntry == null) {
+        // 辞書検索が失敗した場合
+        finalTranslatedTokens[pos] = tokenToUpdate.copyWith(
+          resolvedTranslation: '',
+          nowShow: false,
+          vocId: -1,
+        );
+      } else {
+        // 辞書検索が成功した場合
+        finalTranslatedTokens[pos] = tokenToUpdate.copyWith(
+          resolvedTranslation: vocabularyEntry.japaneseTranslation,
+          nowShow: !vocabularyEntry.isHidden,
+          vocId: vocabularyEntry.id,
+        );
+      }
+    }
+
+    return finalTranslatedTokens;
+  }
+
+  Future<List<Token>> fullTranslation({required String text}) async {
+    // 1. テキストのトークン化
+    final List<Token> initialTokens = _tokenizeText(text: text);
 
     // 2. 一括検索のためのユニークキー収集
     final Set<String> lookupKeys = initialTokens
@@ -59,9 +181,18 @@ class TextProcessor {
         .fetchTranslationsBatch(lookupKeys);
 
     // 4. <検索キー: 単語帳DBエントリー>のMapを作成
-    final Map<String, Vocabulary> translationMap = {
-      for (var entry in vocabularyEntries) entry.englishWord: entry,
-    };
+    final Map<String, Vocabulary> translationMap = {};
+    for (final entry in vocabularyEntries) {
+      final key = entry.englishWord.toLowerCase();
+
+      // keyがまだMapにない場合、
+      // または、既にMapにあるエントリーが isHidden: true であり、現在のentryが isHidden: false の場合、
+      // 現在のentryを優先的にMapに格納する。
+      final bool shouldReplace =
+          translationMap[key] == null ||
+          (translationMap[key]!.isHidden && !entry.isHidden);
+      if (shouldReplace) translationMap[key] = entry;
+    }
 
     // 5. トークンに訳語を割り当てる
     List<Token> translatedTokens = initialTokens.map((initialToken) {

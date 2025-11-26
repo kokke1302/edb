@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:edb/dictionary/data/card_state.dart';
+import 'package:edb/register/data/card_receiver.dart';
 
-class DictionaryCard extends StatelessWidget {
+class DictionaryCard extends ConsumerWidget {
+  final String englishWord;
   final CardEntry card;
-  final VoidCallback onEditPressed;
 
   const DictionaryCard({
     super.key,
+    required this.englishWord,
     required this.card,
-    required this.onEditPressed,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
@@ -34,7 +37,15 @@ class DictionaryCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 IconButton(
-                  onPressed: onEditPressed,
+                  onPressed: () {
+                    ref
+                        .read(cardReceiver.notifier)
+                        .receiveCard(
+                          newCard: card.copyWith(isShow: true),
+                          newWord: englishWord,
+                        );
+                    context.push('/registration');
+                  },
                   icon: const Icon(Icons.book_outlined),
                 ),
               ],

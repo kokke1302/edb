@@ -16,12 +16,28 @@ class VocabularyRepository {
   final AppDatabase db;
   VocabularyRepository(this.db);
 
+  // 同じ英単語に紐づく全てのエントリのisHiddenをtrueに更新
+  Future<int> _setAllOthersHidden({required String word}) {
+    final query = db.update(db.vocabularies)
+      ..where((v) => v.englishWord.lower().equals(word.toLowerCase()));
+
+    final companion = const VocabulariesCompanion(
+      isHidden: Value(true), // isHiddenを強制的に true にする
+      id: Value.absent(),
+    );
+
+    return query.write(companion);
+  }
+
   // ===============================================
   // C: Create (単語の挿入)
   // ===============================================
 
   Future<bool> addVocabulary({required RegistrationState state}) async {
-    if (state.existingVocId == -1) return false;
+    if (state.existingVocId != -1) return false;
+
+    // 排他制御
+    if (!state.isHidden) _setAllOthersHidden(word: state.englishWord);
 
     // VocabularyCompanion: 仮で行を作る
     final companion = VocabulariesCompanion.insert(
@@ -53,26 +69,12 @@ class VocabularyRepository {
 
     // どう変更するか
     final companion = VocabulariesCompanion(
-      englishWord: Value(state.englishWord),
       japaneseTranslation: Value(state.japaneseTranslation),
       isHidden: Value(state.isHidden),
       memo: Value(state.memo),
     );
 
     // 上書き
-    return query.write(companion);
-  }
-
-  // 同じ英単語に紐づく全てのエントリのisHiddenをtrueに更新
-  Future<int> _setAllOthersHidden({required String word}) {
-    final query = db.update(db.vocabularies)
-      ..where((v) => v.englishWord.equals(word));
-
-    final companion = const VocabulariesCompanion(
-      isHidden: Value(true), // isHiddenを強制的に true にする
-      id: Value.absent(),
-    );
-
     return query.write(companion);
   }
 

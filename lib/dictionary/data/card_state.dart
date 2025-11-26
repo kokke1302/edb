@@ -1,4 +1,4 @@
-enum Based { vocabularies, dictionary }
+enum Based { vocabularies, dictionary, init }
 
 class CardEntry {
   final int id;
@@ -17,14 +17,21 @@ class CardEntry {
     required this.based,
   });
 
-  CardEntry nowShowChange({bool? nowShow}) {
+  CardEntry copyWith({
+    int? id,
+    String? translation,
+    bool? isShow,
+    bool? nowShow,
+    String? memo,
+    Based? based,
+  }) {
     return CardEntry(
-      id: id,
-      translation: translation,
-      isShow: isShow,
+      id: id ?? this.id,
+      translation: translation ?? this.translation,
+      isShow: isShow ?? this.isShow,
       nowShow: nowShow ?? this.nowShow,
-      memo: memo,
-      based: based,
+      memo: memo ?? this.memo,
+      based: based ?? this.based,
     );
   }
 }

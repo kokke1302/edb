@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:edb/dictionary/data/card_state.dart';
 import 'package:edb/dictionary/domain/cardlist_notifier.dart';
+import 'package:edb/register/data/card_receiver.dart';
 
 class RegisteredCared extends ConsumerWidget {
+  final String englishWord;
   final CardEntry card;
-  final VoidCallback onEditPressed;
 
   const RegisteredCared({
     super.key,
+    required this.englishWord,
     required this.card,
-    required this.onEditPressed,
   });
 
   @override
@@ -59,7 +61,12 @@ class RegisteredCared extends ConsumerWidget {
                       const SizedBox(width: 8),
                     ],
                     IconButton(
-                      onPressed: onEditPressed,
+                      onPressed: () {
+                        ref
+                            .read(cardReceiver.notifier)
+                            .receiveCard(newCard: card, newWord: englishWord);
+                        context.push('/registration');
+                      },
                       icon: Icon(
                         Icons.book,
                         color: colorScheme.onSurfaceVariant,
