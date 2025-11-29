@@ -35,7 +35,7 @@ class WordListNotifier extends AsyncNotifier<WordListState> {
   }
 
   // 次のページをロードするメソッド
-  Future<void> loadNextPage({required String queryText}) async {
+  Future<void> loadNextPage() async {
     // 初回起動中は処理を中断
     if (!state.hasValue) return;
 
@@ -54,7 +54,7 @@ class WordListNotifier extends AsyncNotifier<WordListState> {
       final newEntries = await _fetchData(
         offset: currentState.words.length,
         limit: _pageSize,
-        queryText: queryText,
+        queryText: ref.read(sortSettingProvider).searchWord,
       );
 
       // 新しいリストと状態を更新
@@ -77,16 +77,19 @@ class WordListNotifier extends AsyncNotifier<WordListState> {
   }
 
   // リロード (フィルタ・ソート変更時やPull-to-Refreshで使用)
-  Future<void> reload({required String queryText}) async {
+  Future<void> reload() async {
     // リロード中
     state = const AsyncValue.loading();
+
+    final searchQuery = ref.read(sortSettingProvider).searchWord;
+    ref.read(sortSettingProvider.notifier).setTypeWord(searchQuery);
 
     // 最初のページを再取得
     state = await AsyncValue.guard(() async {
       final initialList = await _fetchData(
         offset: 0,
         limit: _pageSize,
-        queryText: queryText,
+        queryText: ref.read(sortSettingProvider).searchWord,
       );
 
       return WordListState(

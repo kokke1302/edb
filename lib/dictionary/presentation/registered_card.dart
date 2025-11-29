@@ -4,17 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import 'package:edb/dictionary/data/card_state.dart';
 import 'package:edb/dictionary/domain/cardlist_notifier.dart';
-import 'package:edb/register/data/card_receiver.dart';
+import 'package:edb/register/data/regidata_receiver.dart';
 
 class RegisteredCared extends ConsumerWidget {
-  final String englishWord;
   final CardEntry card;
 
-  const RegisteredCared({
-    super.key,
-    required this.englishWord,
-    required this.card,
-  });
+  const RegisteredCared({super.key, required this.card});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -63,8 +58,8 @@ class RegisteredCared extends ConsumerWidget {
                     IconButton(
                       onPressed: () {
                         ref
-                            .read(cardReceiver.notifier)
-                            .receiveCard(newCard: card, newWord: englishWord);
+                            .read(regiDataReceiver.notifier)
+                            .receiveCard(card: card);
                         context.push('/registration');
                       },
                       icon: Icon(

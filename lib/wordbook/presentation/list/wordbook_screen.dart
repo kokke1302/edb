@@ -1,26 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:just_throttle_it/just_throttle_it.dart';
 
-import 'package:edb/wordbook/domain/list_notifier.dart';
 import 'package:edb/wordbook/data/list_state.dart';
-import 'package:edb/wordbook/domain/search_word.dart';
-import 'package:edb/wordbook/domain/typing_word.dart';
+import 'package:edb/wordbook/domain/list_notifier.dart';
+import 'package:edb/wordbook/domain/sort_notifier.dart';
 import 'package:edb/wordbook/presentation/list/initial_error.dart';
 import 'package:edb/wordbook/presentation/list/list_footer.dart';
 import 'package:edb/wordbook/presentation/list/card2.dart';
-import 'package:edb/wordbook/presentation/list/setting_fab.dart';
+import 'package:edb/wordbook/presentation/search/searchbar.dart';
+import 'package:edb/wordbook/presentation/search/sort_dropdown.dart';
 
 class WordbookScreen extends HookConsumerWidget {
   const WordbookScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 入力済み文字列
-    final searchQuery = ref.watch(searchWordProvider);
-    // 入力中の文字列（Dialog用）
-    final _ = ref.watch(typingWordProvider);
     // 単語リストを監視
     final wordListState = ref.watch(wordListProvider);
     // スクロールコントローラとリスナーの準備
@@ -41,10 +38,7 @@ class WordbookScreen extends HookConsumerWidget {
             isEnd) {
           // データロードメソッドを呼び出す
           Throttle.milliseconds(500, () {
-            final currentQuery = ref.read(searchWordProvider);
-            ref
-                .read(wordListProvider.notifier)
-                .loadNextPage(queryText: currentQuery);
+            ref.read(wordListProvider.notifier).loadNextPage();
           });
         }
       }
@@ -59,9 +53,7 @@ class WordbookScreen extends HookConsumerWidget {
       // AsyncValueの状態に基づいてUIを構築
       body: RefreshIndicator(
         onRefresh: () async {
-          await ref
-              .read(wordListProvider.notifier)
-              .reload(queryText: searchQuery);
+          await ref.read(wordListProvider.notifier).reload();
         },
         child: wordListState.when(
           // 初回ロード中
@@ -76,6 +68,8 @@ class WordbookScreen extends HookConsumerWidget {
 
             // データ終端であり、リストが空の場合
             if (wordListState.isDataEnd && wordEntries.isEmpty) {
+              // 入力済み文字列
+              final searchQuery = ref.read(sortSettingProvider).searchWord;
               final message = searchQuery.isEmpty
                   ? '単語帳にはまだ単語が登録されていません。'
                   : '「$searchQuery」に一致する単語は見つかりませんでした。';
@@ -83,16 +77,53 @@ class WordbookScreen extends HookConsumerWidget {
             }
 
             // 単語データをカードにしていく
-            return ListView.builder(
+            return CustomScrollView(
               controller: scrollController,
-              itemCount: wordEntries.length + 1, // フッター用にアイテム数+1
-              itemBuilder: (context, index) {
-                // フッター部分の処理
-                if (index == wordEntries.length) return const MyListFooter();
+              physics: const AlwaysScrollableScrollPhysics(),
 
-                // 通常の単語エントリーの表示
-                return MyWordCard(entry: wordEntries[index]);
-              },
+              slivers: <Widget>[
+                SliverAppBar(
+                  // バーの挙動
+                  floating: true,
+                  pinned: false,
+                  snap: true,
+
+                  // 右
+                  title: const SizedBox(
+                    height: 40, // 検索バーの高さ
+                    child: MySearchBar(),
+                  ),
+
+                  // 左
+                  actions: <Widget>[
+                    const SortOrderButton(),
+                    const SortDropdownMenu(),
+                    const SizedBox(width: 10),
+                    IconButton(
+                      onPressed: () => {
+                        ref.read(wordListProvider.notifier).reload(),
+                      },
+                      icon: const Icon(Icons.loop),
+                    ),
+                    const SizedBox(width: 10),
+                  ],
+                ),
+
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    childCount: wordEntries.length + 1, // フッター用にアイテム数+1
+                    (context, index) {
+                      // フッター部分の処理
+                      if (index == wordEntries.length) {
+                        return const MyListFooter();
+                      }
+
+                      // 通常の単語エントリーの表示
+                      return MyWordCard(entry: wordEntries[index]);
+                    },
+                  ),
+                ),
+              ],
             );
           },
         ),
@@ -102,14 +133,9 @@ class WordbookScreen extends HookConsumerWidget {
         mainAxisSize: MainAxisSize.min, // Column が占有する高さを最小限に抑える
         crossAxisAlignment: CrossAxisAlignment.end, // ボタンを右端に寄せる
         children: [
-          const MySettingFab(),
-          const SizedBox(height: 10),
           FloatingActionButton(
-            heroTag: 'fab_add_word',
             onPressed: () {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('単語を登録します')));
+              context.push('/registration');
             },
             child: const Icon(Icons.add),
           ),

@@ -6,11 +6,28 @@ enum SortOrder { asc, desc }
 class SortSetting {
   final SortField field;
   final SortOrder order;
+  final String searchWord;
+  final String typingWord;
 
-  const SortSetting({required this.field, required this.order});
+  const SortSetting({
+    required this.field,
+    required this.order,
+    required this.searchWord,
+    required this.typingWord,
+  });
 
   // 変更用メソッド
-  SortSetting copyWith({SortField? field, SortOrder? order}) {
-    return SortSetting(field: field ?? this.field, order: order ?? this.order);
+  SortSetting copyWith({
+    SortField? field,
+    SortOrder? order,
+    String? searchWord,
+    String? typingWord,
+  }) {
+    return SortSetting(
+      field: field ?? this.field,
+      order: order ?? this.order,
+      searchWord: searchWord ?? this.searchWord,
+      typingWord: typingWord ?? this.typingWord,
+    );
   }
 }

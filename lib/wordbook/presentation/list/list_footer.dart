@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/wordbook/data/list_state.dart';
-import 'package:edb/wordbook/domain/search_word.dart';
 import 'package:edb/wordbook/domain/list_notifier.dart';
 
 // ===============================================
@@ -75,10 +74,7 @@ class _MyErrorFooter extends ConsumerWidget {
             // リトライ時は、loadNextPageを再試行させる
             child: const Text('リトライ'),
             onPressed: () {
-              final searchQuery = ref.read(searchWordProvider);
-              ref
-                  .read(wordListProvider.notifier)
-                  .loadNextPage(queryText: searchQuery);
+              ref.read(wordListProvider.notifier).loadNextPage();
             },
           ),
         ],

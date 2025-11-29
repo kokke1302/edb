@@ -6,9 +6,9 @@ class TranslationState {
   final bool isProcessing; // 処理中かどうか
 
   TranslationState({
-    this.originalText = '',
-    this.tokens = const [],
-    this.isProcessing = false,
+    required this.originalText,
+    required this.tokens,
+    required this.isProcessing,
   });
 
   TranslationState copyWith({

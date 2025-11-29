@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/db/app_database.dart';
+import 'package:edb/dictionary/data/card_state.dart';
 import 'package:edb/register/data/registration_state.dart';
 
 // VocabularyRepositoryのインスタンスを提供する
@@ -34,7 +35,7 @@ class VocabularyRepository {
   // ===============================================
 
   Future<bool> addVocabulary({required RegistrationState state}) async {
-    if (state.existingVocId != -1) return false;
+    if (state.based == Based.vocabularies) updateVocabulary(state: state);
 
     // 排他制御
     if (!state.isHidden) _setAllOthersHidden(word: state.englishWord);
@@ -58,11 +59,11 @@ class VocabularyRepository {
 
   // 更新された行の数を返す
   Future<int> updateVocabulary({required RegistrationState state}) {
-    if (state.existingVocId == -1) return Future.value(0);
+    if (state.based != Based.vocabularies) addVocabulary(state: state);
 
     // 更新したい行のidを探す
     final query = db.update(db.vocabularies)
-      ..where((v) => v.id.equals(state.existingVocId));
+      ..where((v) => v.id.equals(state.id));
 
     // 排他制御
     if (!state.isHidden) _setAllOthersHidden(word: state.englishWord);

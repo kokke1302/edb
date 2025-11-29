@@ -27,15 +27,13 @@ class CardRepository {
 
     // 取得したDBデータをCardEntryに変換
     return vocabularies.map((v) {
-      // isShowは、VocabulariesテーブルのisHidden（非表示ならtrue）の逆
-      final isShow = !v.isHidden;
-
       // CardEntryに変換
       return CardEntry(
         id: v.id,
+        word: englishWord,
         translation: v.japaneseTranslation,
-        isShow: isShow,
-        nowShow: isShow,
+        isShow: !v.isHidden,
+        nowShow: !v.isHidden,
         memo: v.memo,
         based: Based.vocabularies,
       );
@@ -57,6 +55,7 @@ class CardRepository {
     return dictionaries.map((d) {
       return CardEntry(
         id: d.id,
+        word: wordKey,
         translation: d.mean,
         isShow: false,
         nowShow: false,

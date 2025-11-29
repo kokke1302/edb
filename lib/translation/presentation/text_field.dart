@@ -14,6 +14,29 @@ class MyTextField extends HookConsumerWidget {
     // textField内文字列
     final textController = useTextEditingController(text: chain.originalText);
 
+    // chain.originalText の変更を監視し、controllerに反映させる
+    useEffect(() {
+      if (textController.text != chain.originalText) {
+        // 現在のカーソル/選択範囲を保存
+        final currentSelection = textController.selection;
+
+        // 新しいテキストの長さ
+        final newTextLength = chain.originalText.length;
+        // カーソル位置を調整
+        final newOffset = currentSelection.baseOffset > newTextLength
+            ? newTextLength
+            : currentSelection.baseOffset;
+
+        // Text value と Selection value を同時に更新
+        textController.value = textController.value.copyWith(
+          text: chain.originalText,
+          selection: TextSelection.collapsed(offset: newOffset),
+          composing: TextRange.empty,
+        );
+      }
+      return null;
+    }, [chain.originalText]);
+
     Widget refreshIcon() {
       if (textController.text.isNotEmpty) {
         return IconButton(

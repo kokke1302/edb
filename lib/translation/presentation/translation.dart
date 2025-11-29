@@ -6,6 +6,7 @@ import 'package:edb/translation/domain/translation_notifier.dart';
 import 'package:edb/translation/presentation/text_field.dart';
 import 'package:edb/translation/presentation/word_block.dart';
 import 'package:edb/translation/presentation/translate_fab.dart';
+import 'package:edb/translation/presentation/bookmark_fab.dart';
 
 class TranslationModePage extends ConsumerWidget {
   const TranslationModePage({super.key});
@@ -19,7 +20,7 @@ class TranslationModePage extends ConsumerWidget {
       widgets.add(WordBlock(id: token.id));
 
       // 【改行条件】Tokenがピリオド(.)の場合、その直後に改行用ダミーtokenを挿入する
-      if (token.word == '.') {
+      if (token.card.word == '.') {
         widgets.add(const SizedBox(width: double.infinity));
       }
     }
@@ -41,6 +42,22 @@ class TranslationModePage extends ConsumerWidget {
             child: const MyTextField(),
           ),
 
+          // ボタン達
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              // vertical: 8.0,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start, // 左寄せ
+              children: [
+                const MyTranslateFab(),
+                const SizedBox(width: 10),
+                const MyBookmarkFab(),
+              ],
+            ),
+          ),
+
           // 単語ブロック表示エリア
           Expanded(
             child: chain.isProcessing
@@ -58,24 +75,6 @@ class TranslationModePage extends ConsumerWidget {
                       ), // 改行を含む
                     ),
                   ),
-          ),
-        ],
-      ),
-
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min, // Column が占有する高さを最小限に抑える
-        crossAxisAlignment: CrossAxisAlignment.end, // ボタンを右端に寄せる
-        children: [
-          const MyTranslateFab(),
-          const SizedBox(height: 10),
-          FloatingActionButton(
-            heroTag: 'fab_bookmark_sentence',
-            onPressed: () {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('英文を保存します')));
-            },
-            child: const Icon(Icons.bookmark_add_outlined),
           ),
         ],
       ),

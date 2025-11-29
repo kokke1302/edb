@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:edb/drawer.dart';
+import 'package:edb/drawer/presentation/drawer.dart';
 import 'package:edb/root/data/bottom_index.dart';
 
 // -----------------------------------------------------------------------------

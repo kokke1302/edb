@@ -11,15 +11,15 @@ class MyTranslateFab extends ConsumerWidget {
     final state = ref.watch(translationProvider);
 
     if (state.isProcessing) {
-      return FloatingActionButton(
-        tooltip: '翻訳中',
-        child: const Icon(Icons.loop),
+      return ElevatedButton.icon(
+        icon: const Icon(Icons.loop),
         onPressed: () {},
+        label: const Text('翻訳中'),
       );
     } else {
-      return FloatingActionButton(
-        tooltip: '翻訳開始',
-        child: const Icon(Icons.play_arrow),
+      return ElevatedButton.icon(
+        icon: const Icon(Icons.play_arrow),
+        label: const Text('再翻訳'),
         onPressed: () {
           ref.read(translationProvider.notifier).pushTriggerButton();
         },

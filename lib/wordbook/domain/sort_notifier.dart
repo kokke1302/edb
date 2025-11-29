@@ -11,7 +11,12 @@ class SortSettingNotifier extends Notifier<SortSetting> {
   @override
   SortSetting build() {
     // 初期状態
-    return const SortSetting(field: SortField.createdAt, order: SortOrder.desc);
+    return const SortSetting(
+      field: SortField.createdAt,
+      order: SortOrder.desc,
+      searchWord: '',
+      typingWord: '',
+    );
   }
 
   // ソート項目のみを変更
@@ -24,8 +29,21 @@ class SortSettingNotifier extends Notifier<SortSetting> {
     state = state.copyWith(order: newOrder);
   }
 
+  void setSearchWord(String text) {
+    state = state.copyWith(searchWord: text);
+  }
+
+  void setTypeWord(String text) {
+    state = state.copyWith(typingWord: text);
+  }
+
   // 状態をリセット
   void reset() {
-    state = SortSetting(field: SortField.createdAt, order: SortOrder.desc);
+    state = const SortSetting(
+      field: SortField.createdAt,
+      order: SortOrder.desc,
+      searchWord: '',
+      typingWord: '',
+    );
   }
 }

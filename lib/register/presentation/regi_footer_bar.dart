@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:edb/dictionary/data/card_state.dart';
 import 'package:edb/register/domain/registration_notifier.dart';
 
 // フッター（保存・キャンセル・削除ボタン）
@@ -11,6 +12,8 @@ class FooterBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final regiData = ref.watch(registrationProvider);
+
+    final bool newEntry = regiData.based != Based.vocabularies;
 
     // 削除ボタン
     Widget buildDeleteButton() {
@@ -23,15 +26,15 @@ class FooterBar extends ConsumerWidget {
       }
 
       // 新規作成時
-      if (regiData.existingVocId < 0) {
-        return const SizedBox.shrink();
+      if (regiData.based == Based.vocabularies) {
+        return ElevatedButton(
+          onPressed: newEntry ? null : deleteAction,
+          child: const Text('消去'),
+        );
       }
       // 既存のカードを編集している場合
       else {
-        return ElevatedButton(
-          onPressed: regiData.existingVocId < 0 ? null : deleteAction,
-          child: const Text('消去'),
-        );
+        return const SizedBox.shrink();
       }
     }
 
@@ -44,14 +47,19 @@ class FooterBar extends ConsumerWidget {
           // 日本語訳が空ではない
           regiData.japaneseTranslation.isEmpty ||
           // 新規登録時は英単語の入力は必須
-          (regiData.existingVocId < 0 && regiData.englishWord.isEmpty);
+          (regiData.based != Based.vocabularies &&
+              regiData.englishWord.isEmpty);
 
-      // Now Loading
+      // くるくる
       const Widget cirular = SizedBox(
         width: 20,
         height: 20,
         child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white),
       );
+
+      final saveText = newEntry
+          ? const Text('新規保存', style: TextStyle(fontSize: 16))
+          : const Text('上書き保存', style: TextStyle(fontSize: 16));
 
       void saveAction() async {
         // 保存処理
@@ -67,9 +75,7 @@ class FooterBar extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           minimumSize: const Size(100, 48),
         ),
-        child: regiData.isProcessing
-            ? cirular // くるくる
-            : const Text('保存', style: TextStyle(fontSize: 16)),
+        child: regiData.isProcessing ? cirular : saveText,
       );
     }
 

@@ -13,28 +13,35 @@ final translationProvider =
 class TranslationNotifier extends Notifier<TranslationState> {
   @override
   TranslationState build() {
-    return TranslationState();
+    return TranslationState(
+      originalText: '',
+      tokens: const [],
+      isProcessing: false,
+    );
   }
 
-  // 特定の単語の訳語を更新するメソッドを追加
+  // ドロワーからの復元
+  void restore({required String text, required List<Token> chain}) {
+    state = state.copyWith(originalText: text, tokens: chain);
+  }
+
+  // 特定の単語の訳語を更新するメソッド
   void updateToken({required Token updatedToken}) {
     state = state.copyWith(
       tokens: state.tokens.map((token) {
         return token.id == updatedToken.id ? updatedToken : token;
       }).toList(),
     );
-    // print('tranceration change');
   }
 
   // 英文入力エリアの更新時
   void updateOriginalText({required String newText}) {
     if (state.originalText == newText) return;
 
-    final nowTokens = state.tokens;
     state = state.copyWith(originalText: newText);
 
     Throttle.milliseconds(500, () {
-      _processTranslation(nowTokens: nowTokens);
+      _processTranslation(nowTokens: state.tokens);
     });
   }
 
@@ -77,12 +84,6 @@ class TranslationNotifier extends Notifier<TranslationState> {
             .read(textProcessorProvider)
             .fullTranslation(text: state.originalText);
       }
-
-      // for (final news in newTokens) {
-      //   print(
-      //     'id: ${news.id}, word: ${news.word}, isWord: ${news.isWord}, resolvedTranslation: ${news.resolvedTranslation}, nowShow: ${news.nowShow}, vocId: ${news.vocId}',
-      //   );
-      // }
 
       // 処理結果で状態を更新
       state = state.copyWith(tokens: newTokens);

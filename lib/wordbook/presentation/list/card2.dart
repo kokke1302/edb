@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:edb/db/app_database.dart';
+import 'package:edb/register/data/regidata_receiver.dart';
 
-class MyWordCard extends StatelessWidget {
+class MyWordCard extends ConsumerWidget {
   final Vocabulary entry;
   const MyWordCard({super.key, required this.entry});
 
@@ -12,7 +15,7 @@ class MyWordCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final updatedDate = _formatDate(entry.updatedAt);
 
     return Card(
@@ -111,6 +114,17 @@ class MyWordCard extends StatelessWidget {
                 Text(
                   '更新: $updatedDate',
                   style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+                ),
+
+                // 編集アイコン
+                IconButton(
+                  onPressed: () {
+                    ref
+                        .read(regiDataReceiver.notifier)
+                        .receiveList(entry: entry);
+                    context.push('/registration');
+                  },
+                  icon: Icon(Icons.more_vert),
                 ),
               ],
             ),

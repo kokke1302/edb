@@ -3,17 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:edb/dictionary/data/card_state.dart';
-import 'package:edb/register/data/card_receiver.dart';
+import 'package:edb/register/data/regidata_receiver.dart';
 
 class DictionaryCard extends ConsumerWidget {
-  final String englishWord;
   final CardEntry card;
 
-  const DictionaryCard({
-    super.key,
-    required this.englishWord,
-    required this.card,
-  });
+  const DictionaryCard({super.key, required this.card});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,12 +33,7 @@ class DictionaryCard extends ConsumerWidget {
                 ),
                 IconButton(
                   onPressed: () {
-                    ref
-                        .read(cardReceiver.notifier)
-                        .receiveCard(
-                          newCard: card.copyWith(isShow: true),
-                          newWord: englishWord,
-                        );
+                    ref.read(regiDataReceiver.notifier).receiveCard(card: card);
                     context.push('/registration');
                   },
                   icon: const Icon(Icons.book_outlined),

@@ -1,3 +1,4 @@
+import 'package:edb/dictionary/data/card_state.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -16,9 +17,9 @@ class EntryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final regiData = ref.watch(registrationProvider);
 
-    final appBarTitle = regiData.existingVocId < 0
-        ? const Text('オリジナル訳語を登録')
-        : const Text('訳語を編集');
+    final appBarTitle = regiData.based == Based.vocabularies
+        ? const Text('訳語を編集')
+        : const Text('オリジナル訳語を登録');
 
     return Scaffold(
       appBar: AppBar(title: appBarTitle),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import 'package:edb/dictionary/data/card_state.dart';
 import 'package:edb/register/domain/registration_notifier.dart';
 
 // 英単語のフィールド
@@ -11,10 +12,9 @@ class EnglishCard extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final regiData = ref.watch(registrationProvider);
-    final isOriginal =
-        regiData.japaneseTranslation.isEmpty || regiData.memo.isEmpty;
+    final isEntry = regiData.based != Based.vocabularies;
 
-    final isEditingState = useState(isOriginal);
+    final isEditingState = useState(isEntry);
     final isEditing = isEditingState.value;
 
     void dialog() {

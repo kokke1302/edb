@@ -2,10 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/dictionary/data/card_state.dart';
 import 'package:edb/dictionary/domain/cardlist_notifier.dart';
-import 'package:edb/translation/domain/translation_notifier.dart';
-import 'package:edb/register/data/card_receiver.dart';
 import 'package:edb/register/data/registration_state.dart';
+import 'package:edb/register/data/regidata_receiver.dart';
 import 'package:edb/register/domain/vocaburary_repository.dart';
+import 'package:edb/wordbook/domain/list_notifier.dart';
 
 final registrationProvider =
     NotifierProvider.autoDispose<RegistrationNotifier, RegistrationState>(
@@ -16,20 +16,7 @@ final registrationProvider =
 class RegistrationNotifier extends Notifier<RegistrationState> {
   @override
   RegistrationState build() {
-    final cardData = ref.watch(cardReceiver);
-
-    final id = cardData.card.based == Based.vocabularies
-        ? cardData.card.id
-        : -1;
-
-    return RegistrationState(
-      englishWord: cardData.englishWord,
-      japaneseTranslation: cardData.card.translation,
-      memo: cardData.card.memo,
-      isHidden: !cardData.card.isShow,
-      existingVocId: id,
-      isProcessing: false,
-    );
+    return ref.read(regiDataReceiver);
   }
 
   void updateEnglish(String text) {
@@ -55,10 +42,10 @@ class RegistrationNotifier extends Notifier<RegistrationState> {
     final bool isSaveEnabled =
         // 処理中ではない
         state.isProcessing ||
-        // 日本語訳が空ではない
+        // 日本語訳の入力は必須
         state.japaneseTranslation.isEmpty ||
-        // 新規登録時は英単語の入力は必須
-        (state.existingVocId < 0 && state.englishWord.isEmpty);
+        // 英単語の入力は必須
+        state.englishWord.isEmpty;
     if (isSaveEnabled) return;
 
     // 2. 処理中フラグON
@@ -66,7 +53,7 @@ class RegistrationNotifier extends Notifier<RegistrationState> {
 
     try {
       // 3. Repositoryを呼び出し、DBへの保存と排他制御を実行
-      if (state.existingVocId == -1) {
+      if (state.based != Based.vocabularies) {
         await ref
             .read(vocabularyRepositoryProvider)
             .addVocabulary(state: state);
@@ -81,31 +68,35 @@ class RegistrationNotifier extends Notifier<RegistrationState> {
     } finally {
       // 5. 処理中フラグOFF
       state = state.copyWith(isProcessing: false);
-      ref.read(translationProvider.notifier).pushTriggerButton();
+      // 翻訳モード
       ref.invalidate(cardListProvider);
+      ref.read(cardListProvider.notifier).updateEntry();
+      // 単語リスト
+      ref.read(wordListProvider.notifier).reload();
     }
   }
 
   Future<void> delete() async {
     // 1. 既存のIDがない場合は処理しない
-    if (state.existingVocId == -1) return;
+    if (state.based != Based.vocabularies) return;
 
     // 2. 処理中フラグON
     state = state.copyWith(isProcessing: true);
 
     try {
       // 3. Repositoryを呼び出し、DBから単語を削除
-      await ref
-          .read(vocabularyRepositoryProvider)
-          .deleteVocabulary(state.existingVocId);
+      await ref.read(vocabularyRepositoryProvider).deleteVocabulary(state.id);
     } catch (e) {
       // 4. エラーハンドリング (例: ログ出力、ユーザーへの通知)
       print('単語帳の削除中にエラーが発生しました: $e');
     } finally {
       // 5. 処理中フラグOFF
       state = state.copyWith(isProcessing: false);
-      ref.read(translationProvider.notifier).pushTriggerButton();
+      // 翻訳モード
       ref.invalidate(cardListProvider);
+      ref.read(cardListProvider.notifier).updateEntry();
+      // 単語リスト
+      ref.read(wordListProvider.notifier).reload();
     }
   }
 }

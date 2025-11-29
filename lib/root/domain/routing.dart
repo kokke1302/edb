@@ -36,7 +36,7 @@ class EnglishLearningApp extends StatelessWidget {
       // 独立した画面
       GoRoute(
         path: '/registration',
-        builder: (context, state) => EntryScreen(),
+        builder: (context, state) => const EntryScreen(),
       ),
       GoRoute(
         path: '/setting',
