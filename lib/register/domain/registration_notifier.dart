@@ -64,7 +64,7 @@ class RegistrationNotifier extends Notifier<RegistrationState> {
       }
     } catch (e) {
       // 4. エラーハンドリング (例: ログ出力、ユーザーへの通知)
-      print('単語帳の保存中にエラーが発生しました: $e');
+      // print('単語帳の保存中にエラーが発生しました: $e');
     } finally {
       // 5. 処理中フラグOFF
       state = state.copyWith(isProcessing: false);
@@ -88,7 +88,7 @@ class RegistrationNotifier extends Notifier<RegistrationState> {
       await ref.read(vocabularyRepositoryProvider).deleteVocabulary(state.id);
     } catch (e) {
       // 4. エラーハンドリング (例: ログ出力、ユーザーへの通知)
-      print('単語帳の削除中にエラーが発生しました: $e');
+      // print('単語帳の削除中にエラーが発生しました: $e');
     } finally {
       // 5. 処理中フラグOFF
       state = state.copyWith(isProcessing: false);

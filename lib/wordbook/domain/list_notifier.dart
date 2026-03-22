@@ -109,9 +109,6 @@ class WordListNotifier extends AsyncNotifier<WordListState> {
     final repository = ref.read(listRepositoryProvider);
     final sortSetting = ref.read(sortSettingProvider);
 
-    // TODO: 遅延をシミュレート
-    await Future.delayed(const Duration(milliseconds: 500));
-
     // ページングメソッド
     final entries = await repository.fetchVocabulariesWithPaging(
       offset: offset,
@@ -121,9 +118,9 @@ class WordListNotifier extends AsyncNotifier<WordListState> {
     );
 
     // 実行ログ
-    print(
-      'DBから offset:$offset, limit:$limit, query:$queryText, sortField:${sortSetting.field.name}, sortOrder:${sortSetting.order.name} で ${entries.length} 件取得しました。',
-    );
+    // print(
+    //   'DBから offset:$offset, limit:$limit, query:$queryText, sortField:${sortSetting.field.name}, sortOrder:${sortSetting.order.name} で ${entries.length} 件取得しました。',
+    // );
 
     return entries;
   }

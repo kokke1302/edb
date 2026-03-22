@@ -54,7 +54,7 @@ class TileListNotifier extends AsyncNotifier<TileState> {
         );
       } catch (e, stack) {
         // エラー処理: エラーをログに出力し、ステートをAsyncErrorにする
-        print('Error adding tile: $e\n$stack');
+        // print('Error adding tile: $e\n$stack');
         // AsyncValue.dataから AsyncError にステートを変更
         state = AsyncValue.error('英文履歴の追加に失敗しました: $e', stack);
       }
@@ -80,7 +80,7 @@ class TileListNotifier extends AsyncNotifier<TileState> {
           currentState.copyWith(list: updatedList, isProcessing: false),
         );
       } catch (e, stack) {
-        print('Error deleting tile with ID $id: $e\n$stack');
+        // print('Error deleting tile with ID $id: $e\n$stack');
         // エラーが発生した場合、処理中フラグをfalseに戻すか、エラー状態として保持する
         state = AsyncValue.error('英文履歴の削除に失敗しました: $e', stack);
       }

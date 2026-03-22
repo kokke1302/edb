@@ -74,12 +74,8 @@ class VocabularyInputSheet extends ConsumerWidget {
 
                   error: (err, stack) => Center(child: Text('エラー: $err')),
 
-                  data: (list) => _buildCardList(
-                    context: context,
-                    ref: ref,
-                    tokenWord: token.card.word,
-                    list: list,
-                  ),
+                  data: (list) =>
+                      _buildCardList(context: context, list: list, ref: ref),
                 ),
               ),
             ),
@@ -93,7 +89,6 @@ class VocabularyInputSheet extends ConsumerWidget {
   Widget _buildCardList({
     required BuildContext context,
     required WidgetRef ref,
-    required String tokenWord,
     required CardListState list,
   }) {
     return Column(

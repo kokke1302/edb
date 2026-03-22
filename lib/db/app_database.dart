@@ -64,7 +64,6 @@ class AppDatabase extends _$AppDatabase {
       },
       // onUpgrade: (Migrator m, int from, int to) async {
       //   // スキーマバージョンが将来上がった時の処理
-      //   // 今回はバージョン1なので不要
       // },
     );
   }

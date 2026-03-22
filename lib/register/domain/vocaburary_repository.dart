@@ -6,14 +6,13 @@ import 'package:edb/dictionary/data/card_state.dart';
 import 'package:edb/register/data/registration_state.dart';
 
 // VocabularyRepositoryのインスタンスを提供する
-// すべてのビジネスロジック（CRUD, ページング）を担当する
 final vocabularyRepositoryProvider = Provider<VocabularyRepository>((ref) {
   final db = ref.watch(databaseProvider);
   return VocabularyRepository(db);
 });
 
 class VocabularyRepository {
-  // 💡 コンストラクタでAppDatabaseを受け取る
+  // コンストラクタでAppDatabaseを受け取る
   final AppDatabase db;
   VocabularyRepository(this.db);
 

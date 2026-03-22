@@ -88,7 +88,7 @@ class TranslationNotifier extends Notifier<TranslationState> {
       // 処理結果で状態を更新
       state = state.copyWith(tokens: newTokens);
     } catch (e) {
-      print('テキスト処理中にエラーが発生しました: $e');
+      // print('テキスト処理中にエラーが発生しました: $e');
       state = state.copyWith(tokens: [], isProcessing: false);
     } finally {
       // 処理完了後にフラグを解除

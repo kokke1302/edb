@@ -16,7 +16,7 @@ class DatabaseInitializer {
 
   // 単語帳データ投入関数
   Future<void> insertManualVocabularies() async {
-    print('INFO: 単語帳初期データ投入を開始...');
+    // print('INFO: 単語帳初期データ投入を開始...');
 
     final countStatement = countAll();
     final currentCount =
@@ -31,25 +31,13 @@ class DatabaseInitializer {
         VocabulariesCompanion.insert(
           englishWord: 'this',
           japaneseTranslation: 'これ',
-          isHidden: false,
-          memo: 'あああ',
-        ),
-        VocabulariesCompanion.insert(
-          englishWord: 'is',
-          japaneseTranslation: 'です',
-          isHidden: false,
-          memo: '',
-        ),
-        VocabulariesCompanion.insert(
-          englishWord: 'test',
-          japaneseTranslation: 'テスト',
-          isHidden: false,
+          isHidden: true,
           memo: '',
         ),
         VocabulariesCompanion.insert(
           englishWord: 'sentence',
           japaneseTranslation: '文章',
-          isHidden: true,
+          isHidden: false,
           memo: '',
         ),
         VocabulariesCompanion.insert(
@@ -69,9 +57,9 @@ class DatabaseInitializer {
         );
       });
 
-      print('INFO: 単語帳初期データ ${initialData.length} 件の投入が完了しました。');
+      // print('INFO: 単語帳初期データ ${initialData.length} 件の投入が完了しました。');
     } else {
-      print('INFO: 行数が0以上です。単語帳初期データ投入をスキップします。');
+      // print('INFO: 行数が0以上です。単語帳初期データ投入をスキップします。');
     }
   }
 
@@ -79,7 +67,7 @@ class DatabaseInitializer {
   static Future<void> ensureDictionaryCopied() async {
     // Web環境ではこの処理は不要
     if (kIsWeb) {
-      print('INFO: Web環境です。ファイルコピー処理をスキップします。');
+      // print('INFO: Web環境です。ファイルコピー処理をスキップします。');
       return;
     }
 
@@ -90,12 +78,12 @@ class DatabaseInitializer {
 
     // 2. データベースファイルが既に存在する場合、コピーはスキップ
     if (await file.exists()) {
-      print('INFO: データベースファイル（$dbFilePath）は既に存在します。コピーをスキップします。');
+      // print('INFO: データベースファイル（$dbFilePath）は既に存在します。コピーをスキップします。');
       return;
     }
 
     // 3. データベースファイルが存在しない場合のみ、アセットからコピーを開始
-    print('INFO: データベースファイルが存在しません。アセットからのコピーを開始します。');
+    // print('INFO: データベースファイルが存在しません。アセットからのコピーを開始します。');
 
     const String assetPath = 'assets/output.sqlite3';
     try {
@@ -107,9 +95,9 @@ class DatabaseInitializer {
 
       // ファイルを直接書き込み
       await file.writeAsBytes(bytes, flush: true);
-      print('INFO: 内部辞書ファイル（$assetPath）のコピーが完了しました。');
+      // print('INFO: 内部辞書ファイル（$assetPath）のコピーが完了しました。');
     } catch (e) {
-      print('ERROR: プリパッケージドデータベースのコピー中にエラーが発生しました: $e');
+      // print('ERROR: プリパッケージドデータベースのコピー中にエラーが発生しました: $e');
       rethrow;
     }
   }

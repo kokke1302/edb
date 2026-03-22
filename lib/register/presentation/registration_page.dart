@@ -18,8 +18,8 @@ class EntryScreen extends ConsumerWidget {
     final regiData = ref.watch(registrationProvider);
 
     final appBarTitle = regiData.based == Based.vocabularies
-        ? const Text('訳語を編集')
-        : const Text('オリジナル訳語を登録');
+        ? const Text('カードを編集')
+        : const Text('カードを作成');
 
     return Scaffold(
       appBar: AppBar(title: appBarTitle),
