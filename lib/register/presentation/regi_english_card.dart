@@ -43,40 +43,39 @@ class EnglishCard extends HookConsumerWidget {
       );
     }
 
-    final Widget englishEditing = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          decoration: InputDecoration(
-            labelText: '英単語 *', // 必須マークを追加
-            border: const OutlineInputBorder(),
-            contentPadding: const EdgeInsets.symmetric(
-              vertical: 14.0,
-              horizontal: 10.0,
-            ),
-          ),
-          controller: useTextEditingController(text: regiData.englishWord),
-          keyboardType: TextInputType.text,
-          onChanged: ref.read(registrationProvider.notifier).updateEnglish,
+    final Widget englishEditing = TextField(
+      decoration: InputDecoration(
+        labelText: '英単語 *', // 必須マークを追加
+        border: const OutlineInputBorder(),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 14.0,
+          horizontal: 10.0,
         ),
-      ],
+      ),
+      controller: useTextEditingController(text: regiData.englishWord),
+      keyboardType: TextInputType.text,
+      onChanged: ref.read(registrationProvider.notifier).updateEnglish,
     );
 
     final Widget englishTitle = Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('英単語', style: Theme.of(context).textTheme.bodySmall),
-            const SizedBox(height: 4),
-            Text(
-              regiData.englishWord,
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
-          ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('英単語', style: Theme.of(context).textTheme.bodySmall),
+              const SizedBox(height: 4),
+              Text(
+                regiData.englishWord,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
         ),
         // 編集ボタン
         TextButton(onPressed: dialog, child: const Text('編集')),

@@ -42,8 +42,8 @@ class MyWordCard extends ConsumerWidget {
                     child: Text(
                       entry.englishWord,
                       textAlign: TextAlign.center,
-                      overflow: TextOverflow.fade, // 制限した場合の処理
-
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
                       style: const TextStyle(
                         fontWeight: FontWeight.w800,
                         fontSize: 20,
@@ -67,7 +67,8 @@ class MyWordCard extends ConsumerWidget {
                     child: Text(
                       entry.japaneseTranslation,
                       textAlign: TextAlign.center,
-                      overflow: TextOverflow.fade,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
 
                       style: const TextStyle(
                         fontSize: 18,
@@ -93,8 +94,8 @@ class MyWordCard extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     entry.memo,
-                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                     style: TextStyle(fontSize: 13, color: Colors.grey[700]),
                   ),
                 ),

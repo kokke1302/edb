@@ -100,6 +100,28 @@ class WordListNotifier extends AsyncNotifier<WordListState> {
     });
   }
 
+  // 初期状態に戻す
+  Future<void> refresh() async {
+    // リフレッシュ中
+    state = const AsyncValue.loading();
+
+    ref.read(sortSettingProvider.notifier).reset();
+
+    state = await AsyncValue.guard(() async {
+      final initialList = await _fetchData(
+        offset: 0,
+        limit: _pageSize,
+        queryText: ref.read(sortSettingProvider).searchWord,
+      );
+
+      return WordListState(
+        words: initialList,
+        endStatus: EndStatus.normal,
+        isDataEnd: initialList.length < _pageSize,
+      );
+    });
+  }
+
   // Repositoryからデータを取得
   Future<List<Vocabulary>> _fetchData({
     required int offset,

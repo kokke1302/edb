@@ -47,4 +47,28 @@ class RegiDataReceiver extends Notifier<RegistrationState> {
       isProcessing: false,
     );
   }
+
+  void reciveOriginal({required String englishWord}) {
+    state = RegistrationState(
+      id: -1,
+      englishWord: englishWord,
+      japaneseTranslation: "",
+      isHidden: false,
+      memo: "",
+      based: Based.init,
+      isProcessing: false,
+    );
+  }
+
+  void reciveNew() {
+    state = RegistrationState(
+      id: -1,
+      englishWord: "",
+      japaneseTranslation: "",
+      isHidden: false,
+      memo: "",
+      based: Based.init,
+      isProcessing: false,
+    );
+  }
 }

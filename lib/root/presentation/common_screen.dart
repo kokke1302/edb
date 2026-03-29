@@ -6,12 +6,12 @@ import 'package:edb/drawer/presentation/drawer.dart';
 import 'package:edb/root/data/bottom_index.dart';
 
 // -----------------------------------------------------------------------------
-// MainScreen (共通のScaffold)
+// CommonScreen (共通のScaffold)
 //  - childウィジェットをbodyとして受け取り、表示
 // -----------------------------------------------------------------------------
 
-class MainScreen extends ConsumerWidget {
-  const MainScreen({super.key, required this.child});
+class CommonScreen extends ConsumerWidget {
+  const CommonScreen({super.key, required this.child});
   final Widget child;
 
   @override
@@ -59,20 +59,6 @@ class MainScreen extends ConsumerWidget {
           BottomNavigationBarItem(icon: Icon(Icons.book), label: '単語帳モード'),
         ],
       ),
-      // floatingActionButton: fab,
-      // floatingActionButton: AnimatedSwitcher(
-      //   duration: const Duration(milliseconds: 300), // アニメーションの時間を設定
-      //   child: fab,
-      //   // デフォルトではフェードアニメーション。必要に応じて transitionBuilder を設定
-      //   transitionBuilder: (Widget child, Animation<double> animation) {
-      //     // フェードとサイズ変更のアニメーションを組み合わせる例
-      //     final offsetAnimation = Tween<Offset>(
-      //       begin: const Offset(1.0, 0.0), // 右からスライドイン
-      //       end: Offset.zero,
-      //     ).animate(animation);
-      //     return SlideTransition(position: offsetAnimation, child: child);
-      //   },
-      // ),
     );
   }
 }

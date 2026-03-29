@@ -8,6 +8,7 @@ import 'package:edb/dictionary/domain/cardlist_notifier.dart';
 import 'package:edb/dictionary/presentation/registered_card.dart';
 import 'package:edb/dictionary/presentation/dictionary_card.dart';
 import 'package:edb/translation/domain/translation_notifier.dart';
+import 'package:edb/register/data/regidata_receiver.dart';
 
 // 辞書機能シート
 class VocabularyInputSheet extends ConsumerWidget {
@@ -18,6 +19,8 @@ class VocabularyInputSheet extends ConsumerWidget {
     final currentId = ref.watch(tokenIdProvider);
     final token = ref.watch(translationProvider).targetToken(id: currentId);
     final cards = ref.watch(cardListProvider);
+
+    final headerWord = token.card.word;
 
     // 以下のContainerがモーダルシート全体を占める
     return Container(
@@ -35,7 +38,7 @@ class VocabularyInputSheet extends ConsumerWidget {
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 16.0),
                   child: Text(
-                    token.card.word,
+                    headerWord,
                     style: Theme.of(context).textTheme.headlineMedium!.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -74,8 +77,12 @@ class VocabularyInputSheet extends ConsumerWidget {
 
                   error: (err, stack) => Center(child: Text('エラー: $err')),
 
-                  data: (list) =>
-                      _buildCardList(context: context, list: list, ref: ref),
+                  data: (list) => _buildCardList(
+                    context: context,
+                    ref: ref,
+                    headerWord: headerWord,
+                    list: list,
+                  ),
                 ),
               ),
             ),
@@ -89,6 +96,7 @@ class VocabularyInputSheet extends ConsumerWidget {
   Widget _buildCardList({
     required BuildContext context,
     required WidgetRef ref,
+    required String headerWord,
     required CardListState list,
   }) {
     return Column(
@@ -121,6 +129,9 @@ class VocabularyInputSheet extends ConsumerWidget {
           title: const Text('オリジナル訳語を登録'),
           trailing: const Icon(Icons.edit),
           onTap: () {
+            ref
+                .read(regiDataReceiver.notifier)
+                .reciveOriginal(englishWord: headerWord);
             context.push('/registration');
           },
         ),

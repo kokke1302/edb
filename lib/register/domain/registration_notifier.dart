@@ -62,17 +62,24 @@ class RegistrationNotifier extends Notifier<RegistrationState> {
             .read(vocabularyRepositoryProvider)
             .updateVocabulary(state: state);
       }
+      if (!ref.mounted) return;
+
+      // 状態の更新と他プロバイダーへの通知
+      state = state.copyWith(isProcessing: false);
+
+      // 翻訳モードの更新
+      ref.invalidate(cardListProvider);
+      // invalidate直後にreadすると再構築が走るため、mountedを確認して実行
+      ref.read(cardListProvider.notifier).updateEntry();
+
+      // 単語リストの更新
+      ref.read(wordListProvider.notifier).reload();
     } catch (e) {
       // 4. エラーハンドリング (例: ログ出力、ユーザーへの通知)
       // print('単語帳の保存中にエラーが発生しました: $e');
-    } finally {
-      // 5. 処理中フラグOFF
-      state = state.copyWith(isProcessing: false);
-      // 翻訳モード
-      ref.invalidate(cardListProvider);
-      ref.read(cardListProvider.notifier).updateEntry();
-      // 単語リスト
-      ref.read(wordListProvider.notifier).reload();
+      if (ref.mounted) {
+        state = state.copyWith(isProcessing: false);
+      }
     }
   }
 

@@ -12,6 +12,7 @@ import 'package:edb/wordbook/presentation/list/list_footer.dart';
 import 'package:edb/wordbook/presentation/list/card2.dart';
 import 'package:edb/wordbook/presentation/search/searchbar.dart';
 import 'package:edb/wordbook/presentation/search/sort_dropdown.dart';
+import 'package:edb/register/data/regidata_receiver.dart';
 
 class WordbookScreen extends HookConsumerWidget {
   const WordbookScreen({super.key});
@@ -67,13 +68,35 @@ class WordbookScreen extends HookConsumerWidget {
             final wordEntries = wordListState.words;
 
             // データ終端であり、リストが空の場合
+            final searchQuery = ref.read(sortSettingProvider).searchWord;
+            final displayQuery = searchQuery.length > 50
+                ? '${searchQuery.substring(0, 50)}...'
+                : searchQuery;
+            final message = displayQuery.isEmpty
+                ? '単語帳にはまだ単語が登録されていません。'
+                : '「$displayQuery」に一致する単語は見つかりませんでした。';
+
+            // リストのエラー処理の画面分岐
+            final Widget mainContentSliver;
             if (wordListState.isDataEnd && wordEntries.isEmpty) {
-              // 入力済み文字列
-              final searchQuery = ref.read(sortSettingProvider).searchWord;
-              final message = searchQuery.isEmpty
-                  ? '単語帳にはまだ単語が登録されていません。'
-                  : '「$searchQuery」に一致する単語は見つかりませんでした。';
-              return Center(child: Text(message));
+              // 検索結果が空の場合
+              mainContentSliver = SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(child: Text(message)),
+              );
+            } else {
+              // データがある場合
+              mainContentSliver = SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  childCount: wordEntries.length + 1,
+                  (context, index) {
+                    if (index == wordEntries.length) {
+                      return const MyListFooter();
+                    }
+                    return MyWordCard(entry: wordEntries[index]);
+                  },
+                ),
+              );
             }
 
             // 単語データをカードにしていく
@@ -101,6 +124,12 @@ class WordbookScreen extends HookConsumerWidget {
                     const SizedBox(width: 10),
                     IconButton(
                       onPressed: () => {
+                        ref.read(wordListProvider.notifier).refresh(),
+                      },
+                      icon: const Icon(Icons.home),
+                    ),
+                    IconButton(
+                      onPressed: () => {
                         ref.read(wordListProvider.notifier).reload(),
                       },
                       icon: const Icon(Icons.loop),
@@ -109,20 +138,7 @@ class WordbookScreen extends HookConsumerWidget {
                   ],
                 ),
 
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    childCount: wordEntries.length + 1, // フッター用にアイテム数+1
-                    (context, index) {
-                      // フッター部分の処理
-                      if (index == wordEntries.length) {
-                        return const MyListFooter();
-                      }
-
-                      // 通常の単語エントリーの表示
-                      return MyWordCard(entry: wordEntries[index]);
-                    },
-                  ),
-                ),
+                mainContentSliver,
               ],
             );
           },
@@ -135,6 +151,7 @@ class WordbookScreen extends HookConsumerWidget {
         children: [
           FloatingActionButton(
             onPressed: () {
+              ref.read(regiDataReceiver.notifier).reciveNew();
               context.push('/registration');
             },
             child: const Icon(Icons.add),

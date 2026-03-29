@@ -3,14 +3,7 @@ import 'package:edb/dictionary/data/card_state.dart';
 class Token {
   final int id; // 固有ID
   final bool isWord; // 単語であるかどうか (true: 単語, false: 句読点など)
-  final CardEntry card;
-  // id,
-  // word, 表示する単語（大文字OK）
-  // translation,
-  // isShow,
-  // nowShow,
-  // memo,
-  // based,
+  final CardEntry card; // (id, word, translation, isShow, nowShow, memo, based)
 
   Token({required this.id, required this.isWord, required this.card});
 

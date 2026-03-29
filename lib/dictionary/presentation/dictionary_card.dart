@@ -26,10 +26,13 @@ class DictionaryCard extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  card.translation,
-                  style: Theme.of(context).textTheme.titleMedium,
-                  overflow: TextOverflow.ellipsis,
+                Expanded(
+                  child: Text(
+                    card.translation,
+                    style: Theme.of(context).textTheme.titleMedium,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
                 ),
                 IconButton(
                   onPressed: () {
@@ -50,6 +53,7 @@ class DictionaryCard extends ConsumerWidget {
                   style: Theme.of(
                     context,
                   ).textTheme.bodySmall!.copyWith(color: colorScheme.outline),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
           ],

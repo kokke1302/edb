@@ -43,3 +43,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# 署名鍵本体 (JKSファイル)
+*.jks
+
+# パスワードが書かれた設定ファイル
+android/key.properties

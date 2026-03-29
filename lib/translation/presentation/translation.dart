@@ -33,8 +33,9 @@ class TranslationModePage extends ConsumerWidget {
     // トークン配列を監視
     final chain = ref.watch(translationProvider);
 
-    return Scaffold(
-      body: Column(
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           // 英文入力エリア
           Padding(
@@ -59,23 +60,21 @@ class TranslationModePage extends ConsumerWidget {
           ),
 
           // 単語ブロック表示エリア
-          Expanded(
-            child: chain.isProcessing
-                ? const Center(child: CircularProgressIndicator())
-                // 垂直スクロールできるようにする
-                : SingleChildScrollView(
-                    padding: const EdgeInsets.all(16.0),
-                    // 横並び・自動改行
-                    child: Wrap(
-                      alignment: WrapAlignment.center, // 中央揃え
-                      spacing: 8.0, // 単語ブロック間の水平方向の間隔
-                      runSpacing: 8.0, // 単語ブロック行間の垂直方向の間隔
-                      children: _buildWordBlocksWithBreaks(
-                        tokens: chain.tokens,
-                      ), // 改行を含む
-                    ),
-                  ),
-          ),
+          if (chain.isProcessing)
+            const Padding(
+              padding: EdgeInsets.all(32.0),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 8.0,
+                runSpacing: 8.0,
+                children: _buildWordBlocksWithBreaks(tokens: chain.tokens),
+              ),
+            ),
         ],
       ),
     );

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
-import 'package:edb/root/presentation/main_screen.dart';
+import 'package:edb/root/presentation/common_screen.dart';
 import 'package:edb/translation/presentation/translation.dart';
 import 'package:edb/register/presentation/registration_page.dart';
 import 'package:edb/wordbook/presentation/list/wordbook_screen.dart';
@@ -19,7 +20,7 @@ class EnglishLearningApp extends StatelessWidget {
     routes: [
       ShellRoute(
         builder: (context, state, child) {
-          return MainScreen(child: child);
+          return CommonScreen(child: child);
         },
         routes: [
           // ボトムナビゲーションバーで切り替える画面
@@ -55,6 +56,18 @@ class EnglishLearningApp extends StatelessWidget {
         fontFamily: 'Inter', // Tailwind CSSの指示に合わせ、Interフォントを仮定
         useMaterial3: true,
       ),
+
+      // サポートする言語を定義
+      supportedLocales: [Locale('ja', 'JP')],
+      // ローカライズ用のデリゲートを設定
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      // 言語コードを日本語に固定、あるいは優先設定
+      locale: Locale('ja', 'JP'),
+
       routerConfig: _router,
     );
   }
