@@ -5,7 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:edb/root/presentation/common_screen.dart';
 import 'package:edb/translation/presentation/translation.dart';
 import 'package:edb/register/presentation/registration_page.dart';
-import 'package:edb/wordbook/presentation/list/wordbook_screen.dart';
+import 'package:edb/wordbook/presentation/wordbook_screen.dart';
 
 // -----------------------------------------------------------------------------
 // GoRouter ルーティングの設定

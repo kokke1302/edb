@@ -1,10 +1,11 @@
-import 'package:edb/dictionary/data/card_state.dart';
+import 'package:edb/share/data/vocab_entry.dart';
+import 'package:edb/share/data/card_data.dart';
 
 /// 単語カードと順番を保持するクラス
 class CardListState {
-  final CardEntry? showWord;
-  final List<CardEntry> vocabularyWords;
-  final List<CardEntry> dictionaryWords;
+  final CardData? showWord;
+  final List<CardData> vocabularyWords;
+  final List<VocabEntry> dictionaryWords;
 
   CardListState({
     this.showWord,
@@ -14,9 +15,9 @@ class CardListState {
 
   /// 状態の一部を更新するためのメソッド
   CardListState copyWith({
-    required CardEntry? showWord,
-    List<CardEntry>? vocabularyWords,
-    List<CardEntry>? dictionaryWords,
+    required CardData? showWord,
+    List<CardData>? vocabularyWords,
+    List<VocabEntry>? dictionaryWords,
   }) {
     return CardListState(
       showWord: showWord,

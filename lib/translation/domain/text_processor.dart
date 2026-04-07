@@ -1,24 +1,18 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:diffutil_dart/diffutil.dart';
 
 import 'package:edb/db/app_database.dart';
-import 'package:edb/translation/data/token.dart';
-import 'package:edb/translation/domain/batch_repository.dart';
-import 'package:edb/dictionary/data/card_state.dart';
-
-// 依存関係注入のためのProvider
-final textProcessorProvider = Provider<TextProcessor>((ref) {
-  return TextProcessor(ref);
-});
+import 'package:edb/share/data/vocab_entry.dart';
+import 'package:edb/translation/data/token_data.dart';
+import 'package:edb/translation/data/dbsourse_switch.dart';
 
 /// 英文の解析、トークン化、辞書検索、訳語割り当てのロジックを実装するクラス
 class TextProcessor {
-  final Ref ref;
-  TextProcessor(this.ref);
+  final TranslationDBSource ds;
+  TextProcessor(this.ds);
 
   // テキストをトークン化し、検索キーを生成する共通ロジック
-  List<Token> _tokenizeText({required String text}) {
-    final List<Token> initialTokens = [];
+  List<TokenData> _tokenizeText({required String text}) {
+    final List<TokenData> initialTokens = [];
 
     // (ハイフン単語 | アポストロフィ単語 | シンプル単語 | 句読点 | 空白)のまとまりに分ける
     final matches = RegExp(
@@ -33,18 +27,9 @@ class TextProcessor {
       // 空白のみのトークンは無視
       if (tokenText.trim().isEmpty) continue;
 
-      final Token token = Token(
+      final TokenData token = TokenData.fromString(
         id: currentId,
-        isWord: RegExp(r'\w').hasMatch(tokenText),
-        card: CardEntry(
-          id: -1,
-          word: tokenText,
-          translation: '',
-          isShow: false,
-          nowShow: false,
-          memo: '',
-          based: Based.init,
-        ),
+        text: tokenText,
       );
 
       // Token.fromText ファクトリで初期Tokenを生成
@@ -54,33 +39,33 @@ class TextProcessor {
     return initialTokens;
   }
 
-  Future<List<Token>> incrementalTranslation({
-    required List<Token> nowTokens,
+  Future<List<TokenData>> incrementalTranslation({
+    required List<TokenData> nowTokens,
     required String newText,
   }) async {
     // 1. テキストのトークン化
-    final List<Token> newTokensInitial = _tokenizeText(text: newText);
+    final List<TokenData> newTokensInitial = _tokenizeText(text: newText);
 
     // 2. 差分計算のためのリストを準備 (Tokenの word 文字列のリスト)
-    final List<String> oldWords = nowTokens.map((t) => t.card.word).toList();
+    final List<String> oldWords = nowTokens.map((t) => t.vocab.word).toList();
     final List<String> newWords = newTokensInitial
-        .map((t) => t.card.word)
+        .map((t) => t.vocab.word)
         .toList();
 
     // 3. 文字列リストで差分を計算
     final diffResult = calculateListDiff<String>(oldWords, newWords);
 
     // このリストに差分操作を適用し、構造を変更していく
-    List<Token> finalTranslatedTokens = List.from(nowTokens);
+    List<TokenData> finalTranslatedTokens = List.from(nowTokens);
     // 新しく翻訳が必要なトークンのリスト
-    Map<int, Token> tokensToTranslate = {};
+    Map<int, TokenData> tokensToTranslate = {};
 
     // 4. 差分操作を逆順に適用
     for (final update in diffResult.getUpdates().toList().reversed) {
       update.when(
         // [挿入] 新しいトークンを指定位置に追加
         insert: (pos, count) {
-          final List<Token> insertedTokens = newTokensInitial.sublist(
+          final List<TokenData> insertedTokens = newTokensInitial.sublist(
             pos,
             pos + count,
           );
@@ -101,7 +86,7 @@ class TextProcessor {
         change: (pos, payload) {
           // insert/remove になるため、changeは発生しないか、無視できるはず
           // もし発生しても、そのトークンは新しく翻訳が必要なトークンとして扱う
-          final Token newToken = newTokensInitial[pos];
+          final TokenData newToken = newTokensInitial[pos];
           finalTranslatedTokens[pos] = newToken;
           tokensToTranslate[pos] = newToken;
         },
@@ -109,7 +94,7 @@ class TextProcessor {
         // [移動] トークンの移動insert(to) で挿入する。
         move: (from, to) {
           // removeAt(from): 削除, 対象をreturn
-          final Token movedToken = finalTranslatedTokens.removeAt(from);
+          final TokenData movedToken = finalTranslatedTokens.removeAt(from);
           // insert(to): 挿入
           finalTranslatedTokens.insert(to, movedToken);
         },
@@ -118,14 +103,17 @@ class TextProcessor {
 
     // 5. 辞書検索が必要なTokenのユニークキーを収集
     final Set<String> lookupKeys = tokensToTranslate.values
-        .where((t) => t.isWord && t.card.word.isNotEmpty)
-        .map((t) => t.card.word.toLowerCase())
+        .where((t) => t.isWord && t.vocab.word.isNotEmpty)
+        .map((t) => t.vocab.word.toLowerCase())
         .toSet();
 
     // 6. DictionaryServiceによる訳語の一括検索
-    final List<Vocabulary> vocabularyEntries = await ref
-        .read(batchRepositoryProvider)
-        .fetchTranslationsBatch(lookupKeys);
+    final List<Vocabulary> vocabularyEntries;
+    try {
+      vocabularyEntries = await ds.fetchTranslationsBatch(lookupKeys);
+    } catch (e) {
+      rethrow;
+    }
 
     // 7. <検索キー: 単語帳DBエントリー>のMapを作成
     final Map<String, Vocabulary> translationMap = {};
@@ -141,11 +129,11 @@ class TextProcessor {
     // トークンに訳語を割り当てる
     for (final entry in tokensToTranslate.entries) {
       final int pos = entry.key;
-      final Token tokenToUpdate = entry.value;
+      final TokenData tokenToUpdate = entry.value;
 
       // MapからVocabularyエントリを取得。
       final Vocabulary? vocabularyEntry =
-          translationMap[tokenToUpdate.card.word.toLowerCase()];
+          translationMap[tokenToUpdate.vocab.word.toLowerCase()];
 
       // 辞書検索が不要した場合は、更新せずにスキップ
       if (!tokenToUpdate.isWord) continue;
@@ -153,8 +141,7 @@ class TextProcessor {
       // 最終リスト内のトークンを、訳語情報を割り当てた新しいインスタンスで置き換える
       if (vocabularyEntry == null) {
         // 辞書検索が失敗した場合
-        final newCard = tokenToUpdate.card.copyWith(
-          id: -1,
+        final newCard = tokenToUpdate.vocab.copyWith(
           translation: '',
           isShow: false,
           nowShow: false,
@@ -162,38 +149,41 @@ class TextProcessor {
           based: Based.init,
         );
 
-        finalTranslatedTokens[pos] = tokenToUpdate.copyWith(card: newCard);
+        finalTranslatedTokens[pos] = tokenToUpdate.copyWith(vocab: newCard);
       } else {
         // 辞書検索が成功した場合
-        final newCard = tokenToUpdate.card.copyWith(
-          id: vocabularyEntry.id,
+        final newCard = tokenToUpdate.vocab.copyWith(
           translation: vocabularyEntry.japaneseTranslation,
           isShow: !vocabularyEntry.isHidden,
           nowShow: !vocabularyEntry.isHidden,
           memo: vocabularyEntry.memo,
           based: Based.vocabularies,
         );
-        finalTranslatedTokens[pos] = tokenToUpdate.copyWith(card: newCard);
+        finalTranslatedTokens[pos] = tokenToUpdate.copyWith(vocab: newCard);
       }
     }
 
     return finalTranslatedTokens;
   }
 
-  Future<List<Token>> fullTranslation({required String text}) async {
+  Future<List<TokenData>> fullTranslation({required String text}) async {
     // 1. テキストのトークン化
-    final List<Token> initialTokens = _tokenizeText(text: text);
+    final List<TokenData> initialTokens = _tokenizeText(text: text);
 
     // 2. 一括検索のためのユニークキー収集
     final Set<String> lookupKeys = initialTokens
-        .where((t) => t.isWord && t.card.word.isNotEmpty)
-        .map((t) => t.card.word.toLowerCase())
+        .where((t) => t.isWord && t.vocab.word.isNotEmpty)
+        .map((t) => t.vocab.word.toLowerCase())
         .toSet();
 
     // 3. DictionaryServiceによる訳語の一括検索
-    final List<Vocabulary> vocabularyEntries = await ref
-        .read(batchRepositoryProvider)
-        .fetchTranslationsBatch(lookupKeys);
+    final List<Vocabulary> vocabularyEntries;
+    try {
+      vocabularyEntries = await ds.fetchTranslationsBatch(lookupKeys);
+    } catch (e) {
+      // print('DB Fetch Error in TextProcessor: $e');
+      rethrow;
+    }
 
     // 4. <検索キー: 単語帳DBエントリー>のMapを作成
     final Map<String, Vocabulary> translationMap = {};
@@ -208,16 +198,15 @@ class TextProcessor {
     }
 
     // 5. トークンに訳語を割り当てる
-    List<Token> translatedTokens = initialTokens.map((initialToken) {
+    List<TokenData> translatedTokens = initialTokens.map((initialToken) {
       // MapからVocabularyエントリを取得。
       final Vocabulary? vocabularyEntry =
-          translationMap[initialToken.card.word.toLowerCase()];
+          translationMap[initialToken.vocab.word.toLowerCase()];
 
       // 辞書検索が不要/失敗した場合は、初期Tokenをそのまま返す
       if (!initialToken.isWord || vocabularyEntry == null) return initialToken;
 
-      final newCard = initialToken.card.copyWith(
-        id: vocabularyEntry.id,
+      final newCard = initialToken.vocab.copyWith(
         translation: vocabularyEntry.japaneseTranslation,
         isShow: !vocabularyEntry.isHidden,
         nowShow: !vocabularyEntry.isHidden,
@@ -225,7 +214,7 @@ class TextProcessor {
         based: Based.vocabularies,
       );
 
-      return initialToken.copyWith(card: newCard);
+      return initialToken.copyWith(vocab: newCard);
     }).toList();
 
     return translatedTokens;

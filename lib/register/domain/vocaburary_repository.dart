@@ -2,8 +2,8 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/db/app_database.dart';
-import 'package:edb/dictionary/data/card_state.dart';
-import 'package:edb/register/data/registration_state.dart';
+import 'package:edb/share/data/vocab_entry.dart';
+import 'package:edb/share/data/card_data.dart';
 
 // VocabularyRepositoryのインスタンスを提供する
 final vocabularyRepositoryProvider = Provider<VocabularyRepository>((ref) {
@@ -12,7 +12,6 @@ final vocabularyRepositoryProvider = Provider<VocabularyRepository>((ref) {
 });
 
 class VocabularyRepository {
-  // コンストラクタでAppDatabaseを受け取る
   final AppDatabase db;
   VocabularyRepository(this.db);
 
@@ -33,18 +32,18 @@ class VocabularyRepository {
   // C: Create (単語の挿入)
   // ===============================================
 
-  Future<bool> addVocabulary({required RegistrationState state}) async {
-    if (state.based == Based.vocabularies) updateVocabulary(state: state);
+  Future<bool> addVocabulary({required CardData card}) async {
+    if (card.vocab.based == Based.vocabularies) updateVocabulary(card: card);
 
     // 排他制御
-    if (!state.isHidden) _setAllOthersHidden(word: state.englishWord);
+    if (card.vocab.isShow) _setAllOthersHidden(word: card.vocab.word);
 
     // VocabularyCompanion: 仮で行を作る
     final companion = VocabulariesCompanion.insert(
-      englishWord: state.englishWord,
-      japaneseTranslation: state.japaneseTranslation,
-      isHidden: state.isHidden,
-      memo: state.memo,
+      englishWord: card.vocab.word,
+      japaneseTranslation: card.vocab.translation,
+      isHidden: !card.vocab.isShow,
+      memo: card.vocab.memo,
     );
 
     // 仮の行を実際に挿入し、挿入された場所のIDを受け取る
@@ -57,21 +56,22 @@ class VocabularyRepository {
   // ===============================================
 
   // 更新された行の数を返す
-  Future<int> updateVocabulary({required RegistrationState state}) {
-    if (state.based != Based.vocabularies) addVocabulary(state: state);
+  Future<int> updateVocabulary({required CardData card}) {
+    if (card.vocab.based != Based.vocabularies) addVocabulary(card: card);
+
+    // 排他制御
+    if (card.vocab.isShow) _setAllOthersHidden(word: card.vocab.word);
 
     // 更新したい行のidを探す
     final query = db.update(db.vocabularies)
-      ..where((v) => v.id.equals(state.id));
-
-    // 排他制御
-    if (!state.isHidden) _setAllOthersHidden(word: state.englishWord);
+      ..where((v) => v.id.equals(card.id));
 
     // どう変更するか
     final companion = VocabulariesCompanion(
-      japaneseTranslation: Value(state.japaneseTranslation),
-      isHidden: Value(state.isHidden),
-      memo: Value(state.memo),
+      englishWord: Value(card.vocab.word),
+      japaneseTranslation: Value(card.vocab.translation),
+      isHidden: Value(!card.vocab.isShow),
+      memo: Value(card.vocab.memo),
     );
 
     // 上書き

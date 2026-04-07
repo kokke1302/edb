@@ -24,30 +24,34 @@ class ListRepository {
     required String queryText,
     required SortSetting sorter,
   }) async {
-    // クエリの開始
-    final query = db.select(db.vocabularies);
+    try {
+      // クエリの開始
+      final query = db.select(db.vocabularies);
 
-    // フィルタリング条件の動的適用
-    if (queryText.isNotEmpty) {
-      final likeArgument = '%$queryText%';
-      query.where(
-        (v) =>
-            v.englishWord.like(likeArgument) |
-            v.japaneseTranslation.like(likeArgument) |
-            v.memo.like(likeArgument),
-      );
+      // フィルタリング条件の動的適用
+      if (queryText.isNotEmpty) {
+        final likeArgument = '%$queryText%';
+        query.where(
+          (v) =>
+              v.englishWord.like(likeArgument) |
+              v.japaneseTranslation.like(likeArgument) |
+              v.memo.like(likeArgument),
+        );
+      }
+
+      // ソート条件の動的適用
+      final expression = _getSortExpression(sorter.field);
+      final mode = _getSortMode(sorter.order);
+      query.orderBy([(v) => OrderingTerm(expression: expression, mode: mode)]);
+
+      // ページング条件の適用
+      query.limit(limit, offset: offset);
+
+      // データの取得を実行
+      return await query.get();
+    } catch (e) {
+      throw Exception('Failed to fetch paging vocabularies: $e');
     }
-
-    // ソート条件の動的適用
-    final expression = _getSortExpression(sorter.field);
-    final mode = _getSortMode(sorter.order);
-    query.orderBy([(v) => OrderingTerm(expression: expression, mode: mode)]);
-
-    // ページング条件の適用
-    query.limit(limit, offset: offset);
-
-    // データの取得を実行
-    return query.get();
   }
 
   Expression _getSortExpression(SortField field) {

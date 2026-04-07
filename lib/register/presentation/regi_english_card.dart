@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import 'package:edb/dictionary/data/card_state.dart';
+import 'package:edb/share/data/vocab_entry.dart';
 import 'package:edb/register/domain/registration_notifier.dart';
 
 // 英単語のフィールド
@@ -11,9 +11,10 @@ class EnglishCard extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final regiData = ref.watch(registrationProvider);
-    final isEntry = regiData.based != Based.vocabularies;
+    final asyncRegiData = ref.watch(registrationProvider);
+    final regiData = asyncRegiData.requireValue;
 
+    final isEntry = regiData.vocab.based != Based.vocabularies;
     final isEditingState = useState(isEntry);
     final isEditing = isEditingState.value;
 
@@ -52,7 +53,7 @@ class EnglishCard extends HookConsumerWidget {
           horizontal: 10.0,
         ),
       ),
-      controller: useTextEditingController(text: regiData.englishWord),
+      controller: useTextEditingController(text: regiData.vocab.word),
       keyboardType: TextInputType.text,
       onChanged: ref.read(registrationProvider.notifier).updateEnglish,
     );
@@ -67,7 +68,7 @@ class EnglishCard extends HookConsumerWidget {
               Text('英単語', style: Theme.of(context).textTheme.bodySmall),
               const SizedBox(height: 4),
               Text(
-                regiData.englishWord,
+                regiData.vocab.word,
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(

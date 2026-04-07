@@ -1,98 +1,97 @@
+import 'package:edb/translation/data/dbsourse_switch.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_throttle_it/just_throttle_it.dart';
 
-import 'package:edb/translation/data/token.dart';
+import 'package:edb/translation/data/token_data.dart';
 import 'package:edb/translation/data/translation_state.dart';
-import 'package:edb/translation/domain/text_processor.dart';
 
 final translationProvider =
-    NotifierProvider<TranslationNotifier, TranslationState>(
+    AsyncNotifierProvider<TranslationNotifier, TranslationState>(
       () => TranslationNotifier(),
     );
 
-class TranslationNotifier extends Notifier<TranslationState> {
+final targetToken = Provider.family<TokenData, int>((ref, id) {
+  return ref.read(
+    translationProvider.select((state) {
+      final tokens = state.value?.tokens ?? const [];
+      return tokens.firstWhere(
+        (t) => t.id == id,
+        orElse: () => throw Exception('ID: $id のトークンが見つかりません'),
+      );
+    }),
+  );
+});
+
+class TranslationNotifier extends AsyncNotifier<TranslationState> {
   @override
   TranslationState build() {
-    return TranslationState(
-      originalText: '',
-      tokens: const [],
-      isProcessing: false,
-    );
+    return TranslationState(originalText: '', tokens: const []);
   }
 
   // ドロワーからの復元
-  void restore({required String text, required List<Token> chain}) {
-    state = state.copyWith(originalText: text, tokens: chain);
+  void restore({required String text, required List<TokenData> chain}) {
+    final current =
+        state.value ?? TranslationState(originalText: '', tokens: const []);
+
+    state = AsyncData(current.copyWith(originalText: text, tokens: chain));
   }
 
   // 特定の単語の訳語を更新するメソッド
-  void updateToken({required Token updatedToken}) {
-    state = state.copyWith(
-      tokens: state.tokens.map((token) {
+  void updateToken({required TokenData updatedToken}) {
+    state = state.whenData((current) {
+      final replacedTokens = current.tokens.map((token) {
         return token.id == updatedToken.id ? updatedToken : token;
-      }).toList(),
-    );
+      }).toList();
+
+      return current.copyWith(tokens: replacedTokens);
+    });
   }
 
   // 英文入力エリアの更新時
   void updateOriginalText({required String newText}) {
-    if (state.originalText == newText) return;
+    final current = state.value;
+    if (current == null || current.originalText == newText) return;
 
-    state = state.copyWith(originalText: newText);
+    state = AsyncData(current.copyWith(originalText: newText));
 
-    Throttle.milliseconds(500, () {
-      _processTranslation(nowTokens: state.tokens);
-    });
+    Throttle.milliseconds(500, _processTranslationWithCurrentTokens);
+  }
+
+  // スロットル後の文字列で処理する
+  void _processTranslationWithCurrentTokens() {
+    _processTranslation(nowTokens: state.value?.tokens);
   }
 
   // トリガーボタンが押されたとき
   void pushTriggerButton() {
-    Throttle.milliseconds(500, () {
-      _processTranslation();
-    });
+    Throttle.milliseconds(500, _processTranslation);
   }
 
   // 解析のトリガー
-  void _processTranslation({List<Token>? nowTokens}) async {
-    // 英文
-    final textToProcess = state.originalText.trim();
+  void _processTranslation({List<TokenData>? nowTokens}) async {
+    final current = state.value;
+    if (current == null || current.originalText.isEmpty) return;
 
-    // 空の場合
-    if (textToProcess.isEmpty) {
-      state = state.copyWith(tokens: [], isProcessing: false);
-      return;
-    }
+    // ロード状態にする
+    state = const AsyncLoading();
 
-    // 解析を重複させない
-    if (state.isProcessing) return;
-
-    // 処理中フラグを立ててUIをブロック/インジケータ表示
-    state = state.copyWith(isProcessing: true);
-
-    try {
-      final List<Token> newTokens;
-      // TextProcessorを呼び出して、トークン化と訳語の割り当てを同時に行う
+    // guard を使って非同期処理を実行
+    state = await AsyncValue.guard(() async {
+      final List<TokenData> newTokens;
       if (nowTokens != null) {
         newTokens = await ref
             .read(textProcessorProvider)
             .incrementalTranslation(
               nowTokens: nowTokens,
-              newText: state.originalText,
+              newText: current.originalText,
             );
       } else {
         newTokens = await ref
             .read(textProcessorProvider)
-            .fullTranslation(text: state.originalText);
+            .fullTranslation(text: current.originalText);
       }
 
-      // 処理結果で状態を更新
-      state = state.copyWith(tokens: newTokens);
-    } catch (e) {
-      // print('テキスト処理中にエラーが発生しました: $e');
-      state = state.copyWith(tokens: [], isProcessing: false);
-    } finally {
-      // 処理完了後にフラグを解除
-      state = state.copyWith(isProcessing: false);
-    }
+      return current.copyWith(tokens: newTokens);
+    });
   }
 }

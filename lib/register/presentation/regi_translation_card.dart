@@ -10,7 +10,8 @@ class TranslationCard extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final regiData = ref.watch(registrationProvider);
+    final asyncRegiData = ref.watch(registrationProvider);
+    final regiData = asyncRegiData.requireValue;
 
     return Card(
       margin: EdgeInsets.zero,
@@ -26,7 +27,7 @@ class TranslationCard extends HookConsumerWidget {
             ),
           ),
           controller: useTextEditingController(
-            text: regiData.japaneseTranslation,
+            text: regiData.vocab.translation,
           ),
           keyboardType: TextInputType.text,
           onChanged: ref.read(registrationProvider.notifier).updateTranslation,

@@ -10,11 +10,11 @@ class MyTranslateFab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(translationProvider);
 
-    if (state.isProcessing) {
+    if (state.isLoading) {
       return ElevatedButton.icon(
         icon: const Icon(Icons.loop),
-        onPressed: () {},
         label: const Text('翻訳中'),
+        onPressed: null,
       );
     } else {
       return ElevatedButton.icon(

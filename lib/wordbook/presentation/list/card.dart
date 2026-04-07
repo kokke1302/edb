@@ -1,90 +1,136 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import 'package:edb/db/app_database.dart';
+import 'package:edb/share/data/card_data.dart';
+import 'package:edb/register/domain/regidata_receiver.dart';
 
-class MyWordCard extends StatelessWidget {
-  final Vocabulary entry;
-  const MyWordCard({super.key, required this.entry});
+class MyWordCard extends ConsumerWidget {
+  final CardData card;
+  const MyWordCard({super.key, required this.card});
+
+  // 日付を「YYYY/MM/DD」形式でフォーマットするヘルパー関数
+  String _formatDate(DateTime date) {
+    return '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
+  }
 
   @override
-  Widget build(BuildContext context) {
-    // 最終更新日時と作成日時から日付部分のみをフォーマット
-    final createdDate =
-        '${entry.createdAt.year}/${entry.createdAt.month}/${entry.createdAt.day}';
-    final updatedDate =
-        '${entry.updatedAt.year}/${entry.updatedAt.month}/${entry.updatedAt.day}';
+  Widget build(BuildContext context, WidgetRef ref) {
+    final updatedDate = _formatDate(card.updatedAt);
 
     return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 1行目: ID, English Word, isHidden
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      elevation: 3, // 少し影を濃くして立体感を出す
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), // 周りの余白
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10), // 角を丸くする
+      ),
+
+      child: Column(
+        children: [
+          // 1. 上段: 英単語と日本語訳（左右分割・中央揃え）
+          SizedBox(
+            height: 100,
+            child: Row(
+              // 一番高さが大きいウィジェットに子ウィジェットの高さを合わせる
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // ID
-                Text(
-                  'ID: ${entry.id}',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                // 左側: 英単語
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(16.0),
+                    alignment: Alignment.center, // マス内で中央揃え
+                    child: Text(
+                      card.vocab.word,
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ),
                 ),
-                // isHidden (非表示フラグ)
-                if (entry.isHidden)
-                  const Icon(Icons.visibility_off, color: Colors.red, size: 16),
+
+                // 垂直の区切り線
+                VerticalDivider(
+                  width: 1,
+                  thickness: 1,
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                ),
+
+                // 右側: 日本語訳
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(16.0),
+                    alignment: Alignment.center,
+                    child: Text(
+                      card.vocab.translation,
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+
+                      style: const TextStyle(
+                        fontSize: 18,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 4),
+          ),
 
-            // 2行目: English Word (Title)
-            Text(
-              entry.englishWord,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: Colors.deepPurple,
-              ),
+          // 2. 下段: メモ、非表示アイコン、日時情報
+          Container(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+            decoration: const BoxDecoration(
+              border: Border(top: BorderSide(color: Colors.grey, width: 0.5)),
             ),
-            const SizedBox(height: 4),
-
-            // 3行目: Japanese Translation (Subtitle)
-            Text(
-              entry.japaneseTranslation,
-              style: const TextStyle(fontSize: 15, color: Colors.black87),
-            ),
-            Divider(
-              color: Theme.of(context).colorScheme.outlineVariant,
-              height: 16,
-            ),
-
-            // 4行目: Memo
-            Text(
-              'メモ: ${entry.memo}',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 13, color: Colors.grey[700]),
-            ),
-            const SizedBox(height: 8),
-
-            // 5行目: Created At / Updated At
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '作成: $createdDate',
-                  style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+                // メモ
+                Expanded(
+                  child: Text(
+                    card.vocab.memo,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                  ),
                 ),
-                const SizedBox(width: 8),
+
+                // isHidden (非表示フラグ) アイコン
+                if (!card.vocab.isShow)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: Icon(
+                      Icons.visibility_off,
+                      color: Colors.grey[700],
+                      size: 18,
+                    ),
+                  ),
+
+                // 更新日時
                 Text(
                   '更新: $updatedDate',
                   style: TextStyle(fontSize: 10, color: Colors.grey[500]),
                 ),
+
+                // 編集アイコン
+                IconButton(
+                  onPressed: () {
+                    ref
+                        .read(regiDataReceiver.notifier)
+                        .receiveRegisteredCard(card: card);
+                    context.push('/registration');
+                  },
+                  icon: Icon(Icons.more_vert),
+                ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

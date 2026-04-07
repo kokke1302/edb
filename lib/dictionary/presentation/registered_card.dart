@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:edb/dictionary/data/card_state.dart';
+import 'package:edb/share/data/vocab_entry.dart';
+import 'package:edb/share/data/card_data.dart';
 import 'package:edb/dictionary/domain/cardlist_notifier.dart';
-import 'package:edb/register/data/regidata_receiver.dart';
+import 'package:edb/register/domain/regidata_receiver.dart';
 
 class RegisteredCared extends ConsumerWidget {
-  final CardEntry card;
+  final CardData card;
 
   const RegisteredCared({super.key, required this.card});
 
@@ -16,7 +17,7 @@ class RegisteredCared extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
-      elevation: card.nowShow ? 4 : 1, // 影
+      elevation: card.vocab.nowShow ? 4 : 1, // 影
       margin: const EdgeInsets.only(bottom: 8.0),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -30,7 +31,7 @@ class RegisteredCared extends ConsumerWidget {
                 // 左上
                 Flexible(
                   child: Text(
-                    card.translation,
+                    card.vocab.translation,
                     style: Theme.of(context).textTheme.titleMedium,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -41,17 +42,17 @@ class RegisteredCared extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     // 訳を表示するかどうか
-                    if (card.based == Based.vocabularies) ...[
+                    if (card.vocab.based == Based.vocabularies) ...[
                       IconButton(
                         onPressed: () {
                           ref
                               .read(cardListProvider.notifier)
-                              .toggleVisibility(entry: card);
+                              .toggleVisibility(card: card);
                         },
-                        icon: card.nowShow
+                        icon: card.vocab.nowShow
                             ? const Icon(Icons.visibility)
                             : const Icon(Icons.visibility_off),
-                        tooltip: card.nowShow ? '訳語を非表示にする' : '訳語を表示する',
+                        tooltip: card.vocab.nowShow ? '訳語を非表示にする' : '訳語を表示する',
                       ),
                       const SizedBox(width: 8),
                     ],
@@ -59,7 +60,7 @@ class RegisteredCared extends ConsumerWidget {
                       onPressed: () {
                         ref
                             .read(regiDataReceiver.notifier)
-                            .receiveCard(card: card);
+                            .receiveRegisteredCard(card: card);
                         context.push('/registration');
                       },
                       icon: Icon(
@@ -79,12 +80,12 @@ class RegisteredCared extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  if (card.isShow) ...[
+                  if (card.vocab.isShow) ...[
                     Icon(Icons.visibility, color: colorScheme.outline),
                     const SizedBox(width: 8),
                   ],
                   Text(
-                    card.memo,
+                    card.vocab.memo,
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall!.copyWith(color: colorScheme.outline),

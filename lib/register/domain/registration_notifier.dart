@@ -1,109 +1,107 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:edb/dictionary/data/card_state.dart';
+import 'package:edb/share/data/vocab_entry.dart';
+import 'package:edb/share/data/card_data.dart';
 import 'package:edb/dictionary/domain/cardlist_notifier.dart';
-import 'package:edb/register/data/registration_state.dart';
-import 'package:edb/register/data/regidata_receiver.dart';
+import 'package:edb/register/domain/regidata_receiver.dart';
 import 'package:edb/register/domain/vocaburary_repository.dart';
 import 'package:edb/wordbook/domain/list_notifier.dart';
+import 'package:edb/translation/domain/translation_notifier.dart';
 
 final registrationProvider =
-    NotifierProvider.autoDispose<RegistrationNotifier, RegistrationState>(
+    AsyncNotifierProvider.autoDispose<RegistrationNotifier, CardData>(
       () => RegistrationNotifier(),
     );
 
 // 画面の状態を管理するRiverpod Notifier
-class RegistrationNotifier extends Notifier<RegistrationState> {
+class RegistrationNotifier extends AsyncNotifier<CardData> {
   @override
-  RegistrationState build() {
+  Future<CardData> build() async {
     return ref.read(regiDataReceiver);
   }
 
+  // 内部のVocabEntryを更新するための共通ヘルパー
+  void _updateVocab(VocabEntry Function(VocabEntry oldVocab) update) {
+    final currentData = state.value;
+    if (currentData == null) return;
+
+    state = AsyncData(currentData.copyWith(vocab: update(currentData.vocab)));
+  }
+
   void updateEnglish(String text) {
-    state = state.copyWith(englishWord: text);
+    _updateVocab((v) => v.copyWith(word: text));
   }
 
   void updateTranslation(String text) {
-    state = state.copyWith(japaneseTranslation: text);
+    _updateVocab((v) => v.copyWith(translation: text));
   }
 
   void updateMemo(String text) {
-    state = state.copyWith(memo: text);
+    _updateVocab((v) => v.copyWith(memo: text));
   }
 
-  // 訳語の表示設定を切り替える
-  void toggleIsShowing(bool isHidden) {
-    state = state.copyWith(isHidden: isHidden);
+  void toggleIsShowing(bool isShow) {
+    _updateVocab((v) => v.copyWith(isShow: isShow));
   }
 
   // 入力値を検証し、Repository経由でデータベースに保存
   Future<void> save() async {
-    // 1. 入力値検証
-    final bool isSaveEnabled =
-        // 処理中ではない
-        state.isProcessing ||
-        // 日本語訳の入力は必須
-        state.japaneseTranslation.isEmpty ||
-        // 英単語の入力は必須
-        state.englishWord.isEmpty;
-    if (isSaveEnabled) return;
+    final data = state.value;
+    if (data == null || state.isLoading) return;
 
-    // 2. 処理中フラグON
-    state = state.copyWith(isProcessing: true);
+    // 入力バリデーション
+    if (data.vocab.word.isEmpty || data.vocab.translation.isEmpty) return;
 
-    try {
-      // 3. Repositoryを呼び出し、DBへの保存と排他制御を実行
-      if (state.based != Based.vocabularies) {
-        await ref
-            .read(vocabularyRepositoryProvider)
-            .addVocabulary(state: state);
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      if (data.vocab.based != Based.vocabularies) {
+        // 新規保存
+        await ref.read(vocabularyRepositoryProvider).addVocabulary(card: data);
       } else {
+        // 更新
         await ref
             .read(vocabularyRepositoryProvider)
-            .updateVocabulary(state: state);
+            .updateVocabulary(card: data);
       }
-      if (!ref.mounted) return;
 
-      // 状態の更新と他プロバイダーへの通知
-      state = state.copyWith(isProcessing: false);
-
-      // 翻訳モードの更新
-      ref.invalidate(cardListProvider);
-      // invalidate直後にreadすると再構築が走るため、mountedを確認して実行
-      ref.read(cardListProvider.notifier).updateEntry();
-
-      // 単語リストの更新
+      // 単語帳の更新
       ref.read(wordListProvider.notifier).reload();
-    } catch (e) {
-      // 4. エラーハンドリング (例: ログ出力、ユーザーへの通知)
-      // print('単語帳の保存中にエラーが発生しました: $e');
-      if (ref.mounted) {
-        state = state.copyWith(isProcessing: false);
-      }
-    }
+      // 翻訳モードの更新
+      ref.read(translationProvider.notifier).pushTriggerButton();
+      // 内部辞書の更新
+      ref.invalidate(cardListProvider);
+      // レシーバーを初期状態に戻す
+      ref.read(regiDataReceiver.notifier).receiveNew();
+
+      return data;
+    });
   }
 
   Future<void> delete() async {
-    // 1. 既存のIDがない場合は処理しない
-    if (state.based != Based.vocabularies) return;
+    final currentData = state.value;
+    if (currentData == null || state.isLoading) return;
 
-    // 2. 処理中フラグON
-    state = state.copyWith(isProcessing: true);
+    // 既存のIDがない（新規作成中など）場合は削除処理の必要がない
+    if (currentData.vocab.based != Based.vocabularies) return;
 
-    try {
-      // 3. Repositoryを呼び出し、DBから単語を削除
-      await ref.read(vocabularyRepositoryProvider).deleteVocabulary(state.id);
-    } catch (e) {
-      // 4. エラーハンドリング (例: ログ出力、ユーザーへの通知)
-      // print('単語帳の削除中にエラーが発生しました: $e');
-    } finally {
-      // 5. 処理中フラグOFF
-      state = state.copyWith(isProcessing: false);
-      // 翻訳モード
-      ref.invalidate(cardListProvider);
-      ref.read(cardListProvider.notifier).updateEntry();
-      // 単語リスト
+    // 処理中フラグ
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      // Repositoryを呼び出し、DBから単語を削除
+      await ref
+          .read(vocabularyRepositoryProvider)
+          .deleteVocabulary(currentData.id);
+
+      // 単語帳の更新
       ref.read(wordListProvider.notifier).reload();
-    }
+      // 翻訳モードの更新
+      ref.read(translationProvider.notifier).pushTriggerButton();
+      // 内部辞書の更新
+      ref.invalidate(cardListProvider);
+      // レシーバーを初期状態に戻す
+      ref.read(regiDataReceiver.notifier).receiveNew();
+
+      return currentData;
+    });
   }
 }

@@ -10,7 +10,8 @@ class MemoCard extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final regiData = ref.watch(registrationProvider);
+    final asyncRegiData = ref.watch(registrationProvider);
+    final regiData = asyncRegiData.requireValue;
 
     return Card(
       margin: EdgeInsets.zero,
@@ -28,7 +29,7 @@ class MemoCard extends HookConsumerWidget {
                   horizontal: 10.0,
                 ),
               ),
-              controller: useTextEditingController(text: regiData.memo),
+              controller: useTextEditingController(text: regiData.vocab.memo),
               keyboardType: TextInputType.text,
               onChanged: ref
                   .read(registrationProvider.notifier)

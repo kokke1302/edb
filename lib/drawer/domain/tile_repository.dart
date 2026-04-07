@@ -1,9 +1,6 @@
-import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/db/app_database.dart';
-import 'package:edb/drawer/data/sentence.dart';
-import 'package:edb/translation/data/token.dart';
 
 // すべてのビジネスロジック（CRUD, ページング）を担当する
 final tileRepositoryProvider = Provider<TileRepository>((ref) {
@@ -20,40 +17,52 @@ class TileRepository {
   // ===============================================
 
   /// 新しい英文データ（Tile）をデータベースに追加します。
-  Future<int> createTile({
-    required String text,
-    required List<Token> chain,
-  }) async {
-    // List<Token> から List<Map<String, dynamic>> へ
-    final tokenListJson = chain.map((token) => token.toJson()).toList();
-    // List<Map<String, dynamic>> を JSON文字列へ変換
-    final jsonToString = json.encode(tokenListJson);
+  Future<int> createTile({required String text, required String chain}) async {
+    try {
+      // 仮で行を作る
+      final companion = EnglishTextsCompanion.insert(
+        originalText: text,
+        parsedWordsJson: chain,
+      );
 
-    final companion = EnglishTextsCompanion.insert(
-      originalText: text,
-      parsedWordsJson: jsonToString,
-    );
-
-    return db.into(db.englishTexts).insert(companion);
+      // 作った仮の行をDBに挿入
+      return await db.into(db.englishTexts).insert(companion);
+    } catch (e) {
+      throw Exception('Failed to create tile: $e');
+    }
   }
 
   // ===============================================
   // R: Read (読み込み)
   // ===============================================
-  Future<List<Tile>>? fetchAllTiles() async {
-    final query = db.select(db.englishTexts);
-    final tiles = await query.get();
+  Future<List<Map<String, dynamic>>> fetchAllTile() async {
+    try {
+      // 抽出するカラムを選択
+      final query = db.selectOnly(db.englishTexts)
+        ..addColumns([db.englishTexts.id, db.englishTexts.originalText]);
 
-    return tiles.map((t) {
-      final parsedWords = json.decode(t.parsedWordsJson) as List<dynamic>;
+      final rows = await query.get();
 
-      final List<Token> chain = parsedWords
-          // List<dynamic> から Map<String, dynamic> へ
-          .map((jsonMap) => Token.fromJson(jsonMap as Map<String, dynamic>))
-          .toList();
+      return rows.map((row) {
+        return {
+          'id': row.read(db.englishTexts.id),
+          'text': row.read(db.englishTexts.originalText),
+        };
+      }).toList();
+    } catch (e) {
+      throw Exception('Error fetching tiles: $e');
+    }
+  }
 
-      return Tile(id: t.id, text: t.originalText, chain: chain);
-    }).toList();
+  Future<EnglishText> fetchTileDetail(int id) async {
+    try {
+      // 抽出する行を選択
+      final query = db.select(db.englishTexts)..where((t) => t.id.equals(id));
+
+      return await query.getSingle();
+    } catch (e) {
+      throw Exception('Failed to fetch tile detail (ID: $id): $e');
+    }
   }
 
   // ===============================================
@@ -62,6 +71,16 @@ class TileRepository {
 
   /// 指定されたIDの英文データ（Tile）をデータベースから削除します。
   Future<int> deleteTile(int id) async {
-    return (db.delete(db.englishTexts)..where((t) => t.id.equals(id))).go();
+    try {
+      // 行を選択
+      final query = db.delete(db.englishTexts)..where((t) => t.id.equals(id));
+      final deletedCount = await query.go();
+
+      if (deletedCount == 0) throw Exception('Tile with ID $id not found');
+
+      return deletedCount;
+    } catch (e) {
+      throw Exception('Failed to delete tile: $e');
+    }
   }
 }

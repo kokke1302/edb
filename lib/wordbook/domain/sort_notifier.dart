@@ -36,14 +36,4 @@ class SortSettingNotifier extends Notifier<SortSetting> {
   void setTypeWord(String text) {
     state = state.copyWith(typingWord: text);
   }
-
-  // 状態をリセット
-  void reset() {
-    state = const SortSetting(
-      field: SortField.createdAt,
-      order: SortOrder.desc,
-      searchWord: '',
-      typingWord: '',
-    );
-  }
 }

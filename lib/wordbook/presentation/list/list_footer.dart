@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:edb/wordbook/data/list_state.dart';
+import 'package:edb/share/data/sync_status.dart';
 import 'package:edb/wordbook/domain/list_notifier.dart';
 
 // ===============================================
@@ -18,17 +18,17 @@ class MyListFooter extends ConsumerWidget {
 
     if (asyncState case AsyncData(:final value)) {
       // 終端での状態判定
-      switch (value.endStatus) {
+      switch (value.tailStatus) {
         // 途中ロード中
-        case EndStatus.loading:
+        case SyncStatus.load:
           return const _MyLoadingFooter();
 
         // 途中エラー場合
-        case EndStatus.error:
+        case SyncStatus.err:
           return const _MyErrorFooter();
 
         // 通常時
-        case EndStatus.normal:
+        case SyncStatus.normal:
           return value.isDataEnd
               ? const _MyEndFooter() // 最終端
               : const SizedBox.shrink(); // スクロール中

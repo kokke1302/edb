@@ -1,28 +1,30 @@
 import 'package:drift/drift.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/db/app_database.dart';
-
-// すべてのビジネスロジック（CRUD, ページング）を担当する
-final batchRepositoryProvider = Provider<BatchRepository>((ref) {
-  final db = ref.watch(databaseProvider);
-  return BatchRepository(db);
-});
+import 'package:edb/translation/data/dbsourse_switch.dart';
 
 // 一括で単語の訳語を取得する
-class BatchRepository {
+class LocalBatchRepository implements TranslationDBSource {
   final AppDatabase db;
-  BatchRepository(this.db);
+  LocalBatchRepository(this.db);
 
   // ===============================================
   // R: Read (ページングとフィルタリング)
   // ===============================================
+  @override
   Future<List<Vocabulary>> fetchTranslationsBatch(
     Set<String> lookupKeys,
   ) async {
-    final query = db.select(db.vocabularies)
-      // englishWord が lookupKeys に含まれている
-      ..where((v) => v.englishWord.lower().isIn(lookupKeys));
-    return await query.get();
+    if (lookupKeys.isEmpty) return [];
+
+    try {
+      final query = db.select(db.vocabularies)
+        // englishWord が lookupKeys に含まれている
+        ..where((v) => v.englishWord.lower().isIn(lookupKeys));
+
+      return await query.get();
+    } catch (e) {
+      throw Exception('Failed to fetch translations batch: $e');
+    }
   }
 }

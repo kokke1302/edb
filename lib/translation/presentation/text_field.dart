@@ -9,64 +9,51 @@ class MyTextField extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // トークン配列を監視
-    final chain = ref.watch(translationProvider);
-    // textField内文字列
-    final textController = useTextEditingController(text: chain.originalText);
+    // 初回
+    final textController = useTextEditingController(
+      text: ref.read(translationProvider).value?.originalText ?? '',
+    );
 
-    // chain.originalText の変更を監視し、controllerに反映させる
-    useEffect(() {
-      if (textController.text != chain.originalText) {
-        // 現在のカーソル/選択範囲を保存
-        final currentSelection = textController.selection;
+    // コントローラーの値を監視し、変更があればこの Widget を再描画する
+    // これにより、textController.text.isNotEmpty が最新の状態になります
+    useValueListenable(textController);
 
-        // 新しいテキストの長さ
-        final newTextLength = chain.originalText.length;
-        // カーソル位置を調整
-        final newOffset = currentSelection.baseOffset > newTextLength
-            ? newTextLength
-            : currentSelection.baseOffset;
-
-        // Text value と Selection value を同時に更新
-        textController.value = textController.value.copyWith(
-          text: chain.originalText,
-          selection: TextSelection.collapsed(offset: newOffset),
-          composing: TextRange.empty,
-        );
+    // Provider からの外部変更を同期
+    ref.listen(translationProvider.select((s) => s.value?.originalText), (
+      previous,
+      next,
+    ) {
+      if (next != null && next != textController.text) {
+        textController.text = next;
       }
-      return null;
-    }, [chain.originalText]);
-
-    Widget refreshIcon() {
-      if (textController.text.isNotEmpty) {
-        return IconButton(
-          icon: const Icon(Icons.clear),
-          onPressed: () {
-            textController.text = '';
-            // 英文格納Stateにリセットを通知
-            ref
-                .read(translationProvider.notifier)
-                .updateOriginalText(newText: '');
-          },
-        );
-      } else {
-        return const SizedBox.shrink();
-      }
-    }
+    });
 
     return TextField(
       controller: textController,
       maxLines: null, // 複数行対応
       decoration: InputDecoration(
-        hintText: 'テキストを入力', // 薄いテキスト表示
-        border: OutlineInputBorder(),
-        suffixIcon: refreshIcon(),
+        hintText: '英文を入力', // 薄いテキスト表示
+        // コンテンツに合わせて高さを最適化
+        isDense: true,
+        border: const OutlineInputBorder(),
+        suffixIcon: textController.text.isEmpty
+            ? const SizedBox.shrink()
+            : IconButton(
+                icon: const Icon(Icons.clear),
+                onPressed: () {
+                  textController.clear();
+                  ref.invalidate(translationProvider);
+                },
+              ),
       ),
+
       onChanged: (text) {
+        // ユーザーが入力した文字を Notifier に送る
         ref
             .read(translationProvider.notifier)
             .updateOriginalText(newText: text);
       },
+      onTapOutside: (_) => FocusScope.of(context).unfocus(), // 外側タップで閉じる
     );
   }
 }

@@ -1,4 +1,4 @@
-import 'package:edb/dictionary/data/card_state.dart';
+import 'package:edb/share/data/vocab_entry.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -15,9 +15,21 @@ class EntryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final regiData = ref.watch(registrationProvider);
+    final asyncRegiData = ref.watch(registrationProvider);
+    // 中身の CardData だけを取り出す（初期化が終わっていれば取得できる）
+    final regiData = asyncRegiData.value;
 
-    final appBarTitle = regiData.based == Based.vocabularies
+    // 初期ロード中かつデータがまだない場合だけ全画面ローディング
+    if (regiData == null && asyncRegiData.isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    // データが取れなかった場合のエラー表示
+    if (regiData == null) {
+      return const Scaffold(body: Center(child: Text('データの読み込みに失敗しました')));
+    }
+
+    final appBarTitle = regiData.vocab.based == Based.vocabularies
         ? const Text('カードを編集')
         : const Text('カードを作成');
 

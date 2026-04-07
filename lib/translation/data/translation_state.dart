@@ -1,34 +1,15 @@
-import 'package:edb/translation/data/token.dart';
+import 'package:edb/translation/data/token_data.dart';
 
 class TranslationState {
   final String originalText;
-  final List<Token> tokens;
-  final bool isProcessing; // 処理中かどうか
+  final List<TokenData> tokens;
 
-  TranslationState({
-    required this.originalText,
-    required this.tokens,
-    required this.isProcessing,
-  });
+  TranslationState({required this.originalText, required this.tokens});
 
-  TranslationState copyWith({
-    String? originalText,
-    List<Token>? tokens,
-    bool? isProcessing,
-  }) {
+  TranslationState copyWith({String? originalText, List<TokenData>? tokens}) {
     return TranslationState(
       originalText: originalText ?? this.originalText,
       tokens: tokens ?? this.tokens,
-      isProcessing: isProcessing ?? this.isProcessing,
     );
-  }
-
-  Token targetToken({required int id}) {
-    for (final token in tokens) {
-      if (token.id == id) {
-        return token;
-      }
-    }
-    throw Exception('Token with id $id not found');
   }
 }

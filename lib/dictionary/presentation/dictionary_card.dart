@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:edb/dictionary/data/card_state.dart';
-import 'package:edb/register/data/regidata_receiver.dart';
+import 'package:edb/register/domain/regidata_receiver.dart';
+import 'package:edb/share/data/vocab_entry.dart';
 
 class DictionaryCard extends ConsumerWidget {
-  final CardEntry card;
+  final VocabEntry ve;
 
-  const DictionaryCard({super.key, required this.card});
+  const DictionaryCard({super.key, required this.ve});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
-      elevation: card.nowShow ? 4 : 1, // 影
+      elevation: ve.nowShow ? 4 : 1, // 影
       margin: const EdgeInsets.only(bottom: 8.0),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -28,7 +28,7 @@ class DictionaryCard extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    card.translation,
+                    ve.translation,
                     style: Theme.of(context).textTheme.titleMedium,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
@@ -36,7 +36,9 @@ class DictionaryCard extends ConsumerWidget {
                 ),
                 IconButton(
                   onPressed: () {
-                    ref.read(regiDataReceiver.notifier).receiveCard(card: card);
+                    ref
+                        .read(regiDataReceiver.notifier)
+                        .receiveDictionaryCard(ve: ve);
                     context.push('/registration');
                   },
                   icon: const Icon(Icons.book_outlined),
@@ -45,11 +47,11 @@ class DictionaryCard extends ConsumerWidget {
             ),
 
             // 下段
-            if (card.memo.isNotEmpty)
+            if (ve.memo.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 6.0),
                 child: Text(
-                  card.memo,
+                  ve.memo,
                   style: Theme.of(
                     context,
                   ).textTheme.bodySmall!.copyWith(color: colorScheme.outline),
