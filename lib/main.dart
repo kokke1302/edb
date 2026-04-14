@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:edb/db/app_database.dart';
-import 'package:edb/db/database_initializer.dart';
-import 'package:edb/root/domain/routing.dart';
+import 'package:edb/data/db/app_database.dart';
+import 'package:edb/data/db/database_initializer.dart';
+import 'package:edb/presentation/root/rooting.dart';
 
 // -----------------------------------------------------------------------------
 // アプリケーションのエントリーポイント

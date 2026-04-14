@@ -11,10 +11,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:edb/root/domain/routing.dart';
-import 'package:edb/translation/presentation/text_field.dart';
-import 'package:edb/translation/presentation/translate_fab.dart';
-import 'package:edb/translation/presentation/bookmark_fab.dart';
+import 'package:edb/presentation/root/rooting.dart';
+import 'package:edb/presentation/pages/transelation/text_field.dart';
+import 'package:edb/presentation/pages/transelation/transelate_fab.dart';
+import 'package:edb/presentation/pages/transelation/bookmark_fab.dart';
 
 void main() {
   testWidgets('翻訳画面の初期表示テスト', (WidgetTester tester) async {
