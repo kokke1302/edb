@@ -24,7 +24,7 @@ class BookData {
   }) {
     return BookData(
       pageSize: pageSize ?? this.pageSize,
-      cards: words ?? this.cards,
+      cards: words ?? cards,
       tailStatus: tailStatus ?? this.tailStatus,
     );
   }

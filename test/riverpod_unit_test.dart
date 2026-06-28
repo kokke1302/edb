@@ -2,12 +2,12 @@
 // import 'package:flutter_riverpod/flutter_riverpod.dart';
 // import 'package:mocktail/mocktail.dart';
 
-// import 'package:edb/transelation/domain/text_processor.dart';
+// import 'package:edb/translation/domain/text_processor.dart';
 // import 'package:edb/register/domain/registration_notifier.dart';
 // import 'package:edb/share/data/registration_state.dart';
 // import 'package:edb/register/domain/vocaburary_repository.dart';
 // import 'package:edb/wordbook/domain/sort_notifier.dart';
-// import 'package:edb/transelation/domain/batch_repository.dart';
+// import 'package:edb/translation/domain/batch_repository.dart';
 // import 'package:edb/db/app_database.dart';
 
 // class MockVocabularyRepository extends Mock implements VocabularyRepository {}

@@ -2,7 +2,7 @@ import 'package:diffutil_dart/diffutil.dart';
 
 import 'package:edb/domain/entity/token_data.dart';
 import 'package:edb/domain/repository_abstract/processor_repository.dart';
-import 'package:edb/domain/repository_abstract/transelation_repository.dart';
+import 'package:edb/domain/repository_abstract/translation_repository.dart';
 
 /// 英文の解析、トークン化、辞書検索、訳語割り当てのロジックを実装するクラス
 class LocalTextProcessor implements TextProcessor {

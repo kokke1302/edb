@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:edb/presentation/root/common_screen.dart';
-import 'package:edb/presentation/pages/transelation/transelation.dart';
+import 'package:edb/presentation/pages/translation/translation.dart';
 import 'package:edb/presentation/pages/register/registration_page.dart';
 import 'package:edb/presentation/pages/wordbook/wordbook_screen.dart';
 

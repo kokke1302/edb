@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/domain/entity/token_data.dart';
 import 'package:edb/presentation/view_models/translation_notifier.dart';
-import 'package:edb/presentation/pages/transelation/word_block.dart';
+import 'package:edb/presentation/pages/translation/word_block.dart';
 
 class MyBlockField extends ConsumerWidget {
   const MyBlockField({super.key});

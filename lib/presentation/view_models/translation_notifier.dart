@@ -61,7 +61,7 @@ class TranslationNotifier extends AsyncNotifier<TranslationData> {
     state = await AsyncValue.guard(() async {
       // 処理プロセスの呼び出し
       final newTokens = await ref
-          .read(processTranselationUseCaseProvider)
+          .read(processTranslationUseCaseProvider)
           .execute(
             text: current.originalText,
             currentTokens: current.tokens,

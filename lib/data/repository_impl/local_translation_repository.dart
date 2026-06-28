@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 
 import 'package:edb/data/db/app_database.dart';
-import 'package:edb/domain/repository_abstract/transelation_repository.dart';
+import 'package:edb/domain/repository_abstract/translation_repository.dart';
 
 // 一括で単語の訳語を取得する
 class LocalTranslationRepository implements TranslationRepository {
