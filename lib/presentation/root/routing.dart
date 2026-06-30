@@ -5,7 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:edb/presentation/root/common_screen.dart';
 import 'package:edb/presentation/pages/translation/translation.dart';
 import 'package:edb/presentation/pages/register/registration_page.dart';
-import 'package:edb/presentation/pages/wordbook/wordbook_screen.dart';
+import 'package:edb/presentation/pages/wordbook/book_screen.dart';
 
 // -----------------------------------------------------------------------------
 // GoRouter ルーティングの設定
@@ -30,7 +30,7 @@ class EnglishLearningApp extends StatelessWidget {
           ),
           GoRoute(
             path: '/words',
-            builder: (context, state) => const WordbookScreen(),
+            builder: (context, state) => const MyBookScreen(),
           ),
         ],
       ),

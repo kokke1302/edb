@@ -50,6 +50,8 @@ class AppDatabase extends _$AppDatabase {
     return _instance;
   }
 
+  AppDatabase.forTesting(super.e);
+
   // データベース構造のバージョン
   @override
   int get schemaVersion => 1;

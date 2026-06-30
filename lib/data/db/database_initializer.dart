@@ -27,26 +27,7 @@ class DatabaseInitializer {
     // 行数が0の場合のみ初期データを投入
     if (currentCount == 0) {
       // 投入したい具体的な単語リスト
-      final List<VocabulariesCompanion> initialData = [
-        VocabulariesCompanion.insert(
-          englishWord: 'this',
-          japaneseTranslation: 'これ',
-          isHidden: true,
-          memo: '',
-        ),
-        VocabulariesCompanion.insert(
-          englishWord: 'sentence',
-          japaneseTranslation: '文章',
-          isHidden: false,
-          memo: '',
-        ),
-        VocabulariesCompanion.insert(
-          englishWord: 'hello',
-          japaneseTranslation: 'こんにちは',
-          isHidden: false,
-          memo: '挨拶',
-        ),
-      ];
+      final List<VocabulariesCompanion> initialData = [];
 
       // バッチ処理
       await db.batch((batch) {

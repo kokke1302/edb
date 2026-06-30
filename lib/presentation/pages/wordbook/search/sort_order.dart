@@ -5,8 +5,8 @@ import 'package:edb/presentation/view_models/sorting_notifier.dart';
 import 'package:edb/domain/entity/value/sort_order.dart';
 
 // 順序（order）を変更するボタン
-class SortOrderButton extends ConsumerWidget {
-  const SortOrderButton({super.key});
+class MySortOrderButton extends ConsumerWidget {
+  const MySortOrderButton({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

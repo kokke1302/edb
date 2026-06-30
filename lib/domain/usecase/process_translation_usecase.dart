@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:edb/domain/entity/token_data.dart';
+import 'package:edb/domain/entity/model/token_data.dart';
 import 'package:edb/domain/repository_abstract/processor_repository.dart';
 
 final processTranslationUseCaseProvider = Provider(

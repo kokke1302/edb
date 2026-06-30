@@ -6,8 +6,6 @@ import 'package:just_throttle_it/just_throttle_it.dart';
 
 import 'package:edb/domain/entity/value/sync_status.dart';
 import 'package:edb/domain/entity/model/book_data.dart';
-import 'package:edb/presentation/view_models/book_notifier.dart';
-import 'package:edb/presentation/view_models/sorting_notifier.dart';
 import 'package:edb/presentation/pages/wordbook/list/initial_error.dart';
 import 'package:edb/presentation/pages/wordbook/list/book_footer.dart';
 import 'package:edb/presentation/pages/wordbook/list/book_card.dart';
@@ -15,9 +13,11 @@ import 'package:edb/presentation/pages/wordbook/search/searchbar.dart';
 import 'package:edb/presentation/pages/wordbook/search/sort_dropdown.dart';
 import 'package:edb/presentation/pages/wordbook/search/sort_order.dart';
 import 'package:edb/presentation/view_models/regidata_receiver.dart';
+import 'package:edb/presentation/view_models/book_notifier.dart';
+import 'package:edb/presentation/view_models/sorting_notifier.dart';
 
-class WordbookScreen extends HookConsumerWidget {
-  const WordbookScreen({super.key});
+class MyBookScreen extends HookConsumerWidget {
+  const MyBookScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -99,8 +99,8 @@ class WordbookScreen extends HookConsumerWidget {
             title: const MySearchBar(),
             // 左
             actions: <Widget>[
-              const SortOrderButton(),
-              const SortDropdownMenu(),
+              const MySortOrderButton(),
+              const MySortDropdownMenu(),
               const SizedBox(width: 10),
               IconButton(
                 onPressed: () => {

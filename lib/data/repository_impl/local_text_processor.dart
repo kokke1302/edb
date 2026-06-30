@@ -1,6 +1,6 @@
 import 'package:diffutil_dart/diffutil.dart';
 
-import 'package:edb/domain/entity/token_data.dart';
+import 'package:edb/domain/entity/model/token_data.dart';
 import 'package:edb/domain/repository_abstract/processor_repository.dart';
 import 'package:edb/domain/repository_abstract/translation_repository.dart';
 

@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/domain/entity/model/card_data.dart';
 import 'package:edb/domain/entity/model/dictionary_data.dart';
-import 'package:edb/domain/entity/token_data.dart';
+import 'package:edb/domain/entity/model/token_data.dart';
 
 final toggleCardVisibilityUseCaseProvider = Provider((ref) {
   return ToggleCardVisibilityUseCase();

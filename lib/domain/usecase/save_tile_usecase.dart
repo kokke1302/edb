@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/domain/entity/carry/tile_data.dart';
-import 'package:edb/domain/entity/token_data.dart';
+import 'package:edb/domain/entity/model/token_data.dart';
 import 'package:edb/domain/repository_abstract/tiles_repository.dart';
 
 final saveTileUseCaseProvider = Provider(

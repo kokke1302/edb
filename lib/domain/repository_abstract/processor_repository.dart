@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/data/repository_impl/local_text_processor.dart';
 import 'package:edb/domain/repository_abstract/translation_repository.dart';
-import 'package:edb/domain/entity/token_data.dart';
+import 'package:edb/domain/entity/model/token_data.dart';
 
 final textProcessorProvider = Provider<TextProcessor>((ref) {
   final db = ref.watch(translationRepositoryProvider);
