@@ -19,7 +19,7 @@ class ToggleCardVisibilityUseCase {
     List<CardData> newVocabularyCards = List.from(currentData.vocabularyCards);
     TokenData newToken;
 
-    // showWordが選択された場合 -> 非表示にする
+    // showCardが選択された場合 -> 非表示にする
     if (newShowCard != null && targetCard.vocab.id == newShowCard.vocab.id) {
       final deactivatedCard = targetCard.copyWith(nowShow: false);
 
@@ -45,7 +45,11 @@ class ToggleCardVisibilityUseCase {
 
       // showWordに投入
       newShowCard = target.copyWith(nowShow: true);
-      newToken = currentToken.copyWith(nowShow: true);
+      newToken = currentToken.copyWith(
+        nowShow: true,
+        vocabId: target.vocab.id,
+        translation: target.vocab.translation,
+      );
     }
 
     final newDictionaryData = currentData.copyWith(

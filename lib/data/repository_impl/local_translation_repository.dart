@@ -17,10 +17,17 @@ class LocalTranslationRepository implements TranslationRepository {
   ) async {
     if (lookupKeys.isEmpty) return [];
 
+    final lowerKeys = lookupKeys.map((k) => k.toLowerCase()).toSet();
+
     try {
-      // englishWord が lookupKeys に含まれているか
       final query = db.select(db.vocabularies)
-        ..where((v) => v.englishWord.lower().isIn(lookupKeys));
+        ..where(
+          (v) =>
+              // englishWord が lookupKeys に含まれているか
+              v.englishWord.lower().isIn(lowerKeys) &
+              // isHidden: true は return させない
+              v.isHidden.equals(false),
+        );
 
       final rows = await query.get();
 

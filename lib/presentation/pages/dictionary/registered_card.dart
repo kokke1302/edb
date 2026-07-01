@@ -7,10 +7,10 @@ import 'package:edb/domain/entity/model/card_data.dart';
 import 'package:edb/presentation/view_models/dictionary_notifier.dart';
 import 'package:edb/presentation/view_models/regidata_receiver.dart';
 
-class RegisteredCared extends ConsumerWidget {
+class RegisteredCard extends ConsumerWidget {
   final CardData card;
 
-  const RegisteredCared({super.key, required this.card});
+  const RegisteredCard({super.key, required this.card});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -6,8 +6,8 @@ import 'package:edb/domain/entity/value/base_status.dart';
 import 'package:edb/presentation/view_models/register_notifier.dart';
 
 // フッター（保存・キャンセル・削除ボタン）
-class FooterBar extends ConsumerWidget {
-  const FooterBar({super.key});
+class MyFooterBar extends ConsumerWidget {
+  const MyFooterBar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

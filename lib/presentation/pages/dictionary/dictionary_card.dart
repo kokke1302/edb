@@ -5,10 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:edb/domain/entity/model/card_data.dart';
 import 'package:edb/presentation/view_models/regidata_receiver.dart';
 
-class DictionaryCard extends ConsumerWidget {
+class MyDictionaryCard extends ConsumerWidget {
   final CardData card;
 
-  const DictionaryCard({super.key, required this.card});
+  const MyDictionaryCard({super.key, required this.card});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

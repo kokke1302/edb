@@ -5,7 +5,8 @@ class CardData {
   final VocabEntry vocab;
   // (id, word, translation, isShow, nowShow, memo, createdAt, updatedAt, based)
 
-  CardData({bool? nowShow, required this.vocab}) : nowShow = vocab.isShow;
+  CardData({bool? nowShow, required this.vocab})
+    : nowShow = nowShow ?? vocab.isShow;
 
   // 訳語を変更
   CardData copyWith({bool? nowShow, VocabEntry? vocab}) {
