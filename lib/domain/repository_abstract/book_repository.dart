@@ -13,7 +13,6 @@ final bookRepositoryProvider = Provider<BookRepository>((ref) {
 abstract interface class BookRepository {
   Future<List<VocabEntry>> fetchVocabulariesWithPaging({
     required int offset,
-    required int limit,
     required SortingData sorter,
   });
 }

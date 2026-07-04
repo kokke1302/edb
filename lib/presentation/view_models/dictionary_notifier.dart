@@ -4,7 +4,7 @@ import 'package:edb/domain/entity/model/card_data.dart';
 import 'package:edb/domain/entity/model/dictionary_data.dart';
 import 'package:edb/domain/entity/value/base_status.dart';
 import 'package:edb/domain/usecase/fetch_dictionarydata_usecase.dart';
-import 'package:edb/domain/usecase/toggle_card_visibiliry_usecase.dart';
+import 'package:edb/domain/usecase/toggle_card_visibility_usecase.dart';
 import 'package:edb/presentation/view_models/selected_token_notifier.dart';
 import 'package:edb/presentation/view_models/translation_notifier.dart';
 
@@ -17,7 +17,7 @@ final dictionaryProvider =
 class DictionaryNotifier extends AsyncNotifier<DictionaryData> {
   @override
   Future<DictionaryData> build() async {
-    final token = ref.watch(selectedTokenProvider);
+    final token = ref.read(selectedTokenProvider);
     return ref.read(dictionaryUseCaseProvider).execute(token);
   }
 

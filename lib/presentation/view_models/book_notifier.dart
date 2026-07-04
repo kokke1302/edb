@@ -16,28 +16,31 @@ class BookNotifier extends AsyncNotifier<BookData> {
   @override
   Future<BookData> build() async {
     // 更新の監視
-    final (searchWord, field, order) = ref.watch(
-      sortingProvider.select((s) => (s.searchWord, s.field, s.order)),
+    final (searchWord, field, order, pageSize) = ref.watch(
+      sortingProvider.select(
+        (s) => (s.searchWord, s.field, s.order, s.pageSize),
+      ),
     );
-
-    // 1ページあたりの件数（TODO: 設定Providerを参照させる）
-    const initialPageSize = 20;
 
     // 最初のページを要求
     final initialList = await ref
         .read(bookUseCaseProvider)
         .execute(
           currentCount: 0,
-          pageSize: initialPageSize,
           sorter: SortingData(
             field: field,
             order: order,
             searchWord: searchWord,
+            pageSize: pageSize,
           ),
         );
 
     // 初期ロードの結果を返す
-    return BookData(pageSize: initialPageSize, cards: initialList);
+    return BookData(
+      pageSize: initialList.length, // 今回取得できた件数
+      cards: initialList,
+      isDataEnd: initialList.length < pageSize, // 要求件数に満たなければ終端
+    );
   }
 
   // 次のページをロードするメソッド
@@ -55,20 +58,20 @@ class BookNotifier extends AsyncNotifier<BookData> {
     state = AsyncData(currentState.copyWith(tailStatus: SyncStatus.load));
 
     try {
+      final sorter = ref.read(sortingProvider);
+
       // データの取得
       final newCards = await ref
           .read(bookUseCaseProvider)
-          .execute(
-            currentCount: currentState.cards.length,
-            pageSize: currentState.pageSize,
-            sorter: ref.read(sortingProvider),
-          );
+          .execute(currentCount: currentState.cards.length, sorter: sorter);
 
       // 新しいリストと状態を更新
       state = AsyncData(
         currentState.copyWith(
-          words: [...currentState.cards, ...newCards],
+          pageSize: newCards.length, // 今回取得できた件数
+          cards: [...currentState.cards, ...newCards],
           tailStatus: SyncStatus.normal,
+          isDataEnd: newCards.length < sorter.pageSize, // 要求件数に満たなければ終端
         ),
       );
     } catch (e) {

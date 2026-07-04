@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------------------
 // - 正常系:
-//   - fetchVocabulariesWithPaging が currentCount を offset に、testPageSize を limit に、sorter をそのまま引数に1回呼ばれること
+//   - fetchVocabulariesWithPaging が currentCount を offset に、sorter をそのまま引数に1回呼ばれること
 //   - 返り値のリスト件数が fetchVocabulariesWithPaging の返り値と一致すること
 //   - 各 CardData の vocab が対応する VocabEntry と一致すること
 //   - 各 CardData の nowShow が対応する VocabEntry の isShow と一致すること
@@ -40,7 +40,6 @@ void main() {
   group('FetchBookDataUseCase', () {
     // 引数用の共通ダミーデータ
     const testCurrentCount = 20;
-    const testPageSize = 20;
     const testSorter = SortingData(
       field: SortField.englishWord,
       order: SortOrder.desc,
@@ -79,7 +78,6 @@ void main() {
           when(
             () => mockRepository.fetchVocabulariesWithPaging(
               offset: any(named: 'offset'),
-              limit: any(named: 'limit'),
               sorter: any(named: 'sorter'),
             ),
           ).thenAnswer((_) async => testVocabs);
@@ -87,16 +85,14 @@ void main() {
           // Act(実行): ユースケースの実行
           final result = await useCase.execute(
             currentCount: testCurrentCount,
-            pageSize: testPageSize,
             sorter: testSorter,
           );
 
           // Assert(検証):
-          // 1. fetchVocabulariesWithPaging が引数を正しく渡して1回呼ばれること
+          // 1. fetchVocabulariesWithPaging が currentCount を offset に、sorter をそのまま引数に1回呼ばれること
           verify(
             () => mockRepository.fetchVocabulariesWithPaging(
               offset: testCurrentCount,
-              limit: testPageSize,
               sorter: testSorter,
             ),
           ).called(1);
@@ -119,7 +115,6 @@ void main() {
         when(
           () => mockRepository.fetchVocabulariesWithPaging(
             offset: any(named: 'offset'),
-            limit: any(named: 'limit'),
             sorter: any(named: 'sorter'),
           ),
         ).thenAnswer((_) async => <VocabEntry>[]);
@@ -127,7 +122,6 @@ void main() {
         // Act(実行): ユースケースの実行
         final result = await useCase.execute(
           currentCount: testCurrentCount,
-          pageSize: testPageSize,
           sorter: testSorter,
         );
 
@@ -135,7 +129,6 @@ void main() {
         verify(
           () => mockRepository.fetchVocabulariesWithPaging(
             offset: testCurrentCount,
-            limit: testPageSize,
             sorter: testSorter,
           ),
         ).called(1);
@@ -154,7 +147,6 @@ void main() {
           when(
             () => mockRepository.fetchVocabulariesWithPaging(
               offset: any(named: 'offset'),
-              limit: any(named: 'limit'),
               sorter: any(named: 'sorter'),
             ),
           ).thenThrow(testException);
@@ -163,7 +155,6 @@ void main() {
           expect(
             () => useCase.execute(
               currentCount: testCurrentCount,
-              pageSize: testPageSize,
               sorter: testSorter,
             ),
             throwsA(equals(testException)),
@@ -173,7 +164,6 @@ void main() {
           verify(
             () => mockRepository.fetchVocabulariesWithPaging(
               offset: testCurrentCount,
-              limit: testPageSize,
               sorter: testSorter,
             ),
           ).called(1);

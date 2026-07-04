@@ -31,7 +31,7 @@ void main() {
     useCase = DeleteRegisterUseCase(mockRepository);
   });
 
-  group('DeleteRegisterUseCase', () {
+  group('DeleteRegisterUsecese', () {
     // テスト共通で使用するダミーデータのセットアップ
     final testVocab = VocabEntry(
       id: 42,

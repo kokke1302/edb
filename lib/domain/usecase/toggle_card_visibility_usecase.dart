@@ -47,8 +47,8 @@ class ToggleCardVisibilityUseCase {
       newShowCard = target.copyWith(nowShow: true);
       newToken = currentToken.copyWith(
         nowShow: true,
-        vocabId: target.vocab.id,
-        translation: target.vocab.translation,
+        vocabId: targetCard.vocab.id,
+        translation: targetCard.vocab.translation,
       );
     }
 

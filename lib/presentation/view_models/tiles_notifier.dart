@@ -1,15 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/domain/entity/model/tiles_data.dart';
-import 'package:edb/domain/usecase/fetch_tiles_all_usecase.dart';
 import 'package:edb/domain/usecase/save_tile_usecase.dart';
 import 'package:edb/domain/usecase/delete_tile_usecase.dart';
+import 'package:edb/domain/usecase/fetch_tiles_all_usecase.dart';
 import 'package:edb/domain/usecase/fetch_tile_detail_usecase.dart';
 import 'package:edb/presentation/view_models/translation_notifier.dart';
 
-final tilesProvider = AsyncNotifierProvider<TilesNotifier, TilesData>(
-  () => TilesNotifier(),
-);
+final tilesProvider =
+    AsyncNotifierProvider.autoDispose<TilesNotifier, TilesData>(
+      () => TilesNotifier(),
+    );
 
 // 訳語リストを管理
 class TilesNotifier extends AsyncNotifier<TilesData> {
@@ -49,7 +50,6 @@ class TilesNotifier extends AsyncNotifier<TilesData> {
     if (state.isLoading) return;
 
     state = await AsyncValue.guard(() async {
-      // DBから削除
       await ref.read(deleteTileUseCaseProvider).execute(id: id);
 
       final previousState = state.value ?? TilesData(list: []);
@@ -63,14 +63,14 @@ class TilesNotifier extends AsyncNotifier<TilesData> {
   Future<void> makeTokenChain({required int id}) async {
     try {
       // 対象タイルの取得
-      final tileDtail = await ref
+      final tileDetail = await ref
           .read(fetchTileDetailUseCaseProvider)
           .execute(id: id);
 
       // TokenCainに反映
       ref
           .read(translationProvider.notifier)
-          .restore(text: tileDtail.title, chain: tileDtail.chain);
+          .restore(text: tileDetail.title, chain: tileDetail.chain);
     } catch (e) {
       throw '復元中にエラーが発生しました: $e';
     }

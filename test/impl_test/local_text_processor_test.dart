@@ -44,6 +44,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:edb/data/repository_impl/local_text_processor.dart';
+import 'package:edb/domain/entity/carry/token_entry.dart';
 import 'package:edb/domain/entity/model/token_data.dart';
 import 'package:edb/domain/repository_abstract/translation_repository.dart';
 
@@ -53,14 +54,20 @@ import 'package:edb/domain/repository_abstract/translation_repository.dart';
 class MockTokenChainRepository extends Mock implements TranslationRepository {}
 
 // ---------------------------------------------------------------------------
-// ヘルパー: fetchTranslationsBatch が返すレコードを組み立てる
+// ヘルパー: fetchTranslationsBatch が返す TokenEntry を組み立てる
 // ---------------------------------------------------------------------------
-({int id, String word, bool isShow}) _makeEntry({
+TokenEntry _makeEntry({
   int id = 1,
   required String word,
   bool isShow = true,
+  String translation = '',
 }) {
-  return (id: id, word: word, isShow: isShow);
+  return TokenEntry(
+    vocabId: id,
+    showWord: word,
+    isShow: isShow,
+    translation: translation,
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -101,7 +108,7 @@ void main() {
     group('正常系 - トークン化', () {
       test('通常の英単語がトークンに分割されること', () async {
         when(
-          () => mockDb.fetchTranslationsBatch(any()),
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
         ).thenAnswer((_) async => []);
 
         final result = await repository.fullTranslation(text: 'hello world');
@@ -113,7 +120,7 @@ void main() {
 
       test('ハイフン単語が 1 トークンになること', () async {
         when(
-          () => mockDb.fetchTranslationsBatch(any()),
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
         ).thenAnswer((_) async => []);
 
         final result = await repository.fullTranslation(text: 'well-known');
@@ -124,7 +131,7 @@ void main() {
 
       test("アポストロフィ単語が 1 トークンになること", () async {
         when(
-          () => mockDb.fetchTranslationsBatch(any()),
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
         ).thenAnswer((_) async => []);
 
         final result = await repository.fullTranslation(text: "it's");
@@ -135,7 +142,7 @@ void main() {
 
       test('句読点が独立したトークンになること', () async {
         when(
-          () => mockDb.fetchTranslationsBatch(any()),
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
         ).thenAnswer((_) async => []);
 
         final result = await repository.fullTranslation(text: 'Hello,world.');
@@ -149,7 +156,7 @@ void main() {
 
       test('空白のみのトークンが無視されること', () async {
         when(
-          () => mockDb.fetchTranslationsBatch(any()),
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
         ).thenAnswer((_) async => []);
 
         final result = await repository.fullTranslation(text: 'a   b');
@@ -162,9 +169,14 @@ void main() {
 
     group('正常系 - 翻訳マッピング', () {
       test('DB に登録済みの単語に vocabId / translation / nowShow が反映されること', () async {
-        final entry = _makeEntry(id: 42, word: 'apple', isShow: true);
+        final entry = _makeEntry(
+          id: 42,
+          word: 'apple',
+          isShow: true,
+          translation: 'りんご',
+        );
         when(
-          () => mockDb.fetchTranslationsBatch(any()),
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
         ).thenAnswer((_) async => [entry]);
 
         final result = await repository.fullTranslation(text: 'apple');
@@ -172,12 +184,13 @@ void main() {
         expect(result.length, 1);
         expect(result.first.vocabId, 42);
         expect(result.first.nowShow, isTrue);
+        expect(result.first.translation, 'りんご');
       });
 
       test('DB に未登録の単語の vocabId / translation が初期値のままになること', () async {
         when(
-          () => mockDb.fetchTranslationsBatch(any()),
-        ).thenAnswer((_) async => []); // 空 → 未登録
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
+        ).thenAnswer((_) async => []);
 
         final result = await repository.fullTranslation(text: 'unknown');
 
@@ -189,7 +202,7 @@ void main() {
 
       test('句読点トークンの vocabId / translation が初期値のままになること', () async {
         when(
-          () => mockDb.fetchTranslationsBatch(any()),
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
         ).thenAnswer((_) async => []);
 
         final result = await repository.fullTranslation(text: 'Hello.');
@@ -201,7 +214,7 @@ void main() {
 
       test('各トークンの id が 0 始まりの連番になること', () async {
         when(
-          () => mockDb.fetchTranslationsBatch(any()),
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
         ).thenAnswer((_) async => []);
 
         final result = await repository.fullTranslation(text: 'one two three');
@@ -214,23 +227,29 @@ void main() {
     group('境界値', () {
       test('大文字・小文字が混在するテキストでも DB のエントリが反映されること', () async {
         // DB は小文字キーで保持
-        final entry = _makeEntry(id: 7, word: 'apple', isShow: true);
+        final entry = _makeEntry(
+          id: 7,
+          word: 'apple',
+          isShow: true,
+          translation: 'りんご',
+        );
         when(
-          () => mockDb.fetchTranslationsBatch(any()),
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
         ).thenAnswer((_) async => [entry]);
 
         // テキストは大文字
         final result = await repository.fullTranslation(text: 'Apple');
 
         expect(result.first.vocabId, 7);
+        expect(result.first.translation, 'りんご');
       });
 
       test('重複する単語があっても fetchTokenChain に渡されるキーが重複しないこと', () async {
         Set<String>? capturedKeys;
-        when(() => mockDb.fetchTranslationsBatch(any())).thenAnswer((
-          invocation,
-        ) async {
-          capturedKeys = invocation.positionalArguments.first as Set<String>;
+        when(
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
+        ).thenAnswer((invocation) async {
+          capturedKeys = invocation.namedArguments[#keys] as Set<String>;
           return [];
         });
 
@@ -270,7 +289,7 @@ void main() {
         ];
 
         when(
-          () => mockDb.fetchTranslationsBatch(any()),
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
         ).thenAnswer((_) async => []);
 
         final result = await repository.partTranslation(
@@ -288,10 +307,10 @@ void main() {
         final nowTokens = [_makeToken(id: 0, showWord: 'hello')];
 
         Set<String>? capturedKeys;
-        when(() => mockDb.fetchTranslationsBatch(any())).thenAnswer((
-          invocation,
-        ) async {
-          capturedKeys = invocation.positionalArguments.first as Set<String>;
+        when(
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
+        ).thenAnswer((invocation) async {
+          capturedKeys = invocation.namedArguments[#keys] as Set<String>;
           return [];
         });
 
@@ -317,7 +336,7 @@ void main() {
         ];
 
         when(
-          () => mockDb.fetchTranslationsBatch(any()),
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
         ).thenAnswer((_) async => []);
 
         final result = await repository.partTranslation(
@@ -340,9 +359,14 @@ void main() {
           ),
         ];
 
-        final entry = _makeEntry(id: 99, word: 'world', isShow: true);
+        final entry = _makeEntry(
+          id: 99,
+          word: 'world',
+          isShow: true,
+          translation: '世界',
+        );
         when(
-          () => mockDb.fetchTranslationsBatch(any()),
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
         ).thenAnswer((_) async => [entry]);
 
         final result = await repository.partTranslation(
@@ -353,6 +377,7 @@ void main() {
         final worldToken = result.firstWhere((t) => t.showWord == 'world');
         expect(worldToken.vocabId, 99);
         expect(worldToken.nowShow, isTrue);
+        expect(worldToken.translation, '世界');
       });
 
       test('追加時に既存トークンの vocabId / translation / nowShow が変わらないこと', () async {
@@ -367,7 +392,7 @@ void main() {
         ];
 
         when(
-          () => mockDb.fetchTranslationsBatch(any()),
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
         ).thenAnswer((_) async => []);
 
         final result = await repository.partTranslation(
@@ -402,7 +427,7 @@ void main() {
         ];
 
         when(
-          () => mockDb.fetchTranslationsBatch(any()),
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
         ).thenAnswer((_) async => []);
 
         final result = await repository.partTranslation(
@@ -423,10 +448,10 @@ void main() {
           ];
 
           Set<String>? capturedKeys;
-          when(() => mockDb.fetchTranslationsBatch(any())).thenAnswer((
-            invocation,
-          ) async {
-            capturedKeys = invocation.positionalArguments.first as Set<String>;
+          when(
+            () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
+          ).thenAnswer((invocation) async {
+            capturedKeys = invocation.namedArguments[#keys] as Set<String>;
             return [];
           });
 
@@ -452,9 +477,14 @@ void main() {
           ),
         ];
 
-        final entry = _makeEntry(id: 55, word: 'bye', isShow: true);
+        final entry = _makeEntry(
+          id: 55,
+          word: 'bye',
+          isShow: true,
+          translation: 'さようなら',
+        );
         when(
-          () => mockDb.fetchTranslationsBatch(any()),
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
         ).thenAnswer((_) async => [entry]);
 
         final result = await repository.partTranslation(
@@ -465,6 +495,7 @@ void main() {
         expect(result.length, 1);
         expect(result.first.showWord, 'bye');
         expect(result.first.vocabId, 55);
+        expect(result.first.translation, 'さようなら');
       });
 
       test('変更されていないトークンの vocabId / translation / nowShow が変わらないこと', () async {
@@ -485,9 +516,14 @@ void main() {
           ),
         ];
 
-        final entry = _makeEntry(id: 55, word: 'bye', isShow: true);
+        final entry = _makeEntry(
+          id: 55,
+          word: 'bye',
+          isShow: true,
+          translation: 'さようなら',
+        );
         when(
-          () => mockDb.fetchTranslationsBatch(any()),
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
         ).thenAnswer((_) async => [entry]);
 
         // world → bye に変更（hello は変わらず）
@@ -511,7 +547,7 @@ void main() {
         ];
 
         when(
-          () => mockDb.fetchTranslationsBatch(any()),
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
         ).thenAnswer((_) async => []);
 
         // 先頭に挿入して id がずれるケース
@@ -531,7 +567,7 @@ void main() {
         final nowTokens = [_makeToken(id: 0, showWord: 'hello')];
 
         when(
-          () => mockDb.fetchTranslationsBatch(any()),
+          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
         ).thenThrow(Exception('DB error'));
 
         // 追加が発生するテキストを渡して fetchTokenChain を実行させる

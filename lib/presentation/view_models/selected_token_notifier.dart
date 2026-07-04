@@ -12,7 +12,7 @@ final selectedTokenProvider =
 class SelectedTokenNotifier extends Notifier<TokenData> {
   @override
   TokenData build() {
-    return TokenData.fromInit();
+    return TokenData.init(showWord: '');
   }
 
   void selectNew({required TokenData token}) {

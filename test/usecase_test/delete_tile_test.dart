@@ -10,6 +10,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+// 対象クラスと依存クラスのインポート
 import 'package:edb/domain/usecase/delete_tile_usecase.dart';
 import 'package:edb/domain/repository_abstract/tiles_repository.dart';
 

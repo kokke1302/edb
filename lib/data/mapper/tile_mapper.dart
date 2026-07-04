@@ -13,7 +13,7 @@ class TileMapper {
   static TileDetail toTileDetail({required EnglishText et}) {
     final List<dynamic> decodedList = json.decode(et.parsedWordsJson);
     final chain = decodedList
-        .map((item) => TokenMapper.fromJson(item))
+        .map((item) => TokenMapper.fromJson(json: item))
         .toList();
 
     return TileDetail(title: et.originalText, chain: chain);

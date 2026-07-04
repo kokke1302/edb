@@ -18,15 +18,14 @@
 //   - SortField.createdAt / SortOrder.desc のとき、作成日時の降順で返ること
 //
 // - 境界値（ページング）:
-//   - offset が 0 のとき、先頭から limit 件返ること
-//   - offset が limit と同じ値のとき、次のページが返ること
+//   - offset が 0 のとき、先頭から pageSize 件返ること
+//   - offset が pageSize と同じ値のとき、次のページが返ること
 //   - offset が総件数以上のとき、空リストが返ること
-//   - limit より DB の行数が少ないとき、存在する行数だけ返ること
+//   - pageSize より DB の行数が少ないとき、存在する行数だけ返ること
 //
 // - 異常系:
 //   - DB 接続が失敗した状態で呼んだとき、Exception が投げられること
 // -----------------------------------------------------------------------------
-
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -71,12 +70,13 @@ Future<void> _insertVocab(
 }
 
 // ---------------------------------------------------------------------------
-// デフォルト SortingData（searchWord なし）
+// デフォルト SortingData（searchWord なし・pageSize 大）
 // ---------------------------------------------------------------------------
 const _defaultSorter = SortingData(
   field: SortField.englishWord,
   order: SortOrder.asc,
   searchWord: '',
+  pageSize: 100,
 );
 
 void main() {
@@ -91,12 +91,12 @@ void main() {
   tearDown(() async {
     await db.close();
   });
+
   group('fetchVocabulariesWithPaging', () {
     group('正常系（基本取得）', () {
       test('DBが空のとき、空リストが返ること', () async {
         final result = await repository.fetchVocabulariesWithPaging(
           offset: 0,
-          limit: 100,
           sorter: _defaultSorter,
         );
 
@@ -122,7 +122,6 @@ void main() {
 
         final result = await repository.fetchVocabulariesWithPaging(
           offset: 0,
-          limit: 100,
           sorter: _defaultSorter,
         );
 
@@ -142,7 +141,6 @@ void main() {
 
           final result = await repository.fetchVocabulariesWithPaging(
             offset: 0,
-            limit: 100,
             sorter: _defaultSorter,
           );
 
@@ -183,8 +181,7 @@ void main() {
       test('searchWordが空文字のとき、全件取得されること', () async {
         final result = await repository.fetchVocabulariesWithPaging(
           offset: 0,
-          limit: 100,
-          sorter: const SortingData(searchWord: ''),
+          sorter: const SortingData(searchWord: '', pageSize: 100),
         );
 
         expect(result, hasLength(3));
@@ -193,8 +190,7 @@ void main() {
       test('searchWordがenglishWordに部分一致する行だけ返ること', () async {
         final result = await repository.fetchVocabulariesWithPaging(
           offset: 0,
-          limit: 100,
-          sorter: const SortingData(searchWord: 'ban'),
+          sorter: const SortingData(searchWord: 'ban', pageSize: 100),
         );
 
         expect(result, hasLength(1));
@@ -204,8 +200,7 @@ void main() {
       test('searchWordがjapaneseTranslationに部分一致する行だけ返ること', () async {
         final result = await repository.fetchVocabulariesWithPaging(
           offset: 0,
-          limit: 100,
-          sorter: const SortingData(searchWord: 'さくら'),
+          sorter: const SortingData(searchWord: 'さくら', pageSize: 100),
         );
 
         expect(result, hasLength(1));
@@ -215,8 +210,7 @@ void main() {
       test('searchWordがmemoに部分一致する行だけ返ること', () async {
         final result = await repository.fetchVocabulariesWithPaging(
           offset: 0,
-          limit: 100,
-          sorter: const SortingData(searchWord: 'red'),
+          sorter: const SortingData(searchWord: 'red', pageSize: 100),
         );
 
         expect(result, hasLength(1));
@@ -226,13 +220,13 @@ void main() {
       test('searchWordがいずれのカラムにも一致しないとき、空リストが返ること', () async {
         final result = await repository.fetchVocabulariesWithPaging(
           offset: 0,
-          limit: 100,
-          sorter: const SortingData(searchWord: 'zzz'),
+          sorter: const SortingData(searchWord: 'zzz', pageSize: 100),
         );
 
         expect(result, isEmpty);
       });
     });
+
     group('境界値（ソート）', () {
       setUp(() async {
         // 挿入順をバラバラにして、ソート結果が挿入順に依存しないことを確認
@@ -259,10 +253,10 @@ void main() {
       test('SortField.englishWord / SortOrder.asc のとき、英単語の昇順で返ること', () async {
         final result = await repository.fetchVocabulariesWithPaging(
           offset: 0,
-          limit: 100,
           sorter: const SortingData(
             field: SortField.englishWord,
             order: SortOrder.asc,
+            pageSize: 100,
           ),
         );
 
@@ -273,10 +267,10 @@ void main() {
       test('SortField.englishWord / SortOrder.desc のとき、英単語の降順で返ること', () async {
         final result = await repository.fetchVocabulariesWithPaging(
           offset: 0,
-          limit: 100,
           sorter: const SortingData(
             field: SortField.englishWord,
             order: SortOrder.desc,
+            pageSize: 100,
           ),
         );
 
@@ -287,10 +281,10 @@ void main() {
       test('SortField.createdAt / SortOrder.asc のとき、作成日時の昇順で返ること', () async {
         final result = await repository.fetchVocabulariesWithPaging(
           offset: 0,
-          limit: 100,
           sorter: const SortingData(
             field: SortField.createdAt,
             order: SortOrder.asc,
+            pageSize: 100,
           ),
         );
 
@@ -302,10 +296,10 @@ void main() {
       test('SortField.createdAt / SortOrder.desc のとき、作成日時の降順で返ること', () async {
         final result = await repository.fetchVocabulariesWithPaging(
           offset: 0,
-          limit: 100,
           sorter: const SortingData(
             field: SortField.createdAt,
             order: SortOrder.desc,
+            pageSize: 100,
           ),
         );
 
@@ -314,6 +308,7 @@ void main() {
         expect(words, equals(['cherry', 'banana', 'apple']));
       });
     });
+
     group('境界値（ページング）', () {
       // 5件投入（englishWord昇順: a, b, c, d, e）
       setUp(() async {
@@ -322,13 +317,13 @@ void main() {
         }
       });
 
-      test('offset が 0 のとき、先頭から limit 件返ること', () async {
+      test('offset が 0 のとき、先頭から pageSize 件返ること', () async {
         final result = await repository.fetchVocabulariesWithPaging(
           offset: 0,
-          limit: 3,
           sorter: const SortingData(
             field: SortField.englishWord,
             order: SortOrder.asc,
+            pageSize: 3,
           ),
         );
 
@@ -339,13 +334,13 @@ void main() {
         );
       });
 
-      test('offset が limit と同じ値のとき、次のページが返ること', () async {
+      test('offset が pageSize と同じ値のとき、次のページが返ること', () async {
         final result = await repository.fetchVocabulariesWithPaging(
-          offset: 3, // limit と同値
-          limit: 3,
+          offset: 3, // pageSize と同値
           sorter: const SortingData(
             field: SortField.englishWord,
             order: SortOrder.asc,
+            pageSize: 3,
           ),
         );
 
@@ -359,18 +354,16 @@ void main() {
       test('offset が総件数以上のとき、空リストが返ること', () async {
         final result = await repository.fetchVocabulariesWithPaging(
           offset: 100,
-          limit: 3,
-          sorter: const SortingData(),
+          sorter: const SortingData(pageSize: 3),
         );
 
         expect(result, isEmpty);
       });
 
-      test('limit より DB の行数が少ないとき、存在する行数だけ返ること', () async {
+      test('pageSize より DB の行数が少ないとき、存在する行数だけ返ること', () async {
         final result = await repository.fetchVocabulariesWithPaging(
           offset: 0,
-          limit: 50,
-          sorter: const SortingData(),
+          sorter: const SortingData(pageSize: 50),
         );
 
         // DBには5件しかない

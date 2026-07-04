@@ -24,7 +24,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:edb/domain/usecase/toggle_card_visibiliry_usecase.dart';
+import 'package:edb/domain/usecase/toggle_card_visibility_usecase.dart';
 import 'package:edb/domain/entity/model/card_data.dart';
 import 'package:edb/domain/entity/model/token_data.dart';
 import 'package:edb/domain/entity/carry/vocab_entry.dart';

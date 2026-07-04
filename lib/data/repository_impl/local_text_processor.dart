@@ -1,6 +1,7 @@
 import 'package:diffutil_dart/diffutil.dart';
 
 import 'package:edb/domain/entity/model/token_data.dart';
+import 'package:edb/domain/entity/carry/token_entry.dart';
 import 'package:edb/domain/repository_abstract/processor_repository.dart';
 import 'package:edb/domain/repository_abstract/translation_repository.dart';
 
@@ -25,9 +26,9 @@ class LocalTextProcessor implements TextProcessor {
       // 空白のみのトークンは無視
       if (cutText.trim().isEmpty) continue;
 
-      final TokenData token = TokenData.fromInit(showWord: cutText);
+      // Token.init で初期Tokenを生成
+      final TokenData token = TokenData.init(showWord: cutText);
 
-      // Token.fromText ファクトリで初期Tokenを生成
       initialTokens.add(token);
     }
     return initialTokens;
@@ -87,20 +88,20 @@ class LocalTextProcessor implements TextProcessor {
         .map((t) => t.word)
         .toSet();
 
-    final slimEntrys = await db.fetchTranslationsBatch(lookupKeys);
+    final slimEntrys = await db.fetchTranslationsBatch(keys: lookupKeys);
 
     // 5. DB検索（必要な分だけ）
-    final Map<String, ({int id, String word, bool isShow})> translationMap = {};
+    final Map<String, TokenEntry> translationMap = {};
 
     for (final entry in slimEntrys) {
-      final key = entry.word.toLowerCase();
+      final key = entry.showWord.toLowerCase();
 
-      // すでに登録済みかつ「表示設定(isShow)」がtrueのものを優先するロジック
+      // 6. すでに登録済みかつ「表示設定(isShow)」がtrueのものを優先するロジック
       final bool alreadyHasShowEntry = translationMap[key]?.isShow ?? false;
       if (!alreadyHasShowEntry) translationMap[key] = entry;
     }
 
-    // 6. トークンに訳語を割り当てる
+    // 7. トークンに訳語を割り当てる
     final List<TokenData> resultTokens = [];
 
     // 変更があった最初の位置
@@ -118,8 +119,9 @@ class LocalTextProcessor implements TextProcessor {
         resultTokens.add(
           token.copyWith(
             id: i,
-            vocabId: entry?.id ?? -1,
+            vocabId: entry?.vocabId ?? -1,
             nowShow: entry?.isShow ?? false,
+            translation: entry?.translation ?? '',
           ),
         );
       } else {
@@ -141,18 +143,18 @@ class LocalTextProcessor implements TextProcessor {
         .map((t) => t.showWord.toLowerCase())
         .toSet();
 
-    // 3. DictionaryServiceによる訳語の一括検索
-    final List<({int id, String word, bool isShow})> slimEntrys;
+    // 3. 訳語の一括検索
+    final List<TokenEntry> slimEntrys;
     try {
-      slimEntrys = await db.fetchTranslationsBatch(lookupKeys);
+      slimEntrys = await db.fetchTranslationsBatch(keys: lookupKeys);
     } catch (e) {
       rethrow;
     }
 
     // 4. <検索キー: 単語帳DBエントリー>のMapを作成
-    final Map<String, ({int id, String word, bool isShow})> translationMap = {};
+    final Map<String, TokenEntry> translationMap = {};
     for (final entry in slimEntrys) {
-      final key = entry.word.toLowerCase();
+      final key = entry.showWord.toLowerCase();
 
       // isShow が true のエントリーを優先して保持するロジック
       final bool alreadyHasShowEntry = translationMap[key]?.isShow ?? false;
@@ -174,7 +176,12 @@ class LocalTextProcessor implements TextProcessor {
 
       // Record から ID と表示フラグを適用
       translatedTokens.add(
-        initialToken.copyWith(id: i, vocabId: entry.id, nowShow: entry.isShow),
+        initialToken.copyWith(
+          id: i,
+          vocabId: entry.vocabId,
+          nowShow: entry.isShow,
+          translation: entry.translation,
+        ),
       );
     }
 

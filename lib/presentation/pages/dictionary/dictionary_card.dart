@@ -15,8 +15,18 @@ class MyDictionaryCard extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
-      elevation: card.nowShow ? 4 : 1, // 影
-      margin: const EdgeInsets.only(bottom: 8.0),
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 12.0),
+      shape: RoundedRectangleBorder(
+        // 角丸
+        borderRadius: BorderRadius.circular(16),
+        // 薄い線で囲う
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withAlpha(100),
+          width: 2,
+        ),
+      ),
+
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         child: Column(

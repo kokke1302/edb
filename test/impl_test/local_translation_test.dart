@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------
 // - 正常系:
 //   - lookupKeys に一致する englishWord を持つ行のみ返ること
-//   - 返り値の id / word が DB の該当行と一致すること
+//   - 返り値の id / word / translation が DB の該当行と一致すること
 //   - isHidden が true の行は返り値に含まれないこと
 //   - isHidden が false の行の isShow が true にマッピングされること
 //   - lookupKeys に複数のキーを渡したとき、一致する全行が返ること
@@ -76,25 +76,26 @@ void main() {
           japaneseTranslation: 'バナナ',
         );
 
-        final result = await repository.fetchTranslationsBatch({'apple'});
+        final result = await repository.fetchTranslationsBatch(keys: {'apple'});
 
         expect(result, hasLength(1));
-        expect(result.first.word, equals('apple'));
+        expect(result.first.showWord, equals('apple'));
       });
 
-      test('返り値の id / word が DB の該当行と一致すること', () async {
+      test('返り値の id / word / translation が DB の該当行と一致すること', () async {
         final insertedId = await _insertVocab(
           db,
           englishWord: 'apple',
           japaneseTranslation: 'りんご',
         );
 
-        final result = await repository.fetchTranslationsBatch({'apple'});
+        final result = await repository.fetchTranslationsBatch(keys: {'apple'});
 
         expect(result, hasLength(1));
         final entry = result.first;
-        expect(entry.id, equals(insertedId));
-        expect(entry.word, equals('apple'));
+        expect(entry.vocabId, equals(insertedId));
+        expect(entry.showWord, equals('apple'));
+        expect(entry.translation, equals('りんご'));
       });
 
       test('isHidden が true の行は返り値に含まれないこと', () async {
@@ -105,7 +106,7 @@ void main() {
           isHidden: true,
         );
 
-        final result = await repository.fetchTranslationsBatch({'apple'});
+        final result = await repository.fetchTranslationsBatch(keys: {'apple'});
 
         expect(result, isEmpty);
       });
@@ -118,7 +119,7 @@ void main() {
           isHidden: false,
         );
 
-        final result = await repository.fetchTranslationsBatch({'apple'});
+        final result = await repository.fetchTranslationsBatch(keys: {'apple'});
 
         expect(result.first.isShow, isTrue);
       });
@@ -140,13 +141,12 @@ void main() {
           japaneseTranslation: 'さくらんぼ',
         );
 
-        final result = await repository.fetchTranslationsBatch({
-          'apple',
-          'banana',
-        });
+        final result = await repository.fetchTranslationsBatch(
+          keys: {'apple', 'banana'},
+        );
 
         expect(result, hasLength(2));
-        final words = result.map((e) => e.word).toSet();
+        final words = result.map((e) => e.showWord).toSet();
         expect(words, equals({'apple', 'banana'}));
       });
 
@@ -157,7 +157,7 @@ void main() {
           japaneseTranslation: 'バナナ',
         );
 
-        final result = await repository.fetchTranslationsBatch({'apple'});
+        final result = await repository.fetchTranslationsBatch(keys: {'apple'});
 
         expect(result, isEmpty);
       });
@@ -171,7 +171,7 @@ void main() {
           japaneseTranslation: 'りんご',
         );
 
-        final result = await repository.fetchTranslationsBatch({});
+        final result = await repository.fetchTranslationsBatch(keys: {});
 
         expect(result, isEmpty);
       });
@@ -183,10 +183,10 @@ void main() {
           japaneseTranslation: 'りんご',
         );
 
-        final result = await repository.fetchTranslationsBatch({'Apple'});
+        final result = await repository.fetchTranslationsBatch(keys: {'Apple'});
 
         expect(result, hasLength(1));
-        expect(result.first.word, equals('apple')); // showWord -> word に修正
+        expect(result.first.showWord, equals('apple'));
       });
 
       test('lookupKeys に含まれないキーを持つ行が DB に存在しても、返り値に含まれないこと', () async {
@@ -206,10 +206,10 @@ void main() {
           japaneseTranslation: 'さくらんぼ',
         );
 
-        final result = await repository.fetchTranslationsBatch({'apple'});
+        final result = await repository.fetchTranslationsBatch(keys: {'apple'});
 
         expect(result, hasLength(1));
-        final words = result.map((e) => e.word).toSet(); // showWord -> word に修正
+        final words = result.map((e) => e.showWord).toSet();
         expect(words, isNot(contains('banana')));
         expect(words, isNot(contains('cherry')));
       });
@@ -221,8 +221,7 @@ void main() {
     //     await db.close();
 
     //     expect(
-    //       // メソッド名を fetchTokenChain から fetchTranslationsBatch に修正
-    //       () => repository.fetchTranslationsBatch({'apple'}),
+    //       () => repository.fetchTranslationsBatch(keys: {'apple'}),
     //       throwsA(isA<Exception>()),
     //     );
     //   });

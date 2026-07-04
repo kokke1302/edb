@@ -27,7 +27,6 @@
 //   - DB 接続が失敗した状態で fetchVocabularies を呼んだとき、Exception が投げられること
 //   - DB 接続が失敗した状態で fetchDictionaries を呼んだとき、Exception が投げられること
 // -----------------------------------------------------------------------------
-
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';

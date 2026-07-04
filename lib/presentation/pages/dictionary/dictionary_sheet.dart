@@ -10,8 +10,8 @@ import 'package:edb/presentation/view_models/regidata_receiver.dart';
 import 'package:edb/presentation/view_models/selected_token_notifier.dart';
 
 // 辞書機能シート
-class MyVocabularyInputSheet extends ConsumerWidget {
-  const MyVocabularyInputSheet({super.key});
+class MyDictionarySheet extends ConsumerWidget {
+  const MyDictionarySheet({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,7 +27,7 @@ class MyVocabularyInputSheet extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (list.showCard != null) RegisteredCard(card: list.showCard!),
+          if (list.showCard != null) MyRegisteredCard(card: list.showCard!),
 
           Divider(color: Theme.of(context).colorScheme.outlineVariant),
           const Text('単語帳からの候補', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -35,7 +35,7 @@ class MyVocabularyInputSheet extends ConsumerWidget {
 
           // 登録済みリストを展開
           ...list.vocabularyCards.map((card) {
-            return RegisteredCard(card: card);
+            return MyRegisteredCard(card: card);
           }),
 
           Divider(color: Theme.of(context).colorScheme.outlineVariant),
@@ -66,7 +66,7 @@ class MyVocabularyInputSheet extends ConsumerWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,6 +106,8 @@ class MyVocabularyInputSheet extends ConsumerWidget {
                 maxHeight: MediaQuery.of(context).size.height * 0.6,
               ),
               child: SingleChildScrollView(
+                // スクロール時の影のカットを防ぐ
+                clipBehavior: Clip.hardEdge,
                 // 状態が変わる「カードリスト」だけを Consumer で包む
                 child: Consumer(
                   builder: (context, ref, child) {
@@ -119,8 +121,13 @@ class MyVocabularyInputSheet extends ConsumerWidget {
                         ),
                       ),
                       error: (err, _) => Center(child: Text('エラー: $err')),
-                      data: (list) =>
-                          buildCardList(headerWord: headerWord, list: list),
+                      data: (list) => Padding(
+                        padding: const EdgeInsets.fromLTRB(4, 8, 4, 16),
+                        child: buildCardList(
+                          headerWord: headerWord,
+                          list: list,
+                        ),
+                      ),
                     );
                   },
                 ),

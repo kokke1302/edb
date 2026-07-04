@@ -3,10 +3,9 @@ import 'package:edb/domain/entity/carry/vocab_entry.dart';
 class CardData {
   final bool nowShow;
   final VocabEntry vocab;
-  // (id, word, translation, isShow, nowShow, memo, createdAt, updatedAt, based)
+  // VocabEntry: (id, word, translation, isShow, memo, createdAt, updatedAt, based)
 
-  CardData({bool? nowShow, required this.vocab})
-    : nowShow = nowShow ?? vocab.isShow;
+  CardData({required this.nowShow, required this.vocab});
 
   // 訳語を変更
   CardData copyWith({bool? nowShow, VocabEntry? vocab}) {
@@ -16,7 +15,12 @@ class CardData {
     );
   }
 
-  static CardData fromVocabEntry({required VocabEntry ve}) {
-    return CardData(vocab: ve);
+  factory CardData.init({String word = ''}) {
+    final ve = VocabEntry.init(word: word);
+    return CardData(nowShow: ve.isShow, vocab: ve);
+  }
+
+  factory CardData.fromVocabEntry({required VocabEntry ve}) {
+    return CardData(nowShow: ve.isShow, vocab: ve);
   }
 }

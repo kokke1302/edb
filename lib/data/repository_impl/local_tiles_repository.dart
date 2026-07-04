@@ -67,7 +67,7 @@ class LocalTilesRepository implements TilesRepository {
   // D: Delete
   // ===============================================
 
-  // 指定されたIDの英文データ（Tile）をデータベースから削除します。
+  // 指定されたIDの英文データ（Tile）をデータベースから削除
   @override
   Future<int> deleteTile({required int id}) async {
     try {
@@ -75,7 +75,7 @@ class LocalTilesRepository implements TilesRepository {
       final query = db.delete(db.englishTexts)..where((t) => t.id.equals(id));
       final deletedCount = await query.go();
 
-      // if (deletedCount == 0) throw Exception('Tile with ID $id not found');
+      if (deletedCount == 0) throw Exception('Tile with ID $id not found');
 
       return deletedCount;
     } catch (e) {

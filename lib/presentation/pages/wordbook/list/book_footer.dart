@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:edb/domain/entity/value/sync_status.dart';
 import 'package:edb/presentation/view_models/book_notifier.dart';
 
-// ===============================================
+// -----------------------------------------------------------------------------
 // 途中ロード　判定ロジック
-// ===============================================
+// -----------------------------------------------------------------------------
 
 class MyBookFooter extends ConsumerWidget {
   const MyBookFooter({super.key});
@@ -40,9 +40,9 @@ class MyBookFooter extends ConsumerWidget {
   }
 }
 
-// ===============================================
+// -----------------------------------------------------------------------------
 // 途中ロード　デザイン
-// ===============================================
+// -----------------------------------------------------------------------------
 
 // 途中ロード中
 class _MyLoadingFooter extends StatelessWidget {

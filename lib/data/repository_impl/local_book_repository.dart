@@ -19,7 +19,6 @@ class LocalBookRepository implements BookRepository {
   @override
   Future<List<VocabEntry>> fetchVocabulariesWithPaging({
     required int offset,
-    required int limit,
     required SortingData sorter,
   }) async {
     try {
@@ -43,7 +42,7 @@ class LocalBookRepository implements BookRepository {
       query.orderBy([(v) => OrderingTerm(expression: expression, mode: mode)]);
 
       // ページング条件の適用
-      query.limit(limit, offset: offset);
+      query.limit(sorter.pageSize, offset: offset);
 
       final rows = await query.get();
 
