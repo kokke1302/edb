@@ -1,10 +1,7 @@
 # 翻訳できる単語帳
 
-辞書や単語帳を翻訳に連携させ、英単語と対応する訳の関係を分かりやすく表示するアプリ。
-
-（翻訳画面の画像）
-（辞書モーダルを開いた画像）
-（単語帳画面の画像）
+辞書や単語帳を翻訳に連携させ、英単語と訳の対応関係を分かりやすく表示するアプリ。
+![メイン](./docs/img/title.png)
 
 ## 機能
 
@@ -12,18 +9,26 @@
 - 単語帳と連携した翻訳
 - 英単語をワンタップで辞書検索
 - 内部辞書の内容をコピーして単語帳に登録
-- 単語帳に登録した英単語を翻訳に使用するかを選択するスイッチ
 - 自分好みの訳のまま保存できる英文保存機能
+- 単語帳に登録した英単語を翻訳に使用するかを選択するスイッチ
 - 英文入力中に変更箇所のみを解析・再描画する軽量な翻訳処理
+
+<p>
+  <img src="./docs/img/wordbook.png" style="height: 400px; width: auto;" />
+  <img src="./docs/img/translation.png" style="height: 400px; width: auto;" />
+  <img src="./docs/img/dictionary-readme.png" style="height: 400px; width: auto;" />
+  <img src="./docs/img/register.png" style="height: 400px; width: auto;" />
+  <img src="./docs/img/drawer.png" style="height: 400px; width: auto;" />
+</p>
 
 ## 使い方
 
 1. Android: リリースからAPKをダウンロード
-2. その他（Windows, Mac, Linux, iOS, Web）: Flutter SDK 導入済みのデバイスで、リポジトリを `clone` し、各の環境向けに `build`
+2. その他（Windows, Mac, Linux, iOS, Web）: Flutter SDK 導入済みのデバイスで、リポジトリを `clone` し、各環境向けに `build`
 
 ```bash
 git clone git@github.com:kokke1302/edb.git
-flutter build <platform>
+flutter build <target>
 ```
 
 その他の内、動作確認済み: Web, Windows11, Linux（Ubuntu 26.04 LTS）
@@ -49,10 +54,11 @@ lib/
 
 ## 技術スタック
 
-- フレームワーク: Flutter / Dart
-- 状態管理: Riverpod (hooks_riverpod)
-- データベース: Drift (SQLite)
-- ルーティング: GoRouter (ShellRouteによるUI共通化)
+- 言語: Dart
+- フレームワーク: Flutter
+- 状態管理: Riverpod, hooks_riverpod
+- データベース: Drift
+- ルーティング: go_router
 - ロジック: diffutil_dart (英文の差分検出), just_throttle_it (負荷軽減)
 - テスト: flutter_test, mocktail
 
@@ -64,7 +70,7 @@ Presentation → Domain ← Data
 
 ### 処理方向のルール
 
-![処理の流れ](./assets/flow.jpg)
+![現在のアーキテクチャ](./docs/img/architecture_current.svg)
 
 ### テスト方針
 
@@ -89,8 +95,9 @@ Presentation → Domain ← Data
 
 ## 関連ドキュメント
 
-- [開発資料.md](docs/開発資料.md): アプリの開発経緯やコンセプト、こだわり、現在地と今後の開発まで
-- [コード現状.md](docs/コード現状.md): データ構造とアーキテクチャ、各クラスの役割等
+- [人間向け技術資料.md](docs/人間向け技術資料.md): データ構造とアーキテクチャ、各クラスの役割等
+- [LLM向け技術資料.md](docs/LLM向け技術資料.md): 人間向け技術資料.mdと共にLLMへ入力することで、アプリ全体の質問に答えてくれます
+- [開発記.md](docs/開発記.md): アプリの開発経緯やコンセプト、こだわり、現在地と今後の開発まで
 
 ## ライセンス
 

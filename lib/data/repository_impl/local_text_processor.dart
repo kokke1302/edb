@@ -104,16 +104,11 @@ class LocalTextProcessor implements TextProcessor {
     // 7. トークンに訳語を割り当てる
     final List<TokenData> resultTokens = [];
 
-    // 変更があった最初の位置
-    final int firstEffect = affectedIndices.isEmpty
-        ? finalTokens.length
-        : affectedIndices.reduce((a, b) => a < b ? a : b);
-
     for (int i = 0; i < finalTokens.length; i++) {
       final token = finalTokens[i];
 
-      // 変更があったインデックス、または位置がズレたインデックスをすべて更新
-      if (i >= firstEffect || token.id != i) {
+      if (affectedIndices.contains(i)) {
+        // 新規/変更されたトークン → 辞書引き直し
         final entry = translationMap[token.word];
 
         resultTokens.add(
@@ -124,6 +119,9 @@ class LocalTextProcessor implements TextProcessor {
             translation: entry?.translation ?? '',
           ),
         );
+      } else if (token.id != i) {
+        // 中身は同じだが位置だけずれた → idだけ更新、訳語は保持
+        resultTokens.add(token.copyWith(id: i));
       } else {
         // 変更がなく、IDも一致しているならそのまま
         resultTokens.add(token);

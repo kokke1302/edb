@@ -12,14 +12,14 @@
 // - 正常系（fetchTileDetail）:
 //   - 指定した id の行の内容が返ること
 //
+// - 異常系（fetchTileDetail）:
+//   - 存在しない id を指定したとき、Exception が投げられること
+//
 // - 正常系（deleteTile）:
 //   - 削除後に同じ id の行が DB に存在しないこと
 //   - 返り値が 1（削除件数）になること
 //
-// - 境界値（deleteTile）:
-//   - 存在しない id を指定したとき、返り値が 0 になること（例外が投げられないこと）
-//
-// - 異常系（fetchTileDetail）:
+// - 異常系（deleteTile）:
 //   - 存在しない id を指定したとき、Exception が投げられること
 // -----------------------------------------------------------------------------
 
@@ -216,12 +216,8 @@ void main() {
     // -----------------------------------------------------------------------
     // 境界値
     // -----------------------------------------------------------------------
-    test('存在しないIDを指定したとき、返り値が0になること（例外が投げられないこと）', () async {
-      expect(() => repository.deleteTile(id: 99999), returnsNormally);
-
-      final deletedCount = await repository.deleteTile(id: 99999);
-
-      expect(deletedCount, equals(0));
+    test('存在しないIDを指定したとき、Exceptionが投げられること', () async {
+      expect(() => repository.deleteTile(id: 99999), throwsA(isA<Exception>()));
     });
   });
 }

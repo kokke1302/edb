@@ -4,7 +4,7 @@ import 'package:edb/domain/entity/model/card_data.dart';
 import 'package:edb/domain/entity/model/sorting_data.dart';
 import 'package:edb/domain/repository_abstract/book_repository.dart';
 
-final bookUseCaseProvider = Provider(
+final fetchBookDataUseCaseProvider = Provider(
   (ref) => FetchBookDataUseCase(ref.watch(bookRepositoryProvider)),
 );
 

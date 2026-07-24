@@ -56,7 +56,7 @@ class DatabaseInitializer {
     if (await file.exists()) return;
 
     // 3. データベースファイルが存在しない場合のみ、アセットからコピーを開始
-    const String assetPath = 'assets/output.sqlite3';
+    const String assetPath = 'assets/local_dict.sqlite3';
     try {
       final data = await rootBundle.load(assetPath);
       final bytes = data.buffer.asUint8List(

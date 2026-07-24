@@ -18,7 +18,7 @@ class DictionaryNotifier extends AsyncNotifier<DictionaryData> {
   @override
   Future<DictionaryData> build() async {
     final token = ref.read(selectedTokenProvider);
-    return ref.read(dictionaryUseCaseProvider).execute(token);
+    return ref.read(fetchDictionaryDataUseCaseProvider).execute(token);
   }
 
   // 訳の表示/非表示の切り替え

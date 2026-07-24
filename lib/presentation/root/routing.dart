@@ -88,11 +88,13 @@ class SettingPage extends StatelessWidget {
         title: const Text('設定'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: const Center(
-        child: Text(
-          '設定画面',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 24),
+      body: const SafeArea(
+        child: Center(
+          child: Text(
+            '設定画面',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 24),
+          ),
         ),
       ),
     );
@@ -110,11 +112,13 @@ class HelpPage extends StatelessWidget {
         title: const Text('ヘルプ'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: const Center(
-        child: Text(
-          'ヘルプ画面',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 24),
+      body: const SafeArea(
+        child: Center(
+          child: Text(
+            'ヘルプ画面',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 24),
+          ),
         ),
       ),
     );

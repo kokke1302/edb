@@ -49,3 +49,7 @@ app.*.map.json
 
 # パスワードが書かれた設定ファイル
 android/key.properties
+
+# コード全文
+all_souses.txt
+all_tests.txt

@@ -35,35 +35,37 @@ class MyEntryScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: appBarTitle),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // 1. 英単語入力フィールド
-                const MyEnglishCard(),
-                const SizedBox(height: 16),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // 1. 英単語入力フィールド
+                  const MyEnglishCard(),
+                  const SizedBox(height: 16),
 
-                // 2. 訳語入力フィールド
-                const MyTranslationCard(),
-                const SizedBox(height: 16),
+                  // 2. 訳語入力フィールド
+                  const MyTranslationCard(),
+                  const SizedBox(height: 16),
 
-                // 3. メモ入力フィールド
-                const MyMemoCard(),
-                const SizedBox(height: 16),
+                  // 3. メモ入力フィールド
+                  const MyMemoCard(),
+                  const SizedBox(height: 16),
 
-                // 4. 訳の表示可否スイッチ
-                const MyVisibilitySwitchCard(),
-                const SizedBox(height: 100),
-              ],
+                  // 4. 訳の表示可否スイッチ
+                  const MyVisibilitySwitchCard(),
+                  const SizedBox(height: 100),
+                ],
+              ),
             ),
-          ),
 
-          // 5. フッター（保存・キャンセル・削除ボタン）
-          const MyFooterBar(),
-        ],
+            // 5. フッター（保存・キャンセル・削除ボタン）
+            const MyFooterBar(),
+          ],
+        ),
       ),
     );
   }

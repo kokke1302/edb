@@ -7,10 +7,9 @@ import 'package:edb/domain/usecase/fetch_tiles_all_usecase.dart';
 import 'package:edb/domain/usecase/fetch_tile_detail_usecase.dart';
 import 'package:edb/presentation/view_models/translation_notifier.dart';
 
-final tilesProvider =
-    AsyncNotifierProvider.autoDispose<TilesNotifier, TilesData>(
-      () => TilesNotifier(),
-    );
+final tilesProvider = AsyncNotifierProvider<TilesNotifier, TilesData>(
+  () => TilesNotifier(),
+);
 
 // 訳語リストを管理
 class TilesNotifier extends AsyncNotifier<TilesData> {
@@ -24,11 +23,12 @@ class TilesNotifier extends AsyncNotifier<TilesData> {
   Future<void> addTile() async {
     // バリデーション
     final translationAsync = ref.read(translationProvider);
-    if (!translationAsync.hasValue ||
-        translationAsync.isLoading ||
-        state.isLoading) {
-      return;
-    }
+    if (!translationAsync.hasValue || translationAsync.isLoading) return;
+
+    // 破棄後の再構築中でも、初期ロードの完了を待つ
+    await future;
+
+    if (state.isLoading) return; // 本当に処理中（連打防止）の場合のみブロック
 
     state = await AsyncValue.guard(() async {
       final nowTranslation = translationAsync.requireValue;

@@ -28,6 +28,10 @@ class SaveRegisterUseCase {
     }
 
     // 変換して返す
-    return token.copyWith(vocabId: vocabEntry.id, nowShow: card.nowShow);
+    return token.copyWith(
+      vocabId: vocabEntry.id,
+      nowShow: card.nowShow,
+      translation: vocabEntry.translation,
+    );
   }
 }

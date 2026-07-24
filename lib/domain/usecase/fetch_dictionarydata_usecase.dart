@@ -5,7 +5,7 @@ import 'package:edb/domain/entity/model/dictionary_data.dart';
 import 'package:edb/domain/entity/model/token_data.dart';
 import 'package:edb/domain/repository_abstract/dictionary_repository.dart';
 
-final dictionaryUseCaseProvider = Provider(
+final fetchDictionaryDataUseCaseProvider = Provider(
   (ref) => FetchDictionaryDataUseCase(ref.watch(dictionaryRepositoryProvider)),
 );
 

@@ -24,7 +24,7 @@ class BookNotifier extends AsyncNotifier<BookData> {
 
     // 最初のページを要求
     final initialList = await ref
-        .read(bookUseCaseProvider)
+        .read(fetchBookDataUseCaseProvider)
         .execute(
           currentCount: 0,
           sorter: SortingData(
@@ -62,7 +62,7 @@ class BookNotifier extends AsyncNotifier<BookData> {
 
       // データの取得
       final newCards = await ref
-          .read(bookUseCaseProvider)
+          .read(fetchBookDataUseCaseProvider)
           .execute(currentCount: currentState.cards.length, sorter: sorter);
 
       // 新しいリストと状態を更新
