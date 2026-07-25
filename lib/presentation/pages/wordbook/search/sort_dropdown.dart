@@ -5,8 +5,8 @@ import 'package:edb/presentation/view_models/sorting_notifier.dart';
 import 'package:edb/domain/entity/value/sort_field.dart';
 
 /// ソート項目と順序を選択するドロップダウンメニュー
-class SortDropdownMenu extends ConsumerWidget {
-  const SortDropdownMenu({super.key});
+class MySortDropdownMenu extends ConsumerWidget {
+  const MySortDropdownMenu({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

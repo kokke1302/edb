@@ -17,12 +17,19 @@ class MyBookCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final updatedDate = _formatDate(card.vocab.updatedAt);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
-      elevation: 3, // 少し影を濃くして立体感を出す
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), // 周りの余白
+      elevation: 0,
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10), // 角を丸くする
+        // 角丸
+        borderRadius: BorderRadius.circular(16),
+        // 薄い線で囲う
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withAlpha(100),
+          width: 2,
+        ),
       ),
 
       child: Column(

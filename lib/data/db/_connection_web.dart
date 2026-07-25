@@ -5,7 +5,6 @@ import 'package:edb/data/db/database_initializer.dart'; // dbFileName を使用�
 
 /// Web環境用の QueryExecutor を返す関数
 QueryExecutor constructDb() {
-  // print('INFO: Web環境の接続ロジックを読み込みました。');
   return driftDatabase(
     // データベース名
     name: dbFileName,

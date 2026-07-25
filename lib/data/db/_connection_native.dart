@@ -8,7 +8,6 @@ import 'package:edb/data/db/database_initializer.dart';
 
 /// ネイティブ環境用の QueryExecutor を返す関数
 QueryExecutor constructDb() {
-  // print('INFO: ネイティブ環境の接続ロジックを読み込みました。');
   return LazyDatabase(() async {
     final dbFolder = await getApplicationSupportDirectory();
     final dbFilePath = p.join(dbFolder.path, dbFileName);

@@ -1,5 +1,5 @@
 class TokenData {
-  final int id; // 固有ID
+  final int id;
   final int vocabId;
   final String showWord;
   final bool nowShow;
@@ -45,7 +45,7 @@ class TokenData {
     };
   }
 
-  factory TokenData.fromInit({String showWord = ''}) {
+  factory TokenData.init({required String showWord}) {
     return TokenData(
       id: -1,
       vocabId: -1,

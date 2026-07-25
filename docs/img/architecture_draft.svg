@@ -1,0 +1,95 @@
+<svg viewBox="0 0 1600 460" xmlns="http://www.w3.org/2000/svg" font-family="'Hiragino Sans','Yu Gothic',sans-serif">
+  <defs>
+    <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="460" fill="#ffffff"/>
+
+  <!-- ============ TITLE / LEGEND ============ -->
+  <text x="30" y="35" font-size="24" font-style="italic">UI = f(state)</text>
+  <g id="legend">
+    <rect x="1360" y="14" width="18" height="18" fill="#fff" stroke="#000" stroke-width="1.5"/>
+    <rect x="1363" y="17" width="12" height="12" fill="none" stroke="#000" stroke-width="1"/>
+    <text x="1384" y="28" font-size="15">は provider</text>
+  </g>
+
+  <!-- ============ BOXES ============ -->
+
+  <!-- UI -->
+  <g id="box-ui">
+    <rect x="30" y="180" width="100" height="90" fill="#fff" stroke="#000" stroke-width="2"/>
+    <text x="80" y="232" font-size="20" text-anchor="middle">UI</text>
+  </g>
+
+  <!-- notifier -->
+  <g id="box-notifier">
+    <rect x="250" y="90" width="220" height="270" fill="#fff" stroke="#000" stroke-width="2.5"/>
+    <rect x="256" y="96" width="208" height="258" fill="none" stroke="#000" stroke-width="1"/>
+    <line x1="250" y1="180" x2="470" y2="180" stroke="#000" stroke-width="1"/>
+    <line x1="250" y1="270" x2="470" y2="270" stroke="#000" stroke-width="1"/>
+    <text x="360" y="142" font-size="16" text-anchor="middle">イベントハンドラ</text>
+    <text x="360" y="232" font-size="16" text-anchor="middle">ロジック</text>
+    <text x="360" y="322" font-size="16" text-anchor="middle">状態</text>
+  </g>
+
+  <!-- 純粋関数 -->
+  <g id="box-purefunc">
+    <rect x="580" y="90" width="220" height="270" fill="#fff" stroke="#000" stroke-width="2.5"/>
+    <rect x="586" y="96" width="208" height="258" fill="none" stroke="#000" stroke-width="1"/>
+    <line x1="580" y1="180" x2="800" y2="180" stroke="#000" stroke-width="1"/>
+    <line x1="580" y1="270" x2="800" y2="270" stroke="#000" stroke-width="1"/>
+    <text x="690" y="142" font-size="16" text-anchor="middle">メソッド</text>
+    <text x="690" y="232" font-size="16" text-anchor="middle">ロジック</text>
+    <text x="690" y="322" font-size="16" text-anchor="middle">return</text>
+  </g>
+
+  <!-- DB操作関数 -->
+  <g id="box-dbop">
+    <rect x="910" y="90" width="220" height="270" fill="#fff" stroke="#000" stroke-width="2.5"/>
+    <rect x="916" y="96" width="208" height="258" fill="none" stroke="#000" stroke-width="1"/>
+    <line x1="910" y1="180" x2="1130" y2="180" stroke="#000" stroke-width="1"/>
+    <line x1="910" y1="270" x2="1130" y2="270" stroke="#000" stroke-width="1"/>
+    <text x="1020" y="142" font-size="16" text-anchor="middle">メソッド</text>
+    <text x="1020" y="232" font-size="16" text-anchor="middle">ロジック</text>
+    <text x="1020" y="322" font-size="16" text-anchor="middle">return</text>
+  </g>
+
+  <!-- DB -->
+  <g id="box-db">
+    <rect x="1240" y="180" width="100" height="90" fill="#fff" stroke="#000" stroke-width="2"/>
+    <text x="1290" y="232" font-size="20" text-anchor="middle">DB</text>
+  </g>
+
+  <!-- ============ ARROWS ============ -->
+
+  <!-- UI <-> notifier  -->
+  <g stroke="#000" stroke-width="1.5">
+    <line x1="130" y1="207" x2="247" y2="135" marker-end="url(#arrow2)"/>
+    <text x="150" y="170" font-size="14">read</text>
+    <line x1="250" y1="315" x2="133" y2="243" marker-end="url(#arrow2)"/>
+    <text x="150" y="300" font-size="14">watch</text>
+  </g>
+
+  <!-- logic <-> method -->
+  <g stroke="#000" stroke-width="1.5" marker-end="url(#arrow2)">
+    <line x1="470" y1="207" x2="577" y2="135"/>
+    <line x1="800" y1="207" x2="907" y2="135"/>
+    <line x1="907" y1="315" x2="800" y2="243"/>
+    <line x1="577" y1="315" x2="470" y2="243"/>
+  </g>
+
+  <!-- DB <-> DB function -->
+  <g stroke="#000" stroke-width="1.5" marker-end="url(#arrow2)">
+    <line x1="1133" y1="135" x2="1237" y2="207"/>
+    <line x1="1237" y1="243" x2="1133" y2="315" />
+  </g>
+
+  <!-- ============ LABELS BELOW BOXES ============ -->
+  <g font-size="15" text-anchor="middle">
+    <text x="360" y="390">notifier</text>
+    <text x="690" y="390">純粋関数</text>
+    <text x="1020" y="390">DB操作関数</text>
+  </g>
+</svg>

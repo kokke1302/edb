@@ -5,7 +5,7 @@ import 'package:edb/data/mapper/vocab_mapper.dart';
 import 'package:edb/domain/entity/model/sorting_data.dart';
 import 'package:edb/domain/entity/carry/vocab_entry.dart';
 import 'package:edb/domain/entity/value/sort_field.dart';
-import 'package:edb/domain/entity/value/sort_oder.dart';
+import 'package:edb/domain/entity/value/sort_order.dart';
 import 'package:edb/domain/repository_abstract/book_repository.dart';
 
 class LocalBookRepository implements BookRepository {
@@ -19,7 +19,6 @@ class LocalBookRepository implements BookRepository {
   @override
   Future<List<VocabEntry>> fetchVocabulariesWithPaging({
     required int offset,
-    required int limit,
     required SortingData sorter,
   }) async {
     try {
@@ -43,7 +42,7 @@ class LocalBookRepository implements BookRepository {
       query.orderBy([(v) => OrderingTerm(expression: expression, mode: mode)]);
 
       // ページング条件の適用
-      query.limit(limit, offset: offset);
+      query.limit(sorter.pageSize, offset: offset);
 
       final rows = await query.get();
 

@@ -49,7 +49,7 @@ class RegisterNotifier extends AsyncNotifier<CardData> {
     state = await AsyncValue.guard(() async {
       final selected = ref.read(selectedTokenProvider);
       final newToken = await ref
-          .read(saveRegisterUseceseProvider)
+          .read(saveRegisterUseCaseProvider)
           .execute(card: data, token: selected);
 
       // オーケストレーション
@@ -78,7 +78,7 @@ class RegisterNotifier extends AsyncNotifier<CardData> {
     state = await AsyncValue.guard(() async {
       final selected = ref.read(selectedTokenProvider);
       final newToken = await ref
-          .read(deleteRegisterUseceseProvider)
+          .read(deleteRegisterUseCaseProvider)
           .execute(card: data, token: selected);
 
       // 翻訳モードの更新

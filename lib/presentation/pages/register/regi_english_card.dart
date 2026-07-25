@@ -6,8 +6,8 @@ import 'package:edb/domain/entity/value/base_status.dart';
 import 'package:edb/presentation/view_models/register_notifier.dart';
 
 // 英単語のフィールド
-class EnglishCard extends HookConsumerWidget {
-  const EnglishCard({super.key});
+class MyEnglishCard extends HookConsumerWidget {
+  const MyEnglishCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

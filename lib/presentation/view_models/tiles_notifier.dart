@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/domain/entity/model/tiles_data.dart';
-import 'package:edb/domain/repository_abstract/tiles_repository.dart';
 import 'package:edb/domain/usecase/save_tile_usecase.dart';
+import 'package:edb/domain/usecase/delete_tile_usecase.dart';
+import 'package:edb/domain/usecase/fetch_tiles_all_usecase.dart';
+import 'package:edb/domain/usecase/fetch_tile_detail_usecase.dart';
 import 'package:edb/presentation/view_models/translation_notifier.dart';
 
 final tilesProvider = AsyncNotifierProvider<TilesNotifier, TilesData>(
@@ -13,7 +15,7 @@ final tilesProvider = AsyncNotifierProvider<TilesNotifier, TilesData>(
 class TilesNotifier extends AsyncNotifier<TilesData> {
   @override
   Future<TilesData> build() async {
-    final list = await ref.read(tilesRepositoryProvider).fetchAllTiles();
+    final list = await ref.read(fetchAllTilesUseCaseProvider).execute();
     return TilesData(list: list);
   }
 
@@ -21,11 +23,12 @@ class TilesNotifier extends AsyncNotifier<TilesData> {
   Future<void> addTile() async {
     // バリデーション
     final translationAsync = ref.read(translationProvider);
-    if (!translationAsync.hasValue ||
-        translationAsync.isLoading ||
-        state.isLoading) {
-      return;
-    }
+    if (!translationAsync.hasValue || translationAsync.isLoading) return;
+
+    // 破棄後の再構築中でも、初期ロードの完了を待つ
+    await future;
+
+    if (state.isLoading) return; // 本当に処理中（連打防止）の場合のみブロック
 
     state = await AsyncValue.guard(() async {
       final nowTranslation = translationAsync.requireValue;
@@ -47,8 +50,7 @@ class TilesNotifier extends AsyncNotifier<TilesData> {
     if (state.isLoading) return;
 
     state = await AsyncValue.guard(() async {
-      // DBから削除
-      await ref.read(tilesRepositoryProvider).deleteTile(id: id);
+      await ref.read(deleteTileUseCaseProvider).execute(id: id);
 
       final previousState = state.value ?? TilesData(list: []);
       return previousState.copyWith(
@@ -61,14 +63,14 @@ class TilesNotifier extends AsyncNotifier<TilesData> {
   Future<void> makeTokenChain({required int id}) async {
     try {
       // 対象タイルの取得
-      final tileDtail = await ref
-          .read(tilesRepositoryProvider)
-          .fetchTileDetail(id: id);
+      final tileDetail = await ref
+          .read(fetchTileDetailUseCaseProvider)
+          .execute(id: id);
 
       // TokenCainに反映
       ref
           .read(translationProvider.notifier)
-          .restore(text: tileDtail.title, chain: tileDtail.chain);
+          .restore(text: tileDetail.title, chain: tileDetail.chain);
     } catch (e) {
       throw '復元中にエラーが発生しました: $e';
     }

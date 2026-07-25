@@ -16,8 +16,6 @@ class DatabaseInitializer {
 
   // 単語帳データ投入関数
   Future<void> insertManualVocabularies() async {
-    // print('INFO: 単語帳初期データ投入を開始...');
-
     final countStatement = countAll();
     final currentCount =
         await (db.selectOnly(db.vocabularies)..addColumns([countStatement]))
@@ -27,26 +25,7 @@ class DatabaseInitializer {
     // 行数が0の場合のみ初期データを投入
     if (currentCount == 0) {
       // 投入したい具体的な単語リスト
-      final List<VocabulariesCompanion> initialData = [
-        VocabulariesCompanion.insert(
-          englishWord: 'this',
-          japaneseTranslation: 'これ',
-          isHidden: true,
-          memo: '',
-        ),
-        VocabulariesCompanion.insert(
-          englishWord: 'sentence',
-          japaneseTranslation: '文章',
-          isHidden: false,
-          memo: '',
-        ),
-        VocabulariesCompanion.insert(
-          englishWord: 'hello',
-          japaneseTranslation: 'こんにちは',
-          isHidden: false,
-          memo: '挨拶',
-        ),
-      ];
+      final List<VocabulariesCompanion> initialData = [];
 
       // バッチ処理
       await db.batch((batch) {
@@ -66,10 +45,7 @@ class DatabaseInitializer {
   // ネイティブ環境での初回起動時のみ、アセットの辞書ファイルをDBパスにコピー
   static Future<void> ensureDictionaryCopied() async {
     // Web環境ではこの処理は不要
-    if (kIsWeb) {
-      // print('INFO: Web環境です。ファイルコピー処理をスキップします。');
-      return;
-    }
+    if (kIsWeb) return;
 
     // 1. データベース格納ディレクトリとファイルパスを取得
     final dbFolder = await getApplicationSupportDirectory();
@@ -77,15 +53,10 @@ class DatabaseInitializer {
     final file = File(dbFilePath);
 
     // 2. データベースファイルが既に存在する場合、コピーはスキップ
-    if (await file.exists()) {
-      // print('INFO: データベースファイル（$dbFilePath）は既に存在します。コピーをスキップします。');
-      return;
-    }
+    if (await file.exists()) return;
 
     // 3. データベースファイルが存在しない場合のみ、アセットからコピーを開始
-    // print('INFO: データベースファイルが存在しません。アセットからのコピーを開始します。');
-
-    const String assetPath = 'assets/output.sqlite3';
+    const String assetPath = 'assets/local_dict.sqlite3';
     try {
       final data = await rootBundle.load(assetPath);
       final bytes = data.buffer.asUint8List(
@@ -95,9 +66,7 @@ class DatabaseInitializer {
 
       // ファイルを直接書き込み
       await file.writeAsBytes(bytes, flush: true);
-      // print('INFO: 内部辞書ファイル（$assetPath）のコピーが完了しました。');
     } catch (e) {
-      // print('ERROR: プリパッケージドデータベースのコピー中にエラーが発生しました: $e');
       rethrow;
     }
   }

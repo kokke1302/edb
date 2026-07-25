@@ -10,8 +10,8 @@ import 'package:edb/presentation/pages/register/regi_translation_card.dart';
 import 'package:edb/presentation/pages/register/regi_visual_card.dart';
 
 // オリジナル訳語の登録・編集画面
-class EntryScreen extends ConsumerWidget {
-  const EntryScreen({super.key});
+class MyEntryScreen extends ConsumerWidget {
+  const MyEntryScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -35,35 +35,37 @@ class EntryScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: appBarTitle),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // 1. 英単語入力フィールド
-                const EnglishCard(),
-                const SizedBox(height: 16),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // 1. 英単語入力フィールド
+                  const MyEnglishCard(),
+                  const SizedBox(height: 16),
 
-                // 2. 訳語入力フィールド
-                const TranslationCard(),
-                const SizedBox(height: 16),
+                  // 2. 訳語入力フィールド
+                  const MyTranslationCard(),
+                  const SizedBox(height: 16),
 
-                // 3. メモ入力フィールド
-                const MemoCard(),
-                const SizedBox(height: 16),
+                  // 3. メモ入力フィールド
+                  const MyMemoCard(),
+                  const SizedBox(height: 16),
 
-                // 4. 訳の表示可否スイッチ
-                const VisibilitySwitchCard(),
-                const SizedBox(height: 100),
-              ],
+                  // 4. 訳の表示可否スイッチ
+                  const MyVisibilitySwitchCard(),
+                  const SizedBox(height: 100),
+                ],
+              ),
             ),
-          ),
 
-          // 5. フッター（保存・キャンセル・削除ボタン）
-          const FooterBar(),
-        ],
+            // 5. フッター（保存・キャンセル・削除ボタン）
+            const MyFooterBar(),
+          ],
+        ),
       ),
     );
   }

@@ -1,5 +1,5 @@
 import 'package:edb/domain/entity/value/sort_field.dart';
-import 'package:edb/domain/entity/value/sort_oder.dart';
+import 'package:edb/domain/entity/value/sort_order.dart';
 
 // ソート設定を格納するクラス
 class SortingData {
@@ -7,12 +7,14 @@ class SortingData {
   final SortOrder order;
   final String searchWord;
   final String typingWord;
+  final int pageSize;
 
   const SortingData({
     this.field = SortField.englishWord,
     this.order = SortOrder.desc,
     this.searchWord = '',
     this.typingWord = '',
+    this.pageSize = 20,
   });
 
   // 変更用メソッド

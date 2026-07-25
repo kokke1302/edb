@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_throttle_it/just_throttle_it.dart';
 
-import 'package:edb/domain/entity/token_data.dart';
+import 'package:edb/domain/entity/model/token_data.dart';
 import 'package:edb/domain/entity/model/translation_data.dart';
 import 'package:edb/domain/usecase/process_translation_usecase.dart';
 
@@ -61,7 +61,7 @@ class TranslationNotifier extends AsyncNotifier<TranslationData> {
     state = await AsyncValue.guard(() async {
       // 処理プロセスの呼び出し
       final newTokens = await ref
-          .read(processTranselationUseCaseProvider)
+          .read(processTranslationUseCaseProvider)
           .execute(
             text: current.originalText,
             currentTokens: current.tokens,

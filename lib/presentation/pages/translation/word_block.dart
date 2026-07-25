@@ -23,7 +23,7 @@ class WordBlock extends ConsumerWidget {
             context: context,
             showDragHandle: true,
             isScrollControlled: true, // 高さ可変
-            builder: (BuildContext context) => const VocabularyInputSheet(),
+            builder: (BuildContext context) => const MyDictionarySheet(),
           ).then((_) {
             FocusManager.instance.primaryFocus?.unfocus();
           });

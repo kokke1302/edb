@@ -1,16 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/domain/entity/model/card_data.dart';
-import 'package:edb/domain/entity/token_data.dart';
+import 'package:edb/domain/entity/model/token_data.dart';
 import 'package:edb/domain/repository_abstract/register_repository.dart';
 
-final deleteRegisterUseceseProvider = Provider(
-  (ref) => DeleteRegisterUsecese(ref.watch(registerRepositoryProvider)),
+final deleteRegisterUseCaseProvider = Provider(
+  (ref) => DeleteRegisterUseCase(ref.watch(registerRepositoryProvider)),
 );
 
-class DeleteRegisterUsecese {
+class DeleteRegisterUseCase {
   final RegisterRepository _repository;
-  DeleteRegisterUsecese(this._repository);
+  DeleteRegisterUseCase(this._repository);
 
   Future<TokenData> execute({
     required CardData card,

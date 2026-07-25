@@ -4,7 +4,7 @@ import 'package:edb/domain/entity/model/card_data.dart';
 import 'package:edb/domain/entity/model/sorting_data.dart';
 import 'package:edb/domain/repository_abstract/book_repository.dart';
 
-final bookUseCaseProvider = Provider(
+final fetchBookDataUseCaseProvider = Provider(
   (ref) => FetchBookDataUseCase(ref.watch(bookRepositoryProvider)),
 );
 
@@ -14,15 +14,13 @@ class FetchBookDataUseCase {
 
   Future<List<CardData>> execute({
     required int currentCount,
-    required int pageSize,
     required SortingData sorter,
   }) async {
     final vocabs = await _repository.fetchVocabulariesWithPaging(
       offset: currentCount,
-      limit: pageSize,
       sorter: sorter,
     );
 
-    return vocabs.map((vocab) => CardData(vocab: vocab)).toList();
+    return vocabs.map((vocab) => CardData.fromVocabEntry(ve: vocab)).toList();
   }
 }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'package:edb/presentation/pages/transelation/text_field.dart';
-import 'package:edb/presentation/pages/transelation/transelate_fab.dart';
-import 'package:edb/presentation/pages/transelation/bookmark_fab.dart';
-import 'package:edb/presentation/pages/transelation/block_field.dart';
+import 'package:edb/presentation/pages/translation/text_field.dart';
+import 'package:edb/presentation/pages/translation/translate_fab.dart';
+import 'package:edb/presentation/pages/translation/bookmark_fab.dart';
+import 'package:edb/presentation/pages/translation/block_field.dart';
 
 class TranslationModePage extends StatelessWidget {
   const TranslationModePage({super.key});

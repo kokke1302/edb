@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:edb/presentation/view_models/register_notifier.dart';
 
 // 訳の表示可否スイッチ
-class VisibilitySwitchCard extends ConsumerWidget {
-  const VisibilitySwitchCard({super.key});
+class MyVisibilitySwitchCard extends ConsumerWidget {
+  const MyVisibilitySwitchCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

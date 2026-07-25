@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/domain/entity/model/card_data.dart';
 import 'package:edb/domain/entity/model/dictionary_data.dart';
-import 'package:edb/domain/entity/token_data.dart';
+import 'package:edb/domain/entity/model/token_data.dart';
 
 final toggleCardVisibilityUseCaseProvider = Provider((ref) {
   return ToggleCardVisibilityUseCase();
@@ -19,7 +19,7 @@ class ToggleCardVisibilityUseCase {
     List<CardData> newVocabularyCards = List.from(currentData.vocabularyCards);
     TokenData newToken;
 
-    // showWordが選択された場合 -> 非表示にする
+    // showCardが選択された場合 -> 非表示にする
     if (newShowCard != null && targetCard.vocab.id == newShowCard.vocab.id) {
       final deactivatedCard = targetCard.copyWith(nowShow: false);
 
@@ -45,7 +45,11 @@ class ToggleCardVisibilityUseCase {
 
       // showWordに投入
       newShowCard = target.copyWith(nowShow: true);
-      newToken = currentToken.copyWith(nowShow: true);
+      newToken = currentToken.copyWith(
+        nowShow: true,
+        vocabId: targetCard.vocab.id,
+        translation: targetCard.vocab.translation,
+      );
     }
 
     final newDictionaryData = currentData.copyWith(

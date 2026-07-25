@@ -3,9 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:edb/presentation/root/common_screen.dart';
-import 'package:edb/presentation/pages/transelation/transelation.dart';
+import 'package:edb/presentation/pages/translation/translation.dart';
 import 'package:edb/presentation/pages/register/registration_page.dart';
-import 'package:edb/presentation/pages/wordbook/wordbook_screen.dart';
+import 'package:edb/presentation/pages/wordbook/book_screen.dart';
 
 // -----------------------------------------------------------------------------
 // GoRouter ルーティングの設定
@@ -30,14 +30,14 @@ class EnglishLearningApp extends StatelessWidget {
           ),
           GoRoute(
             path: '/words',
-            builder: (context, state) => const WordbookScreen(),
+            builder: (context, state) => const MyBookScreen(),
           ),
         ],
       ),
       // 独立した画面
       GoRoute(
         path: '/registration',
-        builder: (context, state) => const EntryScreen(),
+        builder: (context, state) => const MyEntryScreen(),
       ),
       GoRoute(
         path: '/setting',
@@ -88,11 +88,13 @@ class SettingPage extends StatelessWidget {
         title: const Text('設定'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: const Center(
-        child: Text(
-          '設定画面',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 24),
+      body: const SafeArea(
+        child: Center(
+          child: Text(
+            '設定画面',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 24),
+          ),
         ),
       ),
     );
@@ -110,11 +112,13 @@ class HelpPage extends StatelessWidget {
         title: const Text('ヘルプ'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: const Center(
-        child: Text(
-          'ヘルプ画面',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 24),
+      body: const SafeArea(
+        child: Center(
+          child: Text(
+            'ヘルプ画面',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 24),
+          ),
         ),
       ),
     );

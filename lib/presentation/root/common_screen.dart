@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:edb/presentation/pages/drawer/drawer.dart';
-import 'package:edb/presentation/root/bottom_index.dart';
+import 'package:edb/presentation/view_models/bottom_index_notifier.dart';
 
 // -----------------------------------------------------------------------------
 // CommonScreen (共通のScaffold)
@@ -37,8 +37,8 @@ class CommonScreen extends ConsumerWidget {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         scrolledUnderElevation: 0,
       ),
-      drawer: const MyDrawer(),
-      body: child,
+      drawer: const SafeArea(child: MyDrawer()),
+      body: SafeArea(child: child),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: (int newIndex) {

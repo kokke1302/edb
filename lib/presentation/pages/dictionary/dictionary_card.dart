@@ -5,18 +5,28 @@ import 'package:go_router/go_router.dart';
 import 'package:edb/domain/entity/model/card_data.dart';
 import 'package:edb/presentation/view_models/regidata_receiver.dart';
 
-class DictionaryCard extends ConsumerWidget {
+class MyDictionaryCard extends ConsumerWidget {
   final CardData card;
 
-  const DictionaryCard({super.key, required this.card});
+  const MyDictionaryCard({super.key, required this.card});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
-      elevation: card.nowShow ? 4 : 1, // 影
-      margin: const EdgeInsets.only(bottom: 8.0),
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 12.0),
+      shape: RoundedRectangleBorder(
+        // 角丸
+        borderRadius: BorderRadius.circular(16),
+        // 薄い線で囲う
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withAlpha(100),
+          width: 2,
+        ),
+      ),
+
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         child: Column(

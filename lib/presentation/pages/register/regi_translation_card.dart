@@ -5,8 +5,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:edb/presentation/view_models/register_notifier.dart';
 
 // 訳語入力フィールド
-class TranslationCard extends HookConsumerWidget {
-  const TranslationCard({super.key});
+class MyTranslationCard extends HookConsumerWidget {
+  const MyTranslationCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

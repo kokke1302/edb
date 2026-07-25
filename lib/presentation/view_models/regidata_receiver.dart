@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:edb/domain/entity/carry/vocab_entry.dart';
 import 'package:edb/domain/entity/model/card_data.dart';
 
 // RegistrationNotifierの初期状態を決めるハンドラの提供
@@ -12,12 +11,12 @@ class RegiDataReceiver extends Notifier<CardData> {
   @override
   CardData build() {
     // 初期状態（空の状態）を定義
-    return initialCard();
+    return CardData.init();
   }
 
   // 新規作成
-  CardData initialCard({String word = ''}) {
-    return CardData(vocab: VocabEntry.init(word: word));
+  void initialCard({String word = ''}) {
+    state = CardData.init(word: word);
   }
 
   // 単語帳
@@ -29,6 +28,6 @@ class RegiDataReceiver extends Notifier<CardData> {
 
   // 内部辞書から受け取る
   void receiveDictionaryCard({required CardData card}) {
-    state = CardData(vocab: card.vocab);
+    state = CardData(nowShow: card.nowShow, vocab: card.vocab);
   }
 }

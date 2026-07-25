@@ -5,8 +5,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:edb/presentation/view_models/register_notifier.dart';
 
 // メモ入力フィールド
-class MemoCard extends HookConsumerWidget {
-  const MemoCard({super.key});
+class MyMemoCard extends HookConsumerWidget {
+  const MyMemoCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

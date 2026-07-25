@@ -10,8 +10,8 @@ import 'package:edb/presentation/view_models/regidata_receiver.dart';
 import 'package:edb/presentation/view_models/selected_token_notifier.dart';
 
 // 辞書機能シート
-class VocabularyInputSheet extends ConsumerWidget {
-  const VocabularyInputSheet({super.key});
+class MyDictionarySheet extends ConsumerWidget {
+  const MyDictionarySheet({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,7 +27,7 @@ class VocabularyInputSheet extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (list.showCard != null) RegisteredCared(card: list.showCard!),
+          if (list.showCard != null) MyRegisteredCard(card: list.showCard!),
 
           Divider(color: Theme.of(context).colorScheme.outlineVariant),
           const Text('単語帳からの候補', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -35,7 +35,7 @@ class VocabularyInputSheet extends ConsumerWidget {
 
           // 登録済みリストを展開
           ...list.vocabularyCards.map((card) {
-            return RegisteredCared(card: card);
+            return MyRegisteredCard(card: card);
           }),
 
           Divider(color: Theme.of(context).colorScheme.outlineVariant),
@@ -47,13 +47,13 @@ class VocabularyInputSheet extends ConsumerWidget {
 
           // 内部辞書リストを展開
           ...list.dictionaryCards.map((card) {
-            return DictionaryCard(card: card);
+            return MyDictionaryCard(card: card);
           }),
 
           // オリジナル登録フィールドへ遷移するセクション（リストの最後に配置）
           const SizedBox(height: 8),
           ListTile(
-            title: const Text('オリジナル訳語を登録'),
+            title: const Text('オリジナルを登録'),
             trailing: const Icon(Icons.edit),
             onTap: () {
               ref.read(regiDataReceiver.notifier).initialCard(word: headerWord);
@@ -66,7 +66,7 @@ class VocabularyInputSheet extends ConsumerWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,6 +106,8 @@ class VocabularyInputSheet extends ConsumerWidget {
                 maxHeight: MediaQuery.of(context).size.height * 0.6,
               ),
               child: SingleChildScrollView(
+                // スクロール時の影のカットを防ぐ
+                clipBehavior: Clip.hardEdge,
                 // 状態が変わる「カードリスト」だけを Consumer で包む
                 child: Consumer(
                   builder: (context, ref, child) {
@@ -119,8 +121,13 @@ class VocabularyInputSheet extends ConsumerWidget {
                         ),
                       ),
                       error: (err, _) => Center(child: Text('エラー: $err')),
-                      data: (list) =>
-                          buildCardList(headerWord: headerWord, list: list),
+                      data: (list) => Padding(
+                        padding: const EdgeInsets.fromLTRB(4, 8, 4, 16),
+                        child: buildCardList(
+                          headerWord: headerWord,
+                          list: list,
+                        ),
+                      ),
                     );
                   },
                 ),
