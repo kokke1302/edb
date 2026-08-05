@@ -18,20 +18,18 @@
   <img src="./docs/img/translation.png" style="height: 400px; width: auto;" />
   <img src="./docs/img/dictionary-readme.png" style="height: 400px; width: auto;" />
   <img src="./docs/img/register.png" style="height: 400px; width: auto;" />
-  <img src="./docs/img/drawer.png" style="height: 400px; width: auto;" />
 </p>
 
 ## 使い方
 
 1. Android: リリースからAPKをダウンロード
-2. その他（Windows, Mac, Linux, iOS, Web）: Flutter SDK 導入済みのデバイスで、リポジトリを `clone` し、各環境向けに `build`
+2. Web: [kokke1302.github.io/edb/](https://kokke1302.github.io/edb/)にアクセス
+3. その他（Windows, Mac, Linux, iOS）: Flutter SDK 導入済みのデバイスで、リポジトリを `clone` し、各環境向けに `build`
 
 ```bash
 git clone git@github.com:kokke1302/edb.git
-flutter build <target>
+flutter build \<target\>
 ```
-
-その他の内、動作確認済み: Web, Windows11, Linux（Ubuntu 26.04 LTS）
 
 ## ファイル構成
 
