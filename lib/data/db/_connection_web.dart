@@ -1,18 +1,24 @@
 import 'package:drift/drift.dart';
-import 'package:drift_flutter/drift_flutter.dart';
-
-import 'package:edb/data/db/database_initializer.dart'; // dbFileName を使用するため
+import 'package:drift/wasm.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 /// Web環境用の QueryExecutor を返す関数
 QueryExecutor constructDb() {
-  return driftDatabase(
-    // データベース名
-    name: dbFileName,
+  return DatabaseConnection.delayed(
+    Future(() async {
+      // WasmDatabase の open を使用
+      final db = await WasmDatabase.open(
+        databaseName: 'local_dict', // IndexedDB上のデータベース名
+        sqlite3Uri: Uri.parse('sqlite3.wasm'),
+        driftWorkerUri: Uri.parse('drift_worker.js'),
 
-    // Web環境の設定を渡す
-    web: DriftWebOptions(
-      sqlite3Wasm: Uri.parse('sqlite3.wasm'),
-      driftWorker: Uri.parse('drift_worker.dart.js'),
-    ),
+        initializeDatabase: () async {
+          final data = await rootBundle.load('assets/local_dict.sqlite3');
+          return data.buffer.asUint8List(); // ブラウザのメモリ/ストレージへ展開
+        },
+      );
+
+      return db.resolvedExecutor;
+    }),
   );
 }
