@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import 'package:edb/domain/entity/model/book_data.dart';
+import 'package:edb/domain/model/entity/book_data.dart';
 import 'package:edb/presentation/pages/wordbook/list/book_card.dart';
 import 'package:edb/presentation/pages/wordbook/list/book_footer.dart';
 import 'package:edb/presentation/view_models/sorting_notifier.dart';
 
 class MyBookCardList extends ConsumerWidget {
-  const MyBookCardList({super.key, required this.state});
-
   final BookData state;
+  const MyBookCardList({super.key, required this.state});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final wordEntries = state.cards;
+    final wordEntries = state.vocabs;
 
     // リストが空の場合
     final searchQuery = ref.watch(sortingProvider).searchWord;
@@ -36,7 +35,7 @@ class MyBookCardList extends ConsumerWidget {
     return SliverList(
       delegate: SliverChildBuilderDelegate((context, index) {
         if (index == wordEntries.length) return const MyBookFooter();
-        return MyBookCard(card: wordEntries[index]);
+        return MyBookCard(vocab: wordEntries[index]);
       }, childCount: wordEntries.length + 1),
     );
   }

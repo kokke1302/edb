@@ -2,10 +2,10 @@ import 'package:drift/drift.dart';
 
 import 'package:edb/data/db/app_database.dart';
 import 'package:edb/data/mapper/vocab_mapper.dart';
-import 'package:edb/domain/entity/model/sorting_data.dart';
-import 'package:edb/domain/entity/carry/vocab_entry.dart';
-import 'package:edb/domain/entity/value/sort_field.dart';
-import 'package:edb/domain/entity/value/sort_order.dart';
+import 'package:edb/domain/model/value_object/sorting_data.dart';
+import 'package:edb/domain/model/value_object/vocab_core.dart';
+import 'package:edb/domain/model/enum/sort_field.dart';
+import 'package:edb/domain/model/enum/sort_order.dart';
 import 'package:edb/domain/repository_abstract/book_repository.dart';
 
 class LocalBookRepository implements BookRepository {
@@ -17,7 +17,7 @@ class LocalBookRepository implements BookRepository {
   // ===============================================
   // 検索キーワードとページングを適用して単語リストを取得する
   @override
-  Future<List<VocabEntry>> fetchVocabulariesWithPaging({
+  Future<List<VocabCore>> fetchVocabulariesWithPaging({
     required int offset,
     required SortingData sorter,
   }) async {

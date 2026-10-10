@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import 'package:edb/domain/entity/value/base_status.dart';
+import 'package:edb/domain/model/enum/base_status.dart';
 import 'package:edb/presentation/view_models/register_notifier.dart';
 import 'package:edb/presentation/pages/register/regi_english_card.dart';
 import 'package:edb/presentation/pages/register/regi_footer_bar.dart';
@@ -16,7 +16,7 @@ class MyEntryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncRegiData = ref.watch(registerProvider);
-    // 中身の CardData だけを取り出す（初期化が終わっていれば取得できる）
+    // 中身だけを取り出す（初期化が終わっていれば取得できる）
     final regiData = asyncRegiData.value;
 
     // 初期ロード中かつデータがまだない場合だけ全画面ローディング
@@ -29,7 +29,7 @@ class MyEntryScreen extends ConsumerWidget {
       return const Scaffold(body: Center(child: Text('データの読み込みに失敗しました')));
     }
 
-    final appBarTitle = regiData.vocab.based == Based.vocabularies
+    final appBarTitle = regiData.based == Based.vocabularies
         ? const Text('カードを編集')
         : const Text('カードを作成');
 

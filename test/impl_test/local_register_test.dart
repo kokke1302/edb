@@ -34,8 +34,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:edb/data/db/app_database.dart';
 import 'package:edb/data/repository_impl/local_register_repository.dart';
-import 'package:edb/domain/entity/carry/vocab_entry.dart';
-import 'package:edb/domain/entity/value/base_status.dart';
+import 'package:edb/domain/model/value_object/vocab_core.dart';
+import 'package:edb/domain/model/enum/base_status.dart';
 
 // ---------------------------------------------------------------------------
 // テスト用インメモリ DB
@@ -45,16 +45,16 @@ AppDatabase _buildInMemoryDb() {
 }
 
 // ---------------------------------------------------------------------------
-// ヘルパー: テスト用 VocabEntry を組み立てる
+// ヘルパー: テスト用 VocabCore を組み立てる
 // ---------------------------------------------------------------------------
-VocabEntry _makeVocab({
+VocabCore _makeVocab({
   int id = -1,
   String word = 'apple',
   String translation = 'りんご',
   bool isShow = true,
   String memo = '',
 }) {
-  return VocabEntry(
+  return VocabCore(
     id: id,
     word: word,
     translation: translation,

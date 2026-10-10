@@ -101,7 +101,7 @@ lib/domain/entity/model/sorting_data.dart                       # SortingData (�
 lib/domain/entity/model/tiles_data.dart                         # TilesData (保存済み英文履歴リストの保持クラス)
 lib/domain/entity/model/token_data.dart                         # TokenData (翻訳トークンの情報クラス。ID・訳・表示フラグ・判定ロジック)
 lib/domain/entity/model/translation_data.dart                   # TranslationData (入力英文全体とパースされたトークン列の保持クラス)
-lib/domain/entity/carry/vocab_entry.dart                        # VocabEntry (単語帳/内部辞書の共通データ持ち運び用DTO)
+lib/domain/entity/carry/vocab_entry.dart                        # VocabCore (単語帳/内部辞書の共通データ持ち運び用DTO)
 lib/domain/entity/carry/token_entry.dart                        # TokenEntry (翻訳処理時のトークン割り当て用DTO)
 lib/domain/entity/carry/tile_data.dart                          # TileData (英文履歴リスト表示用の軽量DTO)
 lib/domain/entity/carry/tile_detail.dart                        # TileDetail (英文履歴からの復元用詳細DTO（本文とトークンチェーン）)
@@ -118,7 +118,7 @@ lib/data/repository_impl/local_translation_repository.dart      # LocalTranslati
 ### Data Layer (Mappers)
 
 lib/data/mapper/tile_mapper.dart                                # TileMapper (EnglishText行 ⇔ TileData/TileDetail 変換、JSONデコード)
-lib/data/mapper/vocab_mapper.dart                               # VocabMapper (Vocabulary/InternalDictionary行 → VocabEntry 変換)
+lib/data/mapper/vocab_mapper.dart                               # VocabMapper (Vocabulary/InternalDictionary行 → VocabCore 変換)
 lib/data/mapper/token_mapper.dart                               # TokenMapper (JSON ⇔ TokenData 変換、Vocabulary行 → TokenEntry 変換)
 
 ### Data Layer (Database & Initializers)
@@ -268,7 +268,7 @@ build()で`regiDataReceiver`から初期値を受け取る。
 | void | toggleIsShowing | bool isShow | この訳を翻訳に使うかどうかを切り替えるために使う。 | - |
 | Future\<void> | save | - | 登録・編集内容を確定し保存する。単語帳一覧や翻訳結果など他画面への反映も行う。 | SaveRegisterUseCase, TranslationNotifier, BookNotifier, RegiDataReceiver |
 | Future\<void> | delete | - | 単語帳エントリを削除する。単語帳一覧や翻訳結果など他画面への反映も行う。削除対象がない場合は何もしない。 | DeleteRegisterUseCase, TranslationNotifier, BookNotifier, RegiDataReceiver |
-| void | _updateVocab（private） | VocabEntry Function(VocabEntry) update | VocabEntryの一部だけを差し替えたいときに使う共通ヘルパー。 | - |
+| void | _updateVocab（private） | VocabCore Function(VocabCore) update | VocabCoreの一部だけを差し替えたいときに使う共通ヘルパー。 | - |
 
 #### translation_notifier.dart
 
@@ -798,7 +798,7 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 
 | 型 | メソッド名 | 引数 | 説明 |
 | :--- | :--- | :--- | :--- |
-| Future\<List\<VocabEntry>> | fetchVocabulariesWithPaging | {required int offset, required SortingData sorter} | 検索語・並び替え条件に応じた単語帳一覧を、ページ単位で取得する。 |
+| Future\<List\<VocabCore>> | fetchVocabulariesWithPaging | {required int offset, required SortingData sorter} | 検索語・並び替え条件に応じた単語帳一覧を、ページ単位で取得する。 |
 
 #### processor_repository.dart
 
@@ -819,8 +819,8 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 
 | 型 | メソッド名 | 引数 | 説明 |
 | :--- | :--- | :--- | :--- |
-| Future\<List\<VocabEntry>> | fetchVocabularies | {required String word} | 指定した単語に一致する単語帳エントリを、辞書機能シートの候補として取得する。 |
-| Future\<List\<VocabEntry>> | fetchDictionaries | {required String word} | 指定した単語に一致する内部辞書エントリを、辞書機能シートの候補として取得するために使う。 |
+| Future\<List\<VocabCore>> | fetchVocabularies | {required String word} | 指定した単語に一致する単語帳エントリを、辞書機能シートの候補として取得する。 |
+| Future\<List\<VocabCore>> | fetchDictionaries | {required String word} | 指定した単語に一致する内部辞書エントリを、辞書機能シートの候補として取得するために使う。 |
 
 #### register_repository.dart
 
@@ -830,8 +830,8 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 
 | 型 | メソッド名 | 引数 | 説明 |
 | :--- | :--- | :--- | :--- |
-| Future\<VocabEntry> | addVocabulary | {required VocabEntry vocab} | 単語帳テーブルへ新規追加する。表示予定の訳がある場合は、他の訳と表示が重複しないよう調整する。 |
-| Future\<VocabEntry> | updateVocabulary | {required VocabEntry vocab} | 単語帳テーブルの既存エントリを更新する。表示予定の訳がある場合は、他の訳と表示が重複しないよう調整する。 |
+| Future\<VocabCore> | addVocabulary | {required VocabCore vocab} | 単語帳テーブルへ新規追加する。表示予定の訳がある場合は、他の訳と表示が重複しないよう調整する。 |
+| Future\<VocabCore> | updateVocabulary | {required VocabCore vocab} | 単語帳テーブルの既存エントリを更新する。表示予定の訳がある場合は、他の訳と表示が重複しないよう調整する。 |
 | Future\<void> | deleteVocabulary | {required int id} | 単語帳テーブルの既存エントリを削除する。 |
 
 #### translation_repository.dart
@@ -925,7 +925,7 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 | フィールド名 | 型 | 説明 |
 | :--- | :--- | :--- |
 | nowShow | bool | 現在この訳語が翻訳に表示されているか |
-| vocab | VocabEntry | 単語帳エントリ本体 |
+| vocab | VocabCore | 単語帳エントリ本体 |
 
 ##### dictionary_data.dart
 
@@ -986,7 +986,7 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 
 ##### vocab_entry.dart
 
-- クラス名: VocabEntry
+- クラス名: VocabCore
 
 | フィールド名 | 型 | 説明 |
 | :--- | :--- | :--- |
@@ -1100,12 +1100,12 @@ Provider定義は持たない。
 #### vocab_mapper.dart
 
 - クラス名: VocabMapper
-- 役割: `Vocabulary`/`InternalDictionary`（DB行）→ `VocabEntry`への変換。
+- 役割: `Vocabulary`/`InternalDictionary`（DB行）→ `VocabCore`への変換。
 
 | 型 | メソッド名 | 引数 | 説明 |
 | :--- | :--- | :--- | :--- |
-| VocabEntry | fromVocabularies | {required Vocabulary vocabulary} | Vocabulary行をVocabEntryへ変換する。単語帳の情報を保持させる。isHiddenを反転してisShowにマッピングする。based: Based.vocabulariesを付与する。 |
-| VocabEntry | fromDictionary | {required InternalDictionary dictionary} | InternalDictionary行をVocabEntryへ変換する。内部辞書の情報を保持させる。isHiddenを反転してisShowにマッピングする。based: Based.dictionaryを付与する。id: -1固定、isShow: true固定、memoはnull時に空文字を補う。 |
+| VocabCore | fromVocabularies | {required Vocabulary vocabulary} | Vocabulary行をVocabCoreへ変換する。単語帳の情報を保持させる。isHiddenを反転してisShowにマッピングする。based: Based.vocabulariesを付与する。 |
+| VocabCore | fromDictionary | {required InternalDictionary dictionary} | InternalDictionary行をVocabCoreへ変換する。内部辞書の情報を保持させる。isHiddenを反転してisShowにマッピングする。based: Based.dictionaryを付与する。id: -1固定、isShow: true固定、memoはnull時に空文字を補う。 |
 
 #### token_mapper.dart
 

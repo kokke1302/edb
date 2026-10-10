@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:edb/domain/entity/value/base_status.dart';
+import 'package:edb/domain/model/enum/base_status.dart';
 import 'package:edb/presentation/view_models/register_notifier.dart';
 
 // フッター（保存・キャンセル・削除ボタン）
@@ -15,7 +15,7 @@ class MyFooterBar extends ConsumerWidget {
     final regiData = asyncRegiData.requireValue;
 
     final bool isProcessing = asyncRegiData.isLoading;
-    final bool isNewEntry = regiData.vocab.based != Based.vocabularies;
+    final bool isNewEntry = regiData.based != Based.vocabularies;
 
     // 削除ボタン
     Widget buildDeleteButton() {
@@ -44,7 +44,7 @@ class MyFooterBar extends ConsumerWidget {
       }
 
       // 既存の単語帳データがある場合のみ「消去」ボタンを表示
-      if (regiData.vocab.based == Based.vocabularies) {
+      if (regiData.based == Based.vocabularies) {
         return ElevatedButton(
           // 処理中はボタンを無効化
           onPressed: isProcessing ? null : deleteAction,
@@ -60,8 +60,8 @@ class MyFooterBar extends ConsumerWidget {
       // ボタン無効化の判定ロジック
       final bool isActionDisabled =
           isProcessing ||
-          regiData.vocab.translation.isEmpty ||
-          (isNewEntry && regiData.vocab.word.isEmpty);
+          regiData.translation.isEmpty ||
+          (isNewEntry && regiData.word.isEmpty);
 
       // くるくる
       const Widget circular = SizedBox(

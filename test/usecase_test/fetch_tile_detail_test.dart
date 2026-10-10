@@ -12,8 +12,8 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:edb/domain/usecase/fetch_tile_detail_usecase.dart';
 import 'package:edb/domain/repository_abstract/tiles_repository.dart';
-import 'package:edb/domain/entity/carry/tile_detail.dart';
-import 'package:edb/domain/entity/model/token_data.dart';
+import 'package:edb/domain/model/value_object/tile_detail.dart';
+import 'package:edb/domain/model/value_object/token_data.dart';
 
 // TilesRepositoryのモッククラスを作成
 class MockTilesRepository extends Mock implements TilesRepository {}

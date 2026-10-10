@@ -1,6 +1,6 @@
-import 'package:edb/domain/entity/value/base_status.dart';
+import 'package:edb/domain/model/enum/base_status.dart';
 
-class VocabEntry {
+class VocabCore {
   final int id;
   final String word;
   final String translation;
@@ -10,7 +10,7 @@ class VocabEntry {
   final DateTime updatedAt;
   final Based based;
 
-  VocabEntry({
+  VocabCore({
     required this.id,
     required this.word,
     required this.translation,
@@ -21,7 +21,7 @@ class VocabEntry {
     required this.based,
   });
 
-  VocabEntry copyWith({
+  VocabCore copyWith({
     int? id,
     String? word,
     String? translation,
@@ -30,7 +30,7 @@ class VocabEntry {
     DateTime? updatedAt,
     Based? based,
   }) {
-    return VocabEntry(
+    return VocabCore(
       id: id ?? this.id,
       word: word ?? this.word,
       translation: translation ?? this.translation,
@@ -42,8 +42,8 @@ class VocabEntry {
     );
   }
 
-  factory VocabEntry.init({String word = ''}) {
-    return VocabEntry(
+  factory VocabCore.init({String word = ''}) {
+    return VocabCore(
       id: -1,
       word: word.toLowerCase(),
       translation: '',

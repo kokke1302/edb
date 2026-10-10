@@ -6,7 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_throttle_it/just_throttle_it.dart';
 
-import 'package:edb/domain/entity/value/sync_status.dart';
+import 'package:edb/domain/model/enum/sync_status.dart';
 import 'package:edb/presentation/pages/wordbook/list/initial_error.dart';
 import 'package:edb/presentation/view_models/regidata_receiver.dart';
 import 'package:edb/presentation/view_models/book_notifier.dart';
@@ -78,7 +78,7 @@ class MyBookScreen extends HookConsumerWidget {
         children: [
           FloatingActionButton(
             onPressed: () {
-              ref.read(regiDataReceiver.notifier).initialCard();
+              ref.invalidate(regiDataReceiver);
               context.push('/registration');
             },
             child: const Icon(Icons.add),

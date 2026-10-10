@@ -1,4 +1,4 @@
-import 'package:edb/domain/entity/carry/tile_data.dart';
+import 'package:edb/domain/model/value_object/tile_data.dart';
 
 class TilesData {
   final List<TileData> list;

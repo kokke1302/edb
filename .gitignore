@@ -53,3 +53,6 @@ android/key.properties
 # コード全文
 all_souses.txt
 all_tests.txt
+
+# 生成ファイルをGitの管理対象外にする
+*.g.dart

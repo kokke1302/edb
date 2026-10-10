@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:edb/domain/entity/model/book_data.dart';
-import 'package:edb/domain/entity/model/sorting_data.dart';
-import 'package:edb/domain/entity/value/sync_status.dart';
+import 'package:edb/domain/model/entity/book_data.dart';
+import 'package:edb/domain/model/value_object/sorting_data.dart';
+import 'package:edb/domain/model/enum/sync_status.dart';
 import 'package:edb/domain/usecase/fetch_bookdata_usecase.dart';
 import 'package:edb/presentation/view_models/sorting_notifier.dart';
 
@@ -37,8 +37,7 @@ class BookNotifier extends AsyncNotifier<BookData> {
 
     // 初期ロードの結果を返す
     return BookData(
-      pageSize: initialList.length, // 今回取得できた件数
-      cards: initialList,
+      vocabs: initialList,
       isDataEnd: initialList.length < pageSize, // 要求件数に満たなければ終端
     );
   }
@@ -61,17 +60,16 @@ class BookNotifier extends AsyncNotifier<BookData> {
       final sorter = ref.read(sortingProvider);
 
       // データの取得
-      final newCards = await ref
+      final newVocabs = await ref
           .read(fetchBookDataUseCaseProvider)
-          .execute(currentCount: currentState.cards.length, sorter: sorter);
+          .execute(currentCount: currentState.vocabs.length, sorter: sorter);
 
       // 新しいリストと状態を更新
       state = AsyncData(
         currentState.copyWith(
-          pageSize: newCards.length, // 今回取得できた件数
-          cards: [...currentState.cards, ...newCards],
+          vocabs: [...currentState.vocabs, ...newVocabs],
           tailStatus: SyncStatus.normal,
-          isDataEnd: newCards.length < sorter.pageSize, // 要求件数に満たなければ終端
+          isDataEnd: newVocabs.length < sorter.pageSize, // 要求件数に満たなければ終端
         ),
       );
     } catch (e) {

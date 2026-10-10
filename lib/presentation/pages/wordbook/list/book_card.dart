@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:edb/domain/entity/model/card_data.dart';
+import 'package:edb/domain/model/value_object/vocab_core.dart';
 import 'package:edb/presentation/view_models/regidata_receiver.dart';
 
 class MyBookCard extends ConsumerWidget {
-  final CardData card;
-  const MyBookCard({super.key, required this.card});
+  final VocabCore vocab;
+  const MyBookCard({super.key, required this.vocab});
 
   // 日付を「YYYY/MM/DD」形式でフォーマットするヘルパー関数
   String _formatDate(DateTime date) {
@@ -16,7 +16,7 @@ class MyBookCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final updatedDate = _formatDate(card.vocab.updatedAt);
+    final updatedDate = _formatDate(vocab.updatedAt);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
@@ -47,7 +47,7 @@ class MyBookCard extends ConsumerWidget {
                     padding: const EdgeInsets.all(16.0),
                     alignment: Alignment.center, // マス内で中央揃え
                     child: Text(
-                      card.vocab.word,
+                      vocab.word,
                       textAlign: TextAlign.center,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 2,
@@ -72,7 +72,7 @@ class MyBookCard extends ConsumerWidget {
                     padding: const EdgeInsets.all(16.0),
                     alignment: Alignment.center,
                     child: Text(
-                      card.vocab.translation,
+                      vocab.translation,
                       textAlign: TextAlign.center,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 2,
@@ -100,7 +100,7 @@ class MyBookCard extends ConsumerWidget {
                 // メモ
                 Expanded(
                   child: Text(
-                    card.vocab.memo,
+                    vocab.memo,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     style: TextStyle(fontSize: 13, color: Colors.grey[700]),
@@ -108,7 +108,7 @@ class MyBookCard extends ConsumerWidget {
                 ),
 
                 // isHidden (非表示フラグ) アイコン
-                if (!card.vocab.isShow)
+                if (!vocab.isShow)
                   Padding(
                     padding: const EdgeInsets.only(right: 8.0),
                     child: Icon(
@@ -129,7 +129,7 @@ class MyBookCard extends ConsumerWidget {
                   onPressed: () {
                     ref
                         .read(regiDataReceiver.notifier)
-                        .receiveRegisteredCard(card: card);
+                        .receiveRegiData(vocab: vocab);
                     context.push('/registration');
                   },
                   icon: Icon(Icons.more_vert),

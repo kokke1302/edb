@@ -1,10 +1,10 @@
 import 'package:edb/data/db/app_database.dart';
-import 'package:edb/domain/entity/carry/vocab_entry.dart';
-import 'package:edb/domain/entity/value/base_status.dart';
+import 'package:edb/domain/model/value_object/vocab_core.dart';
+import 'package:edb/domain/model/enum/base_status.dart';
 
 class VocabMapper {
-  static VocabEntry fromVocabularies({required Vocabulary vocabulary}) {
-    return VocabEntry(
+  static VocabCore fromVocabularies({required Vocabulary vocabulary}) {
+    return VocabCore(
       id: vocabulary.id,
       word: vocabulary.englishWord,
       translation: vocabulary.japaneseTranslation,
@@ -16,8 +16,8 @@ class VocabMapper {
     );
   }
 
-  static VocabEntry fromDictionary({required InternalDictionary dictionary}) {
-    return VocabEntry(
+  static VocabCore fromDictionary({required InternalDictionary dictionary}) {
+    return VocabCore(
       id: -1,
       word: dictionary.word.toLowerCase(),
       translation: dictionary.mean,

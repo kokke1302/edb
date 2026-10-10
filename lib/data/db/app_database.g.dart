@@ -1395,7 +1395,16 @@ class $$VocabulariesTableTableManager
                 updatedAt: updatedAt,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$VocabulariesTable, Vocabulary>(table),
+                  BaseReferences<_$AppDatabase, $VocabulariesTable, Vocabulary>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -1593,7 +1602,16 @@ class $$EnglishTextsTableTableManager
                 updatedAt: updatedAt,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$EnglishTextsTable, EnglishText>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $EnglishTextsTable,
+                    EnglishText
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -1799,7 +1817,18 @@ class $$InternalDictionariesTableTableManager
                 memo: memo,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$InternalDictionariesTable, InternalDictionary>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $InternalDictionariesTable,
+                    InternalDictionary
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),

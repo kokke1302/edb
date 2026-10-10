@@ -2,7 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:edb/data/db/app_database.dart';
 import 'package:edb/data/mapper/vocab_mapper.dart';
-import 'package:edb/domain/entity/carry/vocab_entry.dart';
+import 'package:edb/domain/model/value_object/vocab_core.dart';
 import 'package:edb/domain/repository_abstract/register_repository.dart';
 
 class LocalRegisterRepository implements RegisterRepository {
@@ -26,7 +26,7 @@ class LocalRegisterRepository implements RegisterRepository {
   // C: Create (単語の挿入)
   // ===============================================
   @override
-  Future<VocabEntry> addVocabulary({required VocabEntry vocab}) async {
+  Future<VocabCore> addVocabulary({required VocabCore vocab}) async {
     try {
       // 排他制御
       if (vocab.isShow) await _setAllOthersHidden(word: vocab.word);
@@ -55,7 +55,7 @@ class LocalRegisterRepository implements RegisterRepository {
 
   // 更新された行のidを返す
   @override
-  Future<VocabEntry> updateVocabulary({required VocabEntry vocab}) async {
+  Future<VocabCore> updateVocabulary({required VocabCore vocab}) async {
     try {
       // 排他制御
       if (vocab.isShow) await _setAllOthersHidden(word: vocab.word);

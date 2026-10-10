@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:edb/domain/entity/model/card_data.dart';
-import 'package:edb/domain/entity/model/dictionary_data.dart';
-import 'package:edb/domain/entity/value/base_status.dart';
+import 'package:edb/domain/model/value_object/card_data.dart';
+import 'package:edb/domain/model/entity/dictionary_data.dart';
+import 'package:edb/domain/model/enum/base_status.dart';
 import 'package:edb/domain/usecase/fetch_dictionarydata_usecase.dart';
 import 'package:edb/domain/usecase/toggle_card_visibility_usecase.dart';
 import 'package:edb/presentation/view_models/selected_token_notifier.dart';

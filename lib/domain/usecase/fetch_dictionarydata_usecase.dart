@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:edb/domain/entity/model/card_data.dart';
-import 'package:edb/domain/entity/model/dictionary_data.dart';
-import 'package:edb/domain/entity/model/token_data.dart';
+import 'package:edb/domain/model/value_object/card_data.dart';
+import 'package:edb/domain/model/entity/dictionary_data.dart';
+import 'package:edb/domain/model/value_object/token_data.dart';
 import 'package:edb/domain/repository_abstract/dictionary_repository.dart';
 
 final fetchDictionaryDataUseCaseProvider = Provider(
@@ -24,11 +24,9 @@ class FetchDictionaryDataUseCase {
 
     // 2. マッピング
     final allCardData = vocabularyWords
-        .map((ve) => CardData.fromVocabEntry(ve: ve))
+        .map((ve) => CardData(nowShow: ve.isShow, vocab: ve))
         .toList();
-    final dictionaryCards = dictionaryWords
-        .map((ve) => CardData.fromVocabEntry(ve: ve))
-        .toList();
+    final dictionaryCards = dictionaryWords;
 
     // 3. 表示・非表示の振り分けロジック
     CardData? showCard;

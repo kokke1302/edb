@@ -14,11 +14,11 @@
 //
 // - 境界値（fullTranslation）:
 //   - 同じ word の大文字・小文字が混在するテキストでも DB のエントリが反映されること
-//   - lookupKeys に重複する単語があっても fetchTokenChain に渡されるキーが重複しないこと
+//   - lookupKeys に重複する単語があっても fetchTranslationsBatch に渡されるキーが重複しないこと
 //
 // - 正常系（partTranslation: 差分なし）:
 //   - newText が nowTokens と同じ内容のとき、既存トークンがそのまま返ること
-//   - fetchTokenChain が空 Set で呼ばれること
+//   - fetchTranslationsBatch が空 Set で呼ばれること
 //
 // - 正常系（partTranslation: 追加）:
 //   - 末尾に単語が追加されたとき、新しいトークンが末尾に挿入されること
@@ -27,7 +27,7 @@
 //
 // - 正常系（partTranslation: 削除）:
 //   - 末尾の単語が削除されたとき、該当トークンが取り除かれること
-//   - affectedIndices が空のとき fetchTokenChain が空 Set で呼ばれること
+//   - affectedIndices が空のとき fetchTranslationsBatch が空 Set で呼ばれること
 //
 // - 正常系（partTranslation: 変更）:
 //   - 既存トークンの単語が別の単語に変わったとき、新しい翻訳が反映されること
@@ -37,15 +37,15 @@
 //   - 差分適用後の全トークンの id が 0 始まりの連番になること
 //
 // - 異常系:
-//   - fetchTokenChain が Exception を throw したとき、そのまま投げること
+//   - fetchTranslationsBatch が Exception を throw したとき、そのまま投げること
 // -----------------------------------------------------------------------------
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:edb/data/repository_impl/local_text_processor.dart';
-import 'package:edb/domain/entity/carry/token_entry.dart';
-import 'package:edb/domain/entity/model/token_data.dart';
+import 'package:edb/domain/model/value_object/token_core.dart';
+import 'package:edb/domain/model/value_object/token_data.dart';
 import 'package:edb/domain/repository_abstract/translation_repository.dart';
 
 // ---------------------------------------------------------------------------
@@ -54,15 +54,15 @@ import 'package:edb/domain/repository_abstract/translation_repository.dart';
 class MockTokenChainRepository extends Mock implements TranslationRepository {}
 
 // ---------------------------------------------------------------------------
-// ヘルパー: fetchTranslationsBatch が返す TokenEntry を組み立てる
+// ヘルパー: fetchTranslationsBatch が返す TokenCore を組み立てる
 // ---------------------------------------------------------------------------
-TokenEntry _makeEntry({
+TokenCore _makeEntry({
   int id = 1,
   required String word,
   bool isShow = true,
   String translation = '',
 }) {
-  return TokenEntry(
+  return TokenCore(
     vocabId: id,
     showWord: word,
     isShow: isShow,
@@ -244,7 +244,7 @@ void main() {
         expect(result.first.translation, 'りんご');
       });
 
-      test('重複する単語があっても fetchTokenChain に渡されるキーが重複しないこと', () async {
+      test('重複する単語があっても fetchTranslationsBatch に渡されるキーが重複しないこと', () async {
         Set<String>? capturedKeys;
         when(
           () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
@@ -303,7 +303,7 @@ void main() {
         expect(result[1].translation, '世界');
       });
 
-      test('差分なしのとき fetchTokenChain が空 Set で呼ばれること', () async {
+      test('差分なしのとき fetchTranslationsBatch が空 Set で呼ばれること', () async {
         final nowTokens = [_makeToken(id: 0, showWord: 'hello')];
 
         Set<String>? capturedKeys;
@@ -440,7 +440,7 @@ void main() {
       });
 
       test(
-        '削除のみで affectedIndices が空のとき fetchTokenChain が空 Set で呼ばれること',
+        '削除のみで affectedIndices が空のとき fetchTranslationsBatch が空 Set で呼ばれること',
         () async {
           final nowTokens = [
             _makeToken(id: 0, showWord: 'hello'),
@@ -563,22 +563,25 @@ void main() {
     });
 
     group('異常系', () {
-      test('fetchTokenChain が Exception を throw したとき、そのまま投げること', () async {
-        final nowTokens = [_makeToken(id: 0, showWord: 'hello')];
+      test(
+        'fetchTranslationsBatch が Exception を throw したとき、そのまま投げること',
+        () async {
+          final nowTokens = [_makeToken(id: 0, showWord: 'hello')];
 
-        when(
-          () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
-        ).thenThrow(Exception('DB error'));
+          when(
+            () => mockDb.fetchTranslationsBatch(keys: any(named: 'keys')),
+          ).thenThrow(Exception('DB error'));
 
-        // 追加が発生するテキストを渡して fetchTokenChain を実行させる
-        expect(
-          () => repository.partTranslation(
-            nowTokens: nowTokens,
-            newText: 'hello world',
-          ),
-          throwsA(isA<Exception>()),
-        );
-      });
+          // 追加が発生するテキストを渡して fetchTranslationsBatch を実行させる
+          expect(
+            () => repository.partTranslation(
+              nowTokens: nowTokens,
+              newText: 'hello world',
+            ),
+            throwsA(isA<Exception>()),
+          );
+        },
+      );
     });
   });
 }

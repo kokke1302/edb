@@ -1,6 +1,6 @@
 import 'package:edb/data/db/app_database.dart';
-import 'package:edb/domain/entity/carry/token_entry.dart';
-import 'package:edb/domain/entity/model/token_data.dart';
+import 'package:edb/domain/model/value_object/token_core.dart';
+import 'package:edb/domain/model/value_object/token_data.dart';
 
 class TokenMapper {
   // JSON形式からTokenオブジェクトへ
@@ -14,8 +14,8 @@ class TokenMapper {
     );
   }
 
-  static TokenEntry fromVocabularies({required Vocabulary voc}) {
-    return TokenEntry(
+  static TokenCore fromVocabularies({required Vocabulary voc}) {
+    return TokenCore(
       vocabId: voc.id,
       showWord: voc.englishWord,
       translation: voc.japaneseTranslation,

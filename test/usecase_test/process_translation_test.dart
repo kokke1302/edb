@@ -23,7 +23,7 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:edb/domain/usecase/process_translation_usecase.dart';
 import 'package:edb/domain/repository_abstract/processor_repository.dart';
-import 'package:edb/domain/entity/model/token_data.dart';
+import 'package:edb/domain/model/value_object/token_data.dart';
 
 // TextProcessorのモッククラスを作成
 class MockTextProcessor extends Mock implements TextProcessor {}

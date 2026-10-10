@@ -1,30 +1,26 @@
-import 'package:edb/domain/entity/model/card_data.dart';
-import 'package:edb/domain/entity/value/sync_status.dart';
+import 'package:edb/domain/model/value_object/vocab_core.dart';
+import 'package:edb/domain/model/enum/sync_status.dart';
 
 /// 単語リストと状態を保持するクラス
 class BookData {
-  final int pageSize; // 直近のリクエストで実際に取得した件数
-  final List<CardData> cards; // 単語リスト本体
+  final List<VocabCore> vocabs; // 単語リスト本体
   final SyncStatus tailStatus; // 下部に表示すべき状態
   final bool isDataEnd; // 全てのデータがロードされたか
 
   BookData({
-    required this.pageSize,
-    required this.cards,
+    this.vocabs = const [],
     this.tailStatus = SyncStatus.normal,
     this.isDataEnd = false,
   });
 
   /// 状態の一部を更新するためのメソッド
   BookData copyWith({
-    int? pageSize,
-    List<CardData>? cards,
+    List<VocabCore>? vocabs,
     SyncStatus? tailStatus,
     bool? isDataEnd,
   }) {
     return BookData(
-      pageSize: pageSize ?? this.pageSize,
-      cards: cards ?? this.cards,
+      vocabs: vocabs ?? this.vocabs,
       tailStatus: tailStatus ?? this.tailStatus,
       isDataEnd: isDataEnd ?? this.isDataEnd,
     );

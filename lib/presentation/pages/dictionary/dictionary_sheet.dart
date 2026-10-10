@@ -1,8 +1,9 @@
+import 'package:edb/domain/model/value_object/vocab_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:edb/domain/entity/model/dictionary_data.dart';
+import 'package:edb/domain/model/entity/dictionary_data.dart';
 import 'package:edb/presentation/view_models/dictionary_notifier.dart';
 import 'package:edb/presentation/pages/dictionary/registered_card.dart';
 import 'package:edb/presentation/pages/dictionary/dictionary_card.dart';
@@ -46,8 +47,8 @@ class MyDictionarySheet extends ConsumerWidget {
           const SizedBox(height: 8),
 
           // 内部辞書リストを展開
-          ...list.dictionaryCards.map((card) {
-            return MyDictionaryCard(card: card);
+          ...list.dictionaryCards.map((vocab) {
+            return MyDictionaryCard(vocab: vocab);
           }),
 
           // オリジナル登録フィールドへ遷移するセクション（リストの最後に配置）
@@ -56,7 +57,9 @@ class MyDictionarySheet extends ConsumerWidget {
             title: const Text('オリジナルを登録'),
             trailing: const Icon(Icons.edit),
             onTap: () {
-              ref.read(regiDataReceiver.notifier).initialCard(word: headerWord);
+              ref
+                  .read(regiDataReceiver.notifier)
+                  .receiveRegiData(vocab: VocabCore.init(word: headerWord));
               context.pop();
               context.push('/registration');
             },

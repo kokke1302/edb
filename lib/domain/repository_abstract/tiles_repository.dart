@@ -1,9 +1,9 @@
-import 'package:edb/domain/entity/carry/tile_detail.dart';
+import 'package:edb/domain/model/value_object/tile_detail.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:edb/data/db/app_database.dart';
 import 'package:edb/data/repository_impl/local_tiles_repository.dart';
-import 'package:edb/domain/entity/carry/tile_data.dart';
+import 'package:edb/domain/model/value_object/tile_data.dart';
 
 final tilesRepositoryProvider = Provider<TilesRepository>((ref) {
   final db = ref.watch(databaseProvider);

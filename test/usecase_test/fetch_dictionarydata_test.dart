@@ -4,13 +4,13 @@
 //   - fetchDictionaries が token.word を引数に1回呼ばれること
 //
 // - 正常系（振り分けロジック: showCard が設定されるケース）:
-//   - token.nowShow が true かつ vocabId と一致する VocabEntry が vocabularies に存在するとき、showCard にその CardData が設定されること
+//   - token.nowShow が true かつ vocabId と一致する VocabCore が vocabularies に存在するとき、showCard にその CardData が設定されること
 //   - そのとき showCard の nowShow が true になること
 //   - そのとき該当カード以外の vocabularyCards の nowShow がすべて false になること
 //
 // - 正常系（振り分けロジック: showCard が設定されないケース）:
 //   - token.nowShow が false のとき、showCard が null になること
-//   - token.nowShow が true かつ vocabId と一致する VocabEntry が vocabularies に存在しないとき、showCard が null になること
+//   - token.nowShow が true かつ vocabId と一致する VocabCore が vocabularies に存在しないとき、showCard が null になること
 //   - いずれのケースでも vocabularyCards の nowShow がすべて false になること
 //
 // - 正常系（dictionaryCards）:
@@ -30,9 +30,9 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:edb/domain/usecase/fetch_dictionarydata_usecase.dart';
 import 'package:edb/domain/repository_abstract/dictionary_repository.dart';
-import 'package:edb/domain/entity/model/token_data.dart';
-import 'package:edb/domain/entity/carry/vocab_entry.dart';
-import 'package:edb/domain/entity/value/base_status.dart';
+import 'package:edb/domain/model/value_object/token_data.dart';
+import 'package:edb/domain/model/value_object/vocab_core.dart';
+import 'package:edb/domain/model/enum/base_status.dart';
 
 // DictionaryRepositoryのモッククラスを作成
 class MockDictionaryRepository extends Mock implements DictionaryRepository {}
@@ -50,8 +50,8 @@ void main() {
     // 共通で使用するベースのDateTime
     final now = DateTime.now();
 
-    // テスト用の共通VocabEntryデータ
-    final vocab1Show = VocabEntry(
+    // テスト用の共通VocabCoreデータ
+    final vocab1Show = VocabCore(
       id: 42,
       word: 'apple',
       translation: 'りんご',
@@ -62,7 +62,7 @@ void main() {
       based: Based.vocabularies,
     );
 
-    final vocab1Hidden = VocabEntry(
+    final vocab1Hidden = VocabCore(
       id: 42,
       word: 'apple',
       translation: 'りんご',
@@ -73,7 +73,7 @@ void main() {
       based: Based.vocabularies,
     );
 
-    final vocab2Show = VocabEntry(
+    final vocab2Show = VocabCore(
       id: 99,
       word: 'apple',
       translation: '（別の意味の）りんご',
@@ -84,7 +84,7 @@ void main() {
       based: Based.vocabularies,
     );
 
-    final vocab2Hidden = VocabEntry(
+    final vocab2Hidden = VocabCore(
       id: 99,
       word: 'apple',
       translation: '（別の意味の）りんご',
@@ -95,7 +95,7 @@ void main() {
       based: Based.vocabularies,
     );
 
-    final dictVocab = VocabEntry(
+    final dictVocab = VocabCore(
       id: 100,
       word: 'apple',
       translation: '辞書のデータ',
@@ -141,7 +141,7 @@ void main() {
 
     group('正常系（振り分けロジック: showCard が設定されるケース）', () {
       test(
-        'token.nowShow が true かつ vocabId と一致する VocabEntry が存在するとき、showCard が設定され nowShow が true、その他は false になること',
+        'token.nowShow が true かつ vocabId と一致する VocabCore が存在するとき、showCard が設定され nowShow が true、その他は false になること',
         () async {
           // Arrange
           final token = TokenData(
@@ -208,7 +208,7 @@ void main() {
       );
 
       test(
-        'token.nowShow が true でも vocabId と一致する VocabEntry が存在しないとき、showCard が null になり、vocabularyCards の nowShow がすべて false になること',
+        'token.nowShow が true でも vocabId と一致する VocabCore が存在しないとき、showCard が null になり、vocabularyCards の nowShow がすべて false になること',
         () async {
           // Arrange
           final token = TokenData(
@@ -263,11 +263,7 @@ void main() {
 
           // Assert
           expect(result.dictionaryCards.length, 1);
-          expect(result.dictionaryCards[0].vocab, dictVocab);
-          expect(
-            result.dictionaryCards[0].nowShow,
-            false,
-          ); // fromVocabEntryのデフォルト挙動
+          expect(result.dictionaryCards[0], dictVocab);
         },
       );
     });
@@ -286,7 +282,7 @@ void main() {
           );
           when(
             () => mockRepository.fetchVocabularies(word: any(named: 'word')),
-          ).thenAnswer((_) async => <VocabEntry>[]);
+          ).thenAnswer((_) async => <VocabCore>[]);
           when(
             () => mockRepository.fetchDictionaries(word: any(named: 'word')),
           ).thenAnswer((_) async => []);
@@ -316,7 +312,7 @@ void main() {
           ).thenAnswer((_) async => []);
           when(
             () => mockRepository.fetchDictionaries(word: any(named: 'word')),
-          ).thenAnswer((_) async => <VocabEntry>[]);
+          ).thenAnswer((_) async => <VocabCore>[]);
 
           // Act
           final result = await useCase.execute(token);

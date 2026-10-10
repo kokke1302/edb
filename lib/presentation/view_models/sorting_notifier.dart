@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:edb/domain/entity/model/sorting_data.dart';
-import 'package:edb/domain/entity/value/sort_field.dart';
-import 'package:edb/domain/entity/value/sort_order.dart';
+import 'package:edb/domain/model/value_object/sorting_data.dart';
+import 'package:edb/domain/model/enum/sort_field.dart';
+import 'package:edb/domain/model/enum/sort_order.dart';
 
 final sortingProvider = NotifierProvider<SortingNotifier, SortingData>(
   () => SortingNotifier(),

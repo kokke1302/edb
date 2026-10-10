@@ -33,7 +33,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:edb/data/db/app_database.dart';
 import 'package:edb/data/repository_impl/local_dictionary_repository.dart';
-import 'package:edb/domain/entity/value/base_status.dart';
+import 'package:edb/domain/model/enum/base_status.dart';
 
 // ---------------------------------------------------------------------------
 // ヘルパー: テスト用インメモリDB

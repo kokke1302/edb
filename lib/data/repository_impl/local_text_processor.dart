@@ -1,7 +1,7 @@
 import 'package:diffutil_dart/diffutil.dart';
 
-import 'package:edb/domain/entity/model/token_data.dart';
-import 'package:edb/domain/entity/carry/token_entry.dart';
+import 'package:edb/domain/model/value_object/token_data.dart';
+import 'package:edb/domain/model/value_object/token_core.dart';
 import 'package:edb/domain/repository_abstract/processor_repository.dart';
 import 'package:edb/domain/repository_abstract/translation_repository.dart';
 
@@ -91,7 +91,7 @@ class LocalTextProcessor implements TextProcessor {
     final slimEntrys = await db.fetchTranslationsBatch(keys: lookupKeys);
 
     // 5. DB検索（必要な分だけ）
-    final Map<String, TokenEntry> translationMap = {};
+    final Map<String, TokenCore> translationMap = {};
 
     for (final entry in slimEntrys) {
       final key = entry.showWord.toLowerCase();
@@ -142,7 +142,7 @@ class LocalTextProcessor implements TextProcessor {
         .toSet();
 
     // 3. 訳語の一括検索
-    final List<TokenEntry> slimEntrys;
+    final List<TokenCore> slimEntrys;
     try {
       slimEntrys = await db.fetchTranslationsBatch(keys: lookupKeys);
     } catch (e) {
@@ -150,7 +150,7 @@ class LocalTextProcessor implements TextProcessor {
     }
 
     // 4. <検索キー: 単語帳DBエントリー>のMapを作成
-    final Map<String, TokenEntry> translationMap = {};
+    final Map<String, TokenCore> translationMap = {};
     for (final entry in slimEntrys) {
       final key = entry.showWord.toLowerCase();
 
