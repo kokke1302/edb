@@ -30,7 +30,7 @@ class RemoteDictionaryRepository implements DictionaryRepository {
     required LocalDictionaryRepository local,
     required Uri endpoint,
     http.Client? client,
-    Duration timeout = const Duration(seconds: 60),
+    Duration timeout = const Duration(seconds: 30),
   }) : _local = local,
        _endpoint = endpoint,
        _client = client ?? http.Client(),

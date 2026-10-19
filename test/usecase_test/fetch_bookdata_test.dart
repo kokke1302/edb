@@ -2,8 +2,8 @@
 // - 正常系:
 //   - fetchVocabulariesWithPaging が currentCount を offset に、sorter をそのまま引数に1回呼ばれること
 //   - 返り値のリスト件数が fetchVocabulariesWithPaging の返り値と一致すること
-//   - 各 CardData の vocab が対応する VocabCore と一致すること
-//   - 各 CardData の nowShow が対応する VocabCore の isShow と一致すること
+//   - 各要素が fetchVocabulariesWithPaging の返り値の VocabCore と一致すること
+//   - 各要素の isShow が元の VocabCore の値のまま保持されること
 //   - fetchVocabulariesWithPaging が空リストを返したとき、空リストが返ること
 //
 // - 異常系:
@@ -100,11 +100,11 @@ void main() {
           // 2. 返り値のリスト件数が fetchVocabulariesWithPaging の返り値と一致すること
           expect(result.length, testVocabs.length);
 
-          // 3. 各 CardData の vocab が対応する VocabCore と一致すること
+          // 3. 各要素が対応する VocabCore と一致すること
           expect(result[0], equals(testVocabs[0]));
           expect(result[1], equals(testVocabs[1]));
 
-          // 4. 各 CardData の nowShow が対応する VocabCore の isShow と一致すること
+          // 4. 各要素の isShow が元の VocabCore の isShow のまま保持されること
           expect(result[0].isShow, isTrue);
           expect(result[1].isShow, isFalse);
         },

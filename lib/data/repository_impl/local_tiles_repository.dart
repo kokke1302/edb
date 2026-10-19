@@ -46,7 +46,9 @@ class LocalTilesRepository implements TilesRepository {
   Future<TileDetail> fetchTileDetail({required int id}) async {
     // 抽出する行を選択
     final query = db.select(db.englishTexts)..where((t) => t.id.equals(id));
-    final row = await query.getSingle();
+    final row = await query.getSingleOrNull();
+
+    if (row == null) throw Exception('Tile with ID $id not found');
 
     return TileMapper.toTileDetail(et: row);
   }

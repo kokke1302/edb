@@ -8,7 +8,7 @@ final settingRepositoryProvider = Provider<SettingRepository>((ref) {
 });
 
 abstract interface class SettingRepository {
-  // 保存済みの設定を返す。保存済みの値がない項目は、ApiSettingsの初期値になる。
+  // 保存済みの設定を返す。保存済みの値がない項目は、SettingDataの初期値になる。
   // Providerの構築時（textProcessorProviderなど）に同期的に使うため、Futureにしない。
   SettingData load();
   Future<void> save({required SettingData settings});

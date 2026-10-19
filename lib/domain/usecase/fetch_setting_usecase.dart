@@ -4,12 +4,12 @@ import 'package:edb/domain/model/value_object/setting_data.dart';
 import 'package:edb/domain/repository_abstract/setting_repository.dart';
 
 final fetchSettingUseCaseProvider = Provider(
-  (ref) => FetchSettingsUseCase(ref.watch(settingRepositoryProvider)),
+  (ref) => FetchSettingUseCase(ref.watch(settingRepositoryProvider)),
 );
 
-class FetchSettingsUseCase {
+class FetchSettingUseCase {
   final SettingRepository _repository;
-  FetchSettingsUseCase(this._repository);
+  FetchSettingUseCase(this._repository);
 
   SettingData execute() {
     return _repository.load();

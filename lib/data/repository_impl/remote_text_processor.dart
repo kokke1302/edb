@@ -8,7 +8,7 @@ import 'package:edb/domain/repository_abstract/processor_repository.dart';
 
 // 英文全体の解析（トークン化＋訳語の付与）を外部APIに任せる実装
 //
-// - fullTranslation: APIでトークン化・訳語取得 → 単語帳（ローカルDB）の登録内容を重ねる
+// - fullTranslation: APIでトークン化・訳語取得
 // - partTranslation: 入力のたびに走る差分更新なので、通信せずローカルで処理する
 //
 // API仕様
@@ -32,7 +32,7 @@ class RemoteTextProcessor implements TextProcessor {
     required LocalTextProcessor local,
     required Uri endpoint,
     http.Client? client,
-    Duration timeout = const Duration(seconds: 10),
+    Duration timeout = const Duration(seconds: 30),
   }) : _local = local,
        _endpoint = endpoint,
        _client = client ?? http.Client(),

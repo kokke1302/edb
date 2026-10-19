@@ -13,7 +13,8 @@
 コードを追加・変更する際は以下を守ること。
 
 - **依存方向**: `Presentation → Domain ← Data`。Domain層（`model` / `usecase` / `repository_abstract`）はPresentation・Dataのどちらにも依存しない。
-- **Provider定義の場所**: Riverpodの`Provider`は、対応する`usecase`ファイルや`repository_abstract`ファイル内に直接定義する（`providers.dart`のような集約ファイルは存在しない）。
+- **Provider定義の場所**: Riverpodの`Provider`は、対応する`usecase`ファイルや`repository_abstract`ファイル内に直接定義する（`providers.dart`のような集約ファイルは存在しない）。例外として、`SharedPreferences`を渡すための`sharedPreferencesProvider`は`local_setting_repository.dart`に定義し、`main()`で`overrideWithValue`して使う。
+- **外部APIの切り替え**: 翻訳・辞書で外部APIを使うかどうかは、設定画面で保存する`SettingData`（URL・翻訳API使用可否・辞書API使用可否）で決まる。`textProcessorProvider`と`dictionaryRepositoryProvider`が`settingRepositoryProvider.load()`を同期的に読み、「URLが入力済み、かつ該当スイッチがON」のときだけ`RemoteTextProcessor`／`RemoteDictionaryRepository`を返す。設定の保存時にこの2つのProviderが`invalidate`される。
 - **Notifier間の呼び出し制約**（状態の競合回避のため）:
   - 他Notifierのプロパティは、Notifierの`build()`内でしか`watch`できない。
   - Notifierのメソッド内から呼べる他Notifierのメソッドは、Notifierごとに1回まで（複数のNotifierをそれぞれ1回ずつ呼ぶのは可）。
@@ -30,14 +31,15 @@ lib/presentation/view_models/book_notifier.dart                 # BookNotifier, 
 lib/presentation/view_models/dictionary_notifier.dart           # DictionaryNotifier, dictionaryProvider (辞書シートの候補表示・表示切替)
 lib/presentation/view_models/bottom_index_notifier.dart         # BottomNavIndexNotifier, bottomNavIndexProvider (ボトムナビのインデックス管理)
 lib/presentation/view_models/regidata_receiver.dart             # RegiDataReceiver, regiDataReceiver (単語登録画面の初期値受け渡し中継)
-lib/presentation/view_models/register_notifier.dart             # RegisterNotifier, registerProvider (単語登録・編集の入力状態管理、保存・削除)
+lib/presentation/view_models/register_notifier.dart             # RegisterNotifier, registerProvider (単語登録・編集の入力状態管理、保存・削除。riverpod_generatorの@riverpodで定義)
+lib/presentation/view_models/register_notifier.g.dart           # riverpod_generatorの自動生成ファイル（編集不要）
 lib/presentation/view_models/selected_token_notifier.dart       # SelectedTokenNotifier, selectedTokenProvider (辞書シートで選択中のトークン管理)
+lib/presentation/view_models/setting_notifier.dart              # SettingsNotifier, settingsProvider (API設定（URL・翻訳/辞書のAPI使用可否）の管理・保存)
 lib/presentation/view_models/sorting_notifier.dart              # SortingNotifier, sortingProvider (単語帳のソート条件・検索文字列管理)
 lib/presentation/view_models/tiles_notifier.dart                # TilesNotifier, tilesProvider (保存済み英文履歴の管理・復元トリガー)
 lib/presentation/view_models/translation_notifier.dart          # TranslationNotifier, translationProvider, tokenProvider (翻訳画面の入力文・トークン群管理)
 lib/presentation/root/common_screen.dart                        # CommonScreen (ボトムナビゲーションバー付きの共通Scaffold)
-lib/presentation/root/bottom_index.dart                         # （ボトムナビゲーション関連のコンポーネント・レイアウト）
-lib/presentation/root/routing.dart                              # EnglishLearningApp, SettingPage, HelpPage (GoRouterによるルーティング定義)
+lib/presentation/root/routing.dart                              # EnglishLearningApp, HelpPage (GoRouterによるルーティング定義)
 
 ### Presentation Layer (Pages & UI Components)
 
@@ -51,6 +53,7 @@ lib/presentation/pages/wordbook/search/sort_dropdown.dart       # MySortDropdown
 lib/presentation/pages/wordbook/search/sort_order.dart          # MySortOrderButton (ソート順序（昇順/降順）の切り替えトグルボタン)
 lib/presentation/pages/wordbook/search/silver_appbar.dart       # MyBookSliverAppBar (単語帳画面のSliverAppBar。検索展開・ソート・初期化・再取得の操作をまとめる)
 lib/presentation/pages/drawer/drawer.dart                       # MyDrawer (アプリ共通のドロワー。保存済み英文履歴や設定への導線)
+lib/presentation/pages/drawer/setting_page.dart                 # SettingPage (API設定画面。API URL・翻訳/辞書のAPI使用可否の編集と保存)
 lib/presentation/pages/drawer/tile.dart                         # MyTile (Drawer内の保存済み英文1件分のListTile。復元・削除)
 lib/presentation/pages/translation/translation.dart             # TranslationModePage (翻訳モード画面の全体レイアウト専用Widget)
 lib/presentation/pages/translation/text_field.dart              # MyTextField (翻訳モードの英文入力フィールド。双方向同期対応)
@@ -58,7 +61,7 @@ lib/presentation/pages/translation/block_field.dart             # MyBlockField (
 lib/presentation/pages/translation/word_block.dart              # WordBlock (トークン1件分の表示ブロック（英単語＋訳語）)
 lib/presentation/pages/translation/translate_fab.dart           # MyTranslateFab (再翻訳を実行するボタン。処理中の制御)
 lib/presentation/pages/translation/bookmark_fab.dart            # MyBookmarkFab (現在の翻訳結果を英文履歴として保存するボタン)
-lib/presentation/pages/register/registration_page.dart          # MyEntryScreen (単語登録・編集画面のルート・レイアウト)
+lib/presentation/pages/register/registration_page.dart          # MyRegisterScreen (単語登録・編集画面のルート・レイアウト)
 lib/presentation/pages/register/regi_english_card.dart          # MyEnglishCard (英単語の表示/編集フィールド。既存変更時の確認挟み)
 lib/presentation/pages/register/regi_translation_card.dart      # MyTranslationCard (日本語訳入力フィールド（必須項目）)
 lib/presentation/pages/register/regi_memo_card.dart             # MyMemoCard (ユーザーメモ入力フィールド)
@@ -80,15 +83,18 @@ lib/domain/usecase/delete_register_usecase.dart                 # DeleteRegister
 lib/domain/usecase/delete_tile_usecase.dart                     # DeleteTileUseCase, deleteTileUseCaseProvider (指定IDの英文履歴削除)
 lib/domain/usecase/save_register_usecase.dart                   # SaveRegisterUseCase, saveRegisterUseCaseProvider (単語帳エントリの新規追加・更新)
 lib/domain/usecase/toggle_card_visibility_usecase.dart          # ToggleCardVisibilityUseCase, toggleCardVisibilityUseCaseProvider (候補表示切替)
+lib/domain/usecase/fetch_setting_usecase.dart                   # FetchSettingsUseCase, fetchSettingUseCaseProvider (API設定の取得)
+lib/domain/usecase/save_setting_usecase.dart                    # SaveApiSettingsUseCase, saveSettingUseCaseProvider (API設定のURL整形・検証・保存)
 
 ### Domain Layer (Repository Interfaces)
 
 lib/domain/repository_abstract/book_repository.dart             # BookRepository, bookRepositoryProvider (単語帳テーブル検索・ページング定義)
-lib/domain/repository_abstract/processor_repository.dart        # TextProcessor, textProcessorProvider (英文解析ロジック定義)
-lib/domain/repository_abstract/dictionary_repository.dart       # DictionaryRepository, dictionaryRepositoryProvider (単語帳・内部辞書検索定義)
+lib/domain/repository_abstract/processor_repository.dart        # TextProcessor, textProcessorProvider (英文解析ロジック定義。設定に応じてLocal/Remoteを切り替える)
+lib/domain/repository_abstract/dictionary_repository.dart       # DictionaryRepository, dictionaryRepositoryProvider (単語帳・内部辞書検索定義。設定に応じてLocal/Remoteを切り替える)
 lib/domain/repository_abstract/register_repository.dart         # RegisterRepository, registerRepositoryProvider (単語帳テーブルへのCUD操作定義)
 lib/domain/repository_abstract/translation_repository.dart      # TranslationRepository, translationRepositoryProvider (翻訳用エントリ一括取得定義)
 lib/domain/repository_abstract/tiles_repository.dart            # TilesRepository, tilesRepositoryProvider (英文履歴テーブルのCRUD操作定義)
+lib/domain/repository_abstract/setting_repository.dart          # SettingRepository, settingRepositoryProvider (API設定の読み書き定義)
 
 ### Domain Layer (Models)
 
@@ -97,6 +103,7 @@ lib/domain/model/enum/sync_status.dart                          # SyncStatus (en
 lib/domain/model/enum/sort_field.dart                           # SortField (enum: ソート対象カラム（作成日時/英単語）を定義)
 lib/domain/model/enum/sort_order.dart                           # SortOrder (enum: ソート順（昇順/降順）を定義)
 lib/domain/model/value_object/card_data.dart                    # CardData (表示可否フラグと単語帳エントリを保持する。辞書機能シートの候補カードで使用)
+lib/domain/model/value_object/setting_data.dart                 # SettingData (API URL・翻訳/辞書のAPI使用可否の保持。URL整形・検証ロジックを含む)
 lib/domain/model/value_object/sorting_data.dart                 # SortingData (ソート項目・順序・検索文字列などの条件保持クラス)
 lib/domain/model/value_object/tile_data.dart                    # TileData (英文履歴リスト表示用の軽量DTO)
 lib/domain/model/value_object/tile_detail.dart                  # TileDetail (英文履歴からの復元用詳細DTO（本文とトークンチェーン）)
@@ -112,16 +119,18 @@ lib/domain/model/entity/translation_data.dart                   # TranslationDat
 
 lib/data/repository_impl/local_book_repository.dart             # LocalBookRepository (Vocabulariesの検索付きページングクエリ実装)
 lib/data/repository_impl/local_dictionary_repository.dart       # LocalDictionaryRepository (VocabulariesとInternalDictionariesの検索実装)
+lib/data/repository_impl/remote_dictionary.dart                 # RemoteDictionaryRepository (fetchDictionariesを外部APIに委譲。失敗時はLocalDictionaryRepositoryへフォールバック)
 lib/data/repository_impl/local_text_processor.dart              # LocalTextProcessor (トークン化、差分計算、辞書検索を組み合わせた解析中核)
 lib/data/repository_impl/remote_text_processor.dart             # RemoteTextProcessor (fullTranslationを外部APIに委譲。失敗時はLocalTextProcessorへフォールバック)
 lib/data/repository_impl/local_register_repository.dart         # LocalRegisterRepository (単語帳のCUD。一単語一表示の排他制御実装)
+lib/data/repository_impl/local_setting_repository.dart          # LocalSettingRepository, sharedPreferencesProvider (SharedPreferencesへのAPI設定の保存実装)
 lib/data/repository_impl/local_tiles_repository.dart            # LocalTilesRepository (EnglishTextsテーブルへのCRUD操作実装)
 lib/data/repository_impl/local_translation_repository.dart      # LocalTranslationRepository (複数キーに一致する有効な訳語の一括取得実装)
 
 ### Data Layer (Mappers)
 
 lib/data/mapper/tile_mapper.dart                                # TileMapper (EnglishText行 ⇔ TileData/TileDetail 変換、JSONデコード)
-lib/data/mapper/vocab_mapper.dart                               # VocabMapper (Vocabulary/InternalDictionary行 → VocabCore 変換)
+lib/data/mapper/vocab_mapper.dart                               # VocabMapper (Vocabulary/InternalDictionary行・辞書APIレスポンス → VocabCore 変換)
 lib/data/mapper/token_mapper.dart                               # TokenMapper (JSON ⇔ TokenData 変換、Vocabulary行 → TokenCore 変換、外部APIレスポンス → TokenData 変換)
 
 ### Data Layer (Database & Initializers)
@@ -134,14 +143,12 @@ lib/data/db/_connection_web.dart                                # Web用のQuery
 
 ### Test Layer (UseCase Tests)
 
-test/usecase_test/delete_tile_test.dart                         # DeleteTileUseCase のテスト
-test/usecase_test/fetch_tile_detail_test.dart                   # FetchTileDetailUseCase のテスト
 test/usecase_test/process_translation_test.dart                 # ProcessTranslationUseCase のテスト
 test/usecase_test/save_register_test.dart                       # SaveRegisterUseCase のテスト
 test/usecase_test/toggle_card_visibility_test.dart              # ToggleCardVisibilityUseCase のテスト
 test/usecase_test/fetch_bookdata_test.dart                      # FetchBookDataUseCase のテスト
 test/usecase_test/save_tile_test.dart                           # SaveTileUseCase のテスト
-test/usecase_test/fetch_tiles_all_test.dart                     # FetchAllTilesUseCase のテスト
+test/usecase_test/save_setting_test.dart                        # SaveApiSettingsUseCase のテスト
 test/usecase_test/fetch_dictionarydata_test.dart                # FetchDictionaryDataUseCase のテスト
 test/usecase_test/delete_register_test.dart                     # DeleteRegisterUseCase のテスト
 
@@ -152,8 +159,10 @@ test/impl_test/local_tiles_test.dart                            # LocalTilesRepo
 test/impl_test/local_book_test.dart                             # LocalBookRepository のテスト
 test/impl_test/local_text_processor_test.dart                   # LocalTextProcessor のテスト
 test/impl_test/remote_text_processor_test.dart                  # RemoteTextProcessor のテスト
+test/impl_test/remote_dictionary_test.dart                      # RemoteDictionaryRepository のテスト
 test/impl_test/local_translation_test.dart                      # LocalTranslationRepository のテスト
 test/impl_test/local_register_test.dart                         # LocalRegisterRepository のテスト
+test/impl_test/local_setting_test.dart                          # LocalSettingRepository のテスト
 
 ## 永続化データの定義
 
@@ -219,6 +228,18 @@ test/impl_test/local_register_test.dart                         # LocalRegisterR
 - `nowShow`: 訳語を翻訳画面に表示するかどうか
 - `translation`: 表示する訳語文字列
 
+### 端末内の設定（SharedPreferences）
+
+DBではなく`SharedPreferences`に保存する。読み書きは`LocalSettingRepository`が行う。保存済みの値がないキーは`SettingData`の初期値になる。
+
+| キー | 型 | 説明 |
+| :--- | :--- | :--- |
+| api_url | String | APIのベースURL（空文字を保存した場合は、初期値に戻らず空文字のまま） |
+| use_translation_api | bool | 翻訳でAPIを使用するか |
+| use_dictionary_api | bool | 辞書でAPIを使用するか |
+
+キー名を変えると保存済みの設定が読めなくなるため、テスト（`local_setting_test.dart`）で固定して検証している。
+
 ## ファイルの責務
 
 ### view_models/
@@ -266,9 +287,9 @@ build()はsortingProviderをwatchし、変化時に自動で再取得される�
 - クラス名: RegisterNotifier
 - 役割: 単語登録・編集画面の入力状態を管理し、保存・削除処理を他Notifierと連携させてオーケストレーションするNotifier。
 - 管理する状態: `AsyncValue<VocabCore>`（編集中の単語帳エントリ）
-- Provider: registerProvider（AsyncNotifierProvider.autoDispose）
+- Provider: registerProvider（`@riverpod`によるコード生成。autoDispose。生成コードは`register_notifier.g.dart`）
 
-build()で`regiDataReceiver`から初期値を受け取る。
+build()で`regiDataReceiver`から初期値を受け取る。保存・削除では、辞書機能シートで選択中のトークン（`selectedTokenProvider`）を使って、翻訳画面側のトークンを更新する。
 
 | 型 | 関数名 | 引数 | 説明 | 依存 |
 | :--- | :--- | :--- | :--- | :--- |
@@ -276,8 +297,8 @@ build()で`regiDataReceiver`から初期値を受け取る。
 | void | updateTranslation | String text | 日本語訳フィールドへの入力を画面の状態に反映するために使う。 | - |
 | void | updateMemo | String text | メモフィールドへの入力を画面の状態に反映するために使う。 | - |
 | void | toggleIsShowing | bool isShow | この訳を翻訳に使うかどうかを切り替えるために使う。 | - |
-| Future\<void> | save | - | 登録・編集内容を確定し保存する。単語帳一覧や翻訳結果など他画面への反映も行う。 | SaveRegisterUseCase, TranslationNotifier, BookNotifier, RegiDataReceiver |
-| Future\<void> | delete | - | 単語帳エントリを削除する。単語帳一覧や翻訳結果など他画面への反映も行う。削除対象がない場合は何もしない。 | DeleteRegisterUseCase, TranslationNotifier, BookNotifier, RegiDataReceiver |
+| Future\<void> | save | - | 登録・編集内容を確定し保存する。単語帳一覧や翻訳結果など他画面への反映も行う。 | SaveRegisterUseCase, TranslationNotifier, BookNotifier, RegiDataReceiver, selectedTokenProvider（参照のみ） |
+| Future\<void> | delete | - | 単語帳エントリを削除する。単語帳一覧や翻訳結果など他画面への反映も行う。削除対象がない場合は何もしない。 | DeleteRegisterUseCase, TranslationNotifier, BookNotifier, RegiDataReceiver, selectedTokenProvider（参照のみ） |
 | void | _updateVocab（private） | VocabCore Function(VocabCore) update | VocabCoreの一部だけを差し替えたいときに使う共通ヘルパー。 | - |
 
 #### translation_notifier.dart
@@ -305,6 +326,19 @@ build()で`regiDataReceiver`から初期値を受け取る。
 | 型 | 関数名 | 引数 | 説明 | 依存 |
 | :--- | :--- | :--- | :--- | :--- |
 | void | selectNew | {required TokenData token} | 選択中のトークンを切り替えるために使う。同じトークンが選択済みの場合は何もしない。 | - |
+
+#### setting_notifier.dart
+
+- クラス名: SettingsNotifier
+- 役割: 保存済みのAPI設定（URL・翻訳/辞書のAPI使用可否）を管理するNotifier。保存時に、翻訳・辞書の処理を新しい設定で作り直す。
+- 管理する状態: `SettingData`
+- Provider: settingsProvider（NotifierProvider）
+
+build()は`fetchSettingUseCaseProvider`をwatchし、保存済みの設定を同期的に読み込む。
+
+| 型 | 関数名 | 引数 | 説明 | 依存 |
+| :--- | :--- | :--- | :--- | :--- |
+| Future\<void> | save | {required SettingData settings} | 設定を整形・検証して保存し、状態に反映する。続けて`textProcessorProvider`と`dictionaryRepositoryProvider`を`invalidate`し、次回の翻訳・辞書検索から新しい設定が使われるようにする。URLが不正な場合は`FormatException`が投げられる。 | SaveApiSettingsUseCase |
 
 #### regidata_receiver.dart
 
@@ -339,7 +373,7 @@ build()はselectedTokenProviderを読み取り、FetchDictionaryDataUseCaseで�
 
 | 型 | 関数名 | 引数 | 説明 | 依存 |
 | :--- | :--- | :--- | :--- | :--- |
-| Future\<void> | toggleVisibility | {required CardData card} | 辞書機能シートで選んだ候補を「現在使用する訳」として切り替え、翻訳結果にも反映するために使う。単語帳由来・外部API由来のカード以外や処理中のものは対象外。 | ToggleCardVisibilityUseCase, TranslationNotifier |
+| Future\<void> | toggleVisibility | {required CardData card} | 辞書機能シートで選んだ候補を「現在使用する訳」として切り替え、翻訳結果にも反映するために使う。単語帳由来・外部API由来のカード以外や処理中のものは対象外。辞書機能シートで選択中のトークンも最新の状態に更新する。 | ToggleCardVisibilityUseCase, TranslationNotifier, SelectedTokenNotifier |
 
 #### tiles_notifier.dart
 
@@ -361,7 +395,7 @@ build()はselectedTokenProviderを読み取り、FetchDictionaryDataUseCaseで�
 
 #### routing.dart
 
-- クラス名: EnglishLearningApp, SettingPage, HelpPage（同一ファイル内に3クラス）
+- クラス名: EnglishLearningApp, HelpPage（同一ファイル内に2クラス。）
 
 ##### EnglishLearningApp
 
@@ -372,13 +406,9 @@ build()はselectedTokenProviderを読み取り、FetchDictionaryDataUseCaseで�
 | :--- | :--- | :--- |
 | /translate | TranslationModePage | 初期表示画面、ShellRoute配下（CommonScreen） |
 | /words | MyBookScreen | ShellRoute配下（CommonScreen） |
-| /registration | MyEntryScreen | 独立画面 |
-| /setting | SettingPage | 独立画面、未実装のプレースホルダー |
+| /registration | MyRegisterScreen | 独立画面 |
+| /setting | SettingPage | 独立画面 |
 | /help | HelpPage | 独立画面、未実装のプレースホルダー |
-
-##### SettingPage
-
-- 役割: 設定画面。現状は固定テキストのみを表示する未実装のプレースホルダー。
 
 ##### HelpPage
 
@@ -532,6 +562,18 @@ build()はselectedTokenProviderを読み取り、FetchDictionaryDataUseCaseで�
 | 設定リストタイル | ListTile「設定」 | Drawer下部 | onTap | 設定画面（/setting）を開くために使う。 | - |
 | ヘルプリストタイル | ListTile「ヘルプ」 | Drawer最下部 | onTap | ヘルプ画面（/help）を開くために使う。 | - |
 
+##### setting_page.dart
+
+- クラス名: SettingPage
+- 役割: API設定画面（`/setting`、Drawerの「設定」から開く）。API URLと、翻訳・辞書それぞれでAPIを使うかどうかを編集して保存する。編集中の値は保存するまで`settingsProvider`に反映されず、保存済みの設定と差分があるときだけ保存ボタンが有効になる。URLが空欄の間は2つのスイッチをOFFに固定して無効化する。
+
+| 見た目 | クラス名 | 場所 | イベント/関数 | 役割 | 依存 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| API URL入力欄 | TextFormField（ラベル「API URL」） | 画面上部 | validator | API URLを入力する。空欄は有効。入力がある場合は`http://`または`https://`のURLでなければエラーを表示する。Webで`http://`を入力した場合は、ブラウザにブロックされることがある旨の注意を表示する。 | settingsProvider |
+| 翻訳API使用スイッチ | SwitchListTile「翻訳でAPIを使用する」 | URL入力欄下 | onChanged | 再翻訳ボタンの翻訳をAPIに任せるかを切り替える。URLが空のときは無効。 | - |
+| 辞書API使用スイッチ | SwitchListTile「辞書でAPIを使用する」 | 翻訳スイッチ下 | onChanged | 辞書機能シートの候補をAPIから取得するかを切り替える。URLが空のときは無効。 | - |
+| 保存ボタン | FilledButton.icon（save＋「保存」/「保存中」） | 画面最下部 | onPressed | 入力内容を保存する。保存後はURL欄を整形後の表記（末尾の「/」などを除いたもの）に揃え、結果をスナックバーで伝える。変更がない場合・保存中は無効化される。 | settingsProvider |
+
 #### translation/
 
 ##### translate_fab.dart
@@ -591,7 +633,7 @@ build()はselectedTokenProviderを読み取り、FetchDictionaryDataUseCaseで�
 | 見た目 | クラス名 | 場所 | イベント/関数 | 役割 | 依存 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | 単語ブロック一覧 | WordBlock（Wrapレイアウト） | 画面下部 | - | トークン列を折り返し表示する。ピリオド直後に改行を挿入する（子コンポーネント）。 | translationProvider |
-| ロード中インジケータ | CircularProgressIndicator | 画面下部 | - | 翻訳処理中であることを示す。 | translationProvider |
+| ロード中インジケータ | CircularProgressIndicator | 画面下部 | - | 翻訳処理中であることを示す。直前のトークン列があればそれを表示し続け、無い場合のみ、ロード開始から300ms経過後に表示する（短時間の点滅を避けるため）。 | translationProvider |
 | エラーメッセージ | Text | 画面下部 | - | 翻訳処理に失敗したことを知らせ、再翻訳を促す。 | translationProvider |
 
 #### register/
@@ -640,7 +682,7 @@ build()はselectedTokenProviderを読み取り、FetchDictionaryDataUseCaseで�
 
 ##### registration_page.dart
 
-- クラス名: MyEntryScreen
+- クラス名: MyRegisterScreen
 - 役割: 単語登録・編集画面のルート。各入力カードとフッターバーを配置するレイアウト専用Widget。新規/編集でAppBarタイトルを出し分ける。
 
 | 見た目 | クラス名 | 場所 | イベント/関数 | 役割 | 依存 |
@@ -673,7 +715,7 @@ build()はselectedTokenProviderを読み取り、FetchDictionaryDataUseCaseで�
 | 見出し（選択中の単語） | Text | シート上部左 | - | 選択中のトークンの英単語を大きく表示する。 | selectedTokenProvider |
 | 閉じるボタン | IconButton（Icons.close） | シート上部右 | onPressed | 辞書機能シートを閉じるために使う。 | - |
 | 単語帳由来の候補カード一覧 | MyRegisteredCard（一覧） | シート中央 | - | 単語帳に登録済みの訳語候補、および外部API由来の訳（表示中・非表示）を表示する（子コンポーネント）。 | dictionaryProvider |
-| 内部辞書由来の候補カード一覧 | MyDictionaryCard（一覧） | シート中央 | - | 内部辞書由来の訳語候補を表示する（子コンポーネント）。 | dictionaryProvider |
+| 内部辞書由来の候補カード一覧 | MyDictionaryCard（一覧） | シート中央 | - | 内部辞書由来の訳語候補を表示する（子コンポーネント）。辞書APIが有効なときは、APIから取得した候補（`based: remote`）が並ぶ。 | dictionaryProvider |
 | オリジナル登録リストタイル | ListTile「オリジナルを登録」 | シート最下部 | onTap | 候補にない単語を新規登録するために、登録画面（/registration）を開く。 | regiDataReceiver |
 
 ##### registered_card.dart
@@ -692,7 +734,7 @@ build()はselectedTokenProviderを読み取り、FetchDictionaryDataUseCaseで�
 ##### dictionary_card.dart
 
 - クラス名: MyDictionaryCard
-- 役割: 内部辞書由来の候補カード。オリジナル登録への導線を持つ。
+- 役割: 内部辞書由来の候補カード。オリジナル登録への導線を持つ。辞書APIから取得した候補（`based: remote`、`id: -1`）も同じカードで表示する。いずれも単語帳に行がないため、登録アイコンでは新規登録として登録画面を開く。
 
 | 見た目 | クラス名 | 場所 | イベント/関数 | 役割 | 依存 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -815,6 +857,28 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 | :--- | :--- | :--- | :--- |
 | (DictionaryData, TokenData) | execute | {required DictionaryData currentData, required CardData targetCard, required TokenData currentToken} | 表示中の訳を取りやめる。単語帳の訳を使用する。既に表示中の訳がある場合、表示中の訳を取りやめ、単語帳の訳を表示する。対象が候補に見つからない場合は変更しない。 |
 
+#### fetch_setting_usecase.dart
+
+- クラス名: FetchSettingsUseCase
+- 役割: 保存済みのAPI設定を取得するUseCase。
+- Provider: fetchSettingUseCaseProvider
+- 依存: SettingRepository
+
+| 型 | メソッド名 | 引数 | 説明 |
+| :--- | :--- | :--- | :--- |
+| SettingData | execute | - | 保存済みのAPI設定を取得するために使う。`SettingsNotifier.build()`から同期的に呼ぶため、Futureにしない。 |
+
+#### save_setting_usecase.dart
+
+- クラス名: SaveApiSettingsUseCase
+- 役割: API設定のURLを整形・検証して保存するUseCase。
+- Provider: saveSettingUseCaseProvider
+- 依存: SettingRepository
+
+| 型 | メソッド名 | 引数 | 説明 |
+| :--- | :--- | :--- | :--- |
+| Future\<SettingData> | execute | {required SettingData settings} | URLの前後の空白と末尾の「/」を取り除き（`SettingData.normalizeUrl`）、検証して（`SettingData.isValidUrl`）保存する。保存した（整形後の）設定を返す。空文字のURLは有効。不正なURLの場合は`FormatException`を投げ、保存しない。URL以外の項目は変更しない。 |
+
 ### repository_abstract/
 
 リポジトリの抽象interface。
@@ -834,7 +898,7 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 
 - クラス名: TextProcessor
 - 役割: 翻訳ロジックを定義する抽象interface。
-- Provider: textProcessorProvider（実装: LocalTextProcessor。ビルド時に`--dart-define=TRANSLATE_API_URL=<URL>`を指定した場合は RemoteTextProcessor）
+- Provider: textProcessorProvider（実装: LocalTextProcessor。設定画面でAPI URLが入力済みかつ「翻訳でAPIを使用する」がONのときは RemoteTextProcessor（エンドポイントは`SettingData.translateEndpoint`）。設定の保存時に`invalidate`され、次回の翻訳から反映される）
 
 | 型 | メソッド名 | 引数 | 説明 |
 | :--- | :--- | :--- | :--- |
@@ -845,7 +909,7 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 
 - クラス名: DictionaryRepository
 - 役割: 単語帳・内部辞書それぞれから、特定の単語に対応する候補を取得する抽象interface。
-- Provider: dictionaryRepositoryProvider（実装: LocalDictionaryRepository）
+- Provider: dictionaryRepositoryProvider（実装: LocalDictionaryRepository。設定画面でAPI URLが入力済みかつ「辞書でAPIを使用する」がONのときは RemoteDictionaryRepository（エンドポイントは`SettingData.dictionaryEndpoint`）。設定の保存時に`invalidate`され、次回の辞書検索から反映される）
 
 | 型 | メソッド名 | 引数 | 説明 |
 | :--- | :--- | :--- | :--- |
@@ -887,6 +951,17 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 | Future\<List\<TileData>> | fetchAllTiles | - | 英文履歴の一覧（id・原文のみ）を取得する。 |
 | Future\<TileDetail> | fetchTileDetail | {required int id} | 指定IDの英文履歴（英文・トークン列）を取得する。 |
 
+#### setting_repository.dart
+
+- クラス名: SettingRepository
+- 役割: API設定（URL・翻訳/辞書のAPI使用可否）の読み書きを定義する抽象interface。
+- Provider: settingRepositoryProvider（実装: LocalSettingRepository）
+
+| 型 | メソッド名 | 引数 | 説明 |
+| :--- | :--- | :--- | :--- |
+| SettingData | load | - | 保存済みの設定を返す。保存済みの値がない項目は`SettingData`の初期値になる。`textProcessorProvider`など、Providerの構築時に同期的に使うため、Futureにしない。 |
+| Future\<void> | save | {required SettingData settings} | 設定を保存する。 |
+
 ### model/
 
 #### enum/
@@ -903,7 +978,7 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 | vocabularies | enum | 単語帳DB由来 |
 | dictionary | enum | 内部辞書DB由来 |
 | init | enum | 初期値（未登録） |
-| remote | enum | 外部API由来（翻訳APIが返した訳） |
+| remote | enum | 外部API由来（翻訳APIが返した訳、または辞書APIが返した候補） |
 
 ##### sync_status.dart
 
@@ -946,6 +1021,23 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 | :--- | :--- | :--- |
 | nowShow | bool | 現在この訳語が翻訳に表示されているか |
 | vocab | VocabCore | 単語帳エントリ本体 |
+
+##### setting_data.dart
+
+- クラス名: SettingData
+
+| フィールド名 | 型 | 説明 |
+| :--- | :--- | :--- |
+| apiUrl | String | APIのベースURL（既定値: ビルド時の`--dart-define=API_URL=<URL>`。未指定なら空文字） |
+| useTranslationApi | bool | 翻訳でAPIを使用するか（既定値: false） |
+| useDictionaryApi | bool | 辞書でAPIを使用するか（既定値: false） |
+| hasUrl | bool | getter: apiUrl が空でないか |
+| translateEndpoint | Uri | getter: `{apiUrl}/api/translate` |
+| dictionaryEndpoint | Uri | getter: `{apiUrl}/api/dictionary` |
+| normalizeUrl | static String | 前後の空白と末尾の「/」を取り除く |
+| isValidUrl | static bool | 空文字、またはhostを持つhttp/httpsのURLなら true |
+
+`copyWith`・`==`・`hashCode`を持つ（3項目すべてで比較する）。
 
 ##### sorting_data.dart
 
@@ -1010,7 +1102,7 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 
 | フィールド名 | 型 | 説明 |
 | :--- | :--- | :--- |
-| id | int | 単語帳DBのID（内部辞書由来は -1、外部API由来は -2） |
+| id | int | 単語帳DBのID（内部辞書由来・辞書API由来は -1。`VocabCore.fromToken`で外部翻訳APIのトークンから作ったカードは、トークンの`vocabId`である -2） |
 | word | String | 英単語（小文字） |
 | translation | String | 日本語訳 |
 | isShow | bool | 翻訳に使用するか（DBのisHiddenの反転） |
@@ -1084,6 +1176,17 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 - クラス名: LocalDictionaryRepository
 - 役割: DictionaryRepositoryの実装。VocabulariesテーブルとInternalDictionariesテーブルの双方から、指定単語に一致する候補を検索する。
 
+#### remote_dictionary.dart
+
+- クラス名: RemoteDictionaryRepository
+- 役割: DictionaryRepositoryの実装。`fetchDictionaries`を外部APIに任せ、`fetchVocabularies`は通信せず`LocalDictionaryRepository`に委譲する。通信失敗・200以外のステータス・不正なレスポンス・タイムアウト（既定60秒）のときは`LocalDictionaryRepository.fetchDictionaries`にフォールバックする。成功時はローカルの内部辞書を参照しない。レスポンスが空配列、または全要素が除外された場合は、空リストを返し、フォールバックしない。
+- コンストラクタ: `local`（LocalDictionaryRepository）、`endpoint`（Uri）、`client`・`timeout`（任意）。`dictionaryRepositoryProvider`が設定から組み立てる。
+- API: `POST {endpoint}`（`Content-Type: application/json`）。エンドポイントは`{apiUrl}/api/dictionary`。リクエスト `{"word": "apple"}`、レスポンスは `[{"translation": "りんご", "memo": "果物"}, ...]`（`translation`は訳語、`memo`はその訳語が使われる文脈や補足。無い場合は空文字またはキー省略）。
+
+| 型 | メソッド名 | 引数 | 説明 |
+| :--- | :--- | :--- | :--- |
+| Future\<List\<VocabCore>> | _fetchVocabs（private） | {required String word} | API呼び出しとVocabCoreへの変換（`VocabMapper.fromRemoteJson`）。`translation`が空・空白のみの要素は除外する。 |
+
 #### local_text_processor.dart
 
 - クラス名: LocalTextProcessor
@@ -1102,7 +1205,8 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 
 - クラス名: RemoteTextProcessor
 - 役割: TextProcessorの実装。`fullTranslation`を外部APIに任せ、`partTranslation`は入力のたびに走る差分更新なので通信せず`LocalTextProcessor`に委譲する。通信失敗・200以外のステータス・不正なレスポンス・タイムアウト（既定10秒）のときは`LocalTextProcessor`にフォールバックする。成功時は単語帳（ローカルDB）を参照しない。
-- API: `POST {endpoint}`（`Content-Type: application/json`）。リクエスト `{"text": "I like apples."}`、レスポンスは原文の出現順に並べた `[{"showWord": "I", "translation": "私は"}, ...]`（`showWord`はローカルと同じ切り方の表層形、`translation`は訳語。無い場合は空文字またはキー省略）。
+- コンストラクタ: `local`（LocalTextProcessor）、`endpoint`（Uri）、`client`・`timeout`（任意）。`textProcessorProvider`が設定から組み立てる。
+- API: `POST {endpoint}`（`Content-Type: application/json`）。エンドポイントは`{apiUrl}/api/translate`。リクエスト `{"text": "I like apples."}`、レスポンスは原文の出現順に並べた `[{"showWord": "I", "translation": "私は"}, ...]`（`showWord`はローカルと同じ切り方の表層形、`translation`は訳語。無い場合は空文字またはキー省略）。
 
 | 型 | メソッド名 | 引数 | 説明 |
 | :--- | :--- | :--- | :--- |
@@ -1121,6 +1225,13 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 | 型 | メソッド名 | 引数 | 説明 |
 | :--- | :--- | :--- | :--- |
 | Future\<int> | _setAllOthersHidden（private） | {required String word} | 同じ英単語について「表示する訳は常に1件のみ」というルールを保つための内部処理。 |
+
+#### local_setting_repository.dart
+
+- クラス名: LocalSettingRepository
+- 役割: SettingRepositoryの実装。`SharedPreferences`にAPI設定を保存・読み出しする。保存済みの値がないキーは`SettingData`の初期値になる。空文字のURLを保存した場合は、読み出しても空文字のまま（初期値に戻らない）。
+- 同ファイルで`sharedPreferencesProvider`を定義する。初期値は`UnimplementedError`を投げるため、`main()`で取得したインスタンスを`overrideWithValue`して使う。
+- 保存キー: `api_url` / `use_translation_api` / `use_dictionary_api`（「永続化データの定義」参照）。
 
 #### local_tiles_repository.dart
 
@@ -1145,12 +1256,13 @@ Provider定義は持たない。
 #### vocab_mapper.dart
 
 - クラス名: VocabMapper
-- 役割: `Vocabulary`/`InternalDictionary`（DB行）→ `VocabCore`への変換。
+- 役割: `Vocabulary`/`InternalDictionary`（DB行）・辞書APIレスポンス → `VocabCore`への変換。
 
 | 型 | メソッド名 | 引数 | 説明 |
 | :--- | :--- | :--- | :--- |
 | VocabCore | fromVocabularies | {required Vocabulary vocabulary} | Vocabulary行をVocabCoreへ変換する。単語帳の情報を保持させる。isHiddenを反転してisShowにマッピングする。based: Based.vocabulariesを付与する。 |
 | VocabCore | fromDictionary | {required InternalDictionary dictionary} | InternalDictionary行をVocabCoreへ変換する。内部辞書の情報を保持させる。based: Based.dictionaryを付与する。id: -1固定、isShow: true固定、wordは小文字化、memoはnull時に空文字を補う。createdAt・updatedAtには現在時刻を入れる。 |
+| VocabCore | fromRemoteJson | {required String word, required Map<String, dynamic> json} | 辞書APIレスポンスの1要素（`translation`, `memo`）をVocabCoreへ変換する。`word`はリクエストした単語をそのまま使う。`translation`・`memo`はnull時に空文字を補う。based: Based.remote、id: -1固定、isShow: true固定。createdAt・updatedAtには現在時刻を入れる。 |
 
 #### token_mapper.dart
 
@@ -1203,4 +1315,5 @@ Provider定義は持たない。
   - 辞書DBコピー（DatabaseInitializer.ensureDictionaryCopied）
   - AppDatabaseインスタンス取得
   - 単語帳初期データ投入（insertManualVocabularies）
-  - `ProviderScope(child: EnglishLearningApp())`の起動
+  - `SharedPreferences.getInstance()`でAPI設定の保存先を取得
+  - `ProviderScope(overrides: [sharedPreferencesProvider.overrideWithValue(prefs)], child: EnglishLearningApp())`の起動

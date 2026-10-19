@@ -56,3 +56,5 @@ all_tests.txt
 
 # 生成ファイルをGitの管理対象外にする
 *.g.dart
+# Widget Preview related
+.widget_preview/
