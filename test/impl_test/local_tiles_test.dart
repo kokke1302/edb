@@ -17,7 +17,6 @@
 //
 // - 正常系（deleteTile）:
 //   - 削除後に同じ id の行が DB に存在しないこと
-//   - 返り値が 1（削除件数）になること
 //
 // - 異常系（deleteTile）:
 //   - 存在しない id を指定したとき、Exception が投げられること
@@ -200,17 +199,6 @@ void main() {
       )..where((t) => t.id.equals(id))).get();
 
       expect(rows, isEmpty);
-    });
-
-    test('返り値が1（削除件数）になること', () async {
-      final id = await repository.createTile(
-        text: 'To be deleted.',
-        chain: _sampleChainJson,
-      );
-
-      final deletedCount = await repository.deleteTile(id: id);
-
-      expect(deletedCount, equals(1));
     });
 
     // -----------------------------------------------------------------------

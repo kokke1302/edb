@@ -1,1 +1,1 @@
-enum Based { vocabularies, dictionary, init }
+enum Based { vocabularies, dictionary, init, remote }

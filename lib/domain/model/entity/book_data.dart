@@ -1,7 +1,7 @@
 import 'package:edb/domain/model/value_object/vocab_core.dart';
 import 'package:edb/domain/model/enum/sync_status.dart';
 
-/// 単語リストと状態を保持するクラス
+// 単語リストと状態を保持するクラス
 class BookData {
   final List<VocabCore> vocabs; // 単語リスト本体
   final SyncStatus tailStatus; // 下部に表示すべき状態
@@ -13,7 +13,7 @@ class BookData {
     this.isDataEnd = false,
   });
 
-  /// 状態の一部を更新するためのメソッド
+  // 状態の一部を更新するためのメソッド
   BookData copyWith({
     List<VocabCore>? vocabs,
     SyncStatus? tailStatus,

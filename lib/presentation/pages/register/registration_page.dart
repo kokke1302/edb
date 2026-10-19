@@ -10,8 +10,8 @@ import 'package:edb/presentation/pages/register/regi_translation_card.dart';
 import 'package:edb/presentation/pages/register/regi_visual_card.dart';
 
 // オリジナル訳語の登録・編集画面
-class MyEntryScreen extends ConsumerWidget {
-  const MyEntryScreen({super.key});
+class MyRegisterScreen extends ConsumerWidget {
+  const MyRegisterScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

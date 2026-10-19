@@ -14,8 +14,8 @@ class MyEnglishCard extends HookConsumerWidget {
     final asyncRegiData = ref.watch(registerProvider);
     final regiData = asyncRegiData.requireValue;
 
-    final isEntry = regiData.based != Based.vocabularies;
-    final isEditingState = useState(isEntry);
+    final isRegistered = regiData.based != Based.vocabularies;
+    final isEditingState = useState(isRegistered);
     final isEditing = isEditingState.value;
 
     void dialog() {

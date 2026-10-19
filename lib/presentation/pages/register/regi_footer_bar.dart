@@ -15,7 +15,7 @@ class MyFooterBar extends ConsumerWidget {
     final regiData = asyncRegiData.requireValue;
 
     final bool isProcessing = asyncRegiData.isLoading;
-    final bool isNewEntry = regiData.based != Based.vocabularies;
+    final bool isNew = regiData.based != Based.vocabularies;
 
     // 削除ボタン
     Widget buildDeleteButton() {
@@ -61,7 +61,7 @@ class MyFooterBar extends ConsumerWidget {
       final bool isActionDisabled =
           isProcessing ||
           regiData.translation.isEmpty ||
-          (isNewEntry && regiData.word.isEmpty);
+          (isNew && regiData.word.isEmpty);
 
       // くるくる
       const Widget circular = SizedBox(
@@ -71,7 +71,7 @@ class MyFooterBar extends ConsumerWidget {
       );
 
       final saveText = Text(
-        isNewEntry ? '新規保存' : '上書き保存',
+        isNew ? '新規保存' : '上書き保存',
         style: const TextStyle(fontSize: 16),
       );
 

@@ -1,4 +1,5 @@
 import 'package:edb/domain/model/enum/base_status.dart';
+import 'package:edb/domain/model/value_object/token_data.dart';
 
 class VocabCore {
   final int id;
@@ -53,5 +54,32 @@ class VocabCore {
       updatedAt: DateTime.now(),
       based: Based.init,
     );
+  }
+
+  factory VocabCore.fromToken(TokenData token) {
+    final now = DateTime.now();
+    if (token.isRemote) {
+      return VocabCore(
+        id: token.vocabId,
+        word: token.word,
+        translation: token.translation,
+        isShow: false,
+        memo: '',
+        createdAt: now,
+        updatedAt: now,
+        based: Based.remote,
+      );
+    } else {
+      return VocabCore(
+        id: token.vocabId,
+        word: token.word,
+        translation: token.translation,
+        isShow: false,
+        memo: '',
+        createdAt: now,
+        updatedAt: now,
+        based: Based.init,
+      );
+    }
   }
 }

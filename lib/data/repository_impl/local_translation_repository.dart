@@ -21,21 +21,17 @@ class LocalTranslationRepository implements TranslationRepository {
 
     final lowerKeys = keys.map((k) => k.toLowerCase()).toSet();
 
-    try {
-      final query = db.select(db.vocabularies)
-        ..where(
-          (v) =>
-              // englishWord が lookupKeys に含まれているか
-              v.englishWord.lower().isIn(lowerKeys) &
-              // isHidden: true は return させない
-              v.isHidden.equals(false),
-        );
+    final query = db.select(db.vocabularies)
+      ..where(
+        (v) =>
+            // englishWord が lookupKeys に含まれているか
+            v.englishWord.lower().isIn(lowerKeys) &
+            // isHidden: true は return させない
+            v.isHidden.equals(false),
+      );
 
-      final rows = await query.get();
+    final rows = await query.get();
 
-      return rows.map((v) => TokenMapper.fromVocabularies(voc: v)).toList();
-    } catch (e) {
-      throw Exception('Failed to fetch translations batch: $e');
-    }
+    return rows.map((v) => TokenMapper.fromVocabularies(voc: v)).toList();
   }
 }

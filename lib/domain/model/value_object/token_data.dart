@@ -3,7 +3,7 @@ class TokenData {
   final int vocabId;
   final String showWord;
   final bool nowShow;
-  final String translation;
+  final String translation; // TokenData
 
   TokenData({
     required this.id,
@@ -16,6 +16,10 @@ class TokenData {
   // 単語であるかどうか (true: 単語, false: 句読点など)
   bool get isWord => RegExp(r'\w').hasMatch(showWord);
   String get word => showWord.toLowerCase();
+  static const int noVocabId = -1; // 未登録
+  static const int remoteVocabId = -2; // 外部APIの訳（行を持たない値）
+  bool get isRemote => vocabId == remoteVocabId;
+  bool get isNoRegistered => vocabId < 0;
 
   // 訳語を変更
   TokenData copyWith({

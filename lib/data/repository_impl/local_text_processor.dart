@@ -5,10 +5,10 @@ import 'package:edb/domain/model/value_object/token_core.dart';
 import 'package:edb/domain/repository_abstract/processor_repository.dart';
 import 'package:edb/domain/repository_abstract/translation_repository.dart';
 
-/// 英文の解析、トークン化、辞書検索、訳語割り当てのロジックを実装するクラス
+// 英文の解析、トークン化、辞書検索、訳語割り当てのロジックを実装するクラス
 class LocalTextProcessor implements TextProcessor {
-  final TranslationRepository db;
-  LocalTextProcessor(this.db);
+  final TranslationRepository translationRepository;
+  LocalTextProcessor(this.translationRepository);
 
   // テキストをトークン化し、検索キーを生成する共通ロジック
   List<TokenData> _tokenizeText({required String text}) {
@@ -32,6 +32,24 @@ class LocalTextProcessor implements TextProcessor {
       initialTokens.add(token);
     }
     return initialTokens;
+  }
+
+  // 単語帳を検索し、<検索キー: 単語帳エントリー>のMapを作る
+  Future<Map<String, TokenCore>> _fetchTranslationMap(Set<String> keys) async {
+    final entries = await translationRepository.fetchTranslationsBatch(
+      keys: keys,
+    );
+
+    final Map<String, TokenCore> translationMap = {};
+    for (final entry in entries) {
+      final key = entry.showWord.toLowerCase();
+
+      // 同じキーが複数あれば isShow が true のものを優先して保持する
+      final bool alreadyHasShowEntry = translationMap[key]?.isShow ?? false;
+      if (!alreadyHasShowEntry) translationMap[key] = entry;
+    }
+
+    return translationMap;
   }
 
   @override
@@ -88,22 +106,11 @@ class LocalTextProcessor implements TextProcessor {
         .map((t) => t.word)
         .toSet();
 
-    final slimEntrys = await db.fetchTranslationsBatch(keys: lookupKeys);
-
     // 5. DB検索（必要な分だけ）
-    final Map<String, TokenCore> translationMap = {};
+    final translationMap = await _fetchTranslationMap(lookupKeys);
 
-    for (final entry in slimEntrys) {
-      final key = entry.showWord.toLowerCase();
-
-      // 6. すでに登録済みかつ「表示設定(isShow)」がtrueのものを優先するロジック
-      final bool alreadyHasShowEntry = translationMap[key]?.isShow ?? false;
-      if (!alreadyHasShowEntry) translationMap[key] = entry;
-    }
-
-    // 7. トークンに訳語を割り当てる
+    // 6. トークンに訳語を割り当てる
     final List<TokenData> resultTokens = [];
-
     for (int i = 0; i < finalTokens.length; i++) {
       final token = finalTokens[i];
 
@@ -127,54 +134,39 @@ class LocalTextProcessor implements TextProcessor {
         resultTokens.add(token);
       }
     }
+
     return resultTokens;
   }
 
   @override
   Future<List<TokenData>> fullTranslation({required String text}) async {
     // 1. テキストのトークン化
-    final List<TokenData> initialTokens = _tokenizeText(text: text);
+    final tokens = _tokenizeText(text: text);
 
     // 2. 一括検索のためのユニークキー収集
-    final Set<String> lookupKeys = initialTokens
+    final Set<String> lookupKeys = tokens
         .where((t) => t.isWord && t.showWord.isNotEmpty)
-        .map((t) => t.showWord.toLowerCase())
+        .map((t) => t.word)
         .toSet();
 
     // 3. 訳語の一括検索
-    final List<TokenCore> slimEntrys;
-    try {
-      slimEntrys = await db.fetchTranslationsBatch(keys: lookupKeys);
-    } catch (e) {
-      rethrow;
-    }
+    final translationMap = await _fetchTranslationMap(lookupKeys);
 
-    // 4. <検索キー: 単語帳DBエントリー>のMapを作成
-    final Map<String, TokenCore> translationMap = {};
-    for (final entry in slimEntrys) {
-      final key = entry.showWord.toLowerCase();
+    // 4. トークンに訳語を割り当てる
+    final List<TokenData> translatedTokens = [];
+    for (int i = 0; i < tokens.length; i++) {
+      final token = tokens[i];
 
-      // isShow が true のエントリーを優先して保持するロジック
-      final bool alreadyHasShowEntry = translationMap[key]?.isShow ?? false;
-      if (!alreadyHasShowEntry) translationMap[key] = entry;
-    }
-
-    // 5. トークンに訳語を割り当てる
-    List<TokenData> translatedTokens = [];
-    for (int i = 0; i < initialTokens.length; i++) {
-      final initialToken = initialTokens[i];
-
-      // 単語でない、または辞書に存在しない場合は ID のみ更新して追加
-      final entry = translationMap[initialToken.word];
-
-      if (!initialToken.isWord || entry == null) {
-        translatedTokens.add(initialToken.copyWith(id: i));
+      // 単語でない、または単語帳に存在しない場合は ID のみ更新して追加
+      final entry = translationMap[token.word];
+      if (!token.isWord || entry == null) {
+        translatedTokens.add(token.copyWith(id: i));
         continue;
       }
 
-      // Record から ID と表示フラグを適用
+      // 単語帳の登録内容から ID と表示フラグを適用
       translatedTokens.add(
-        initialToken.copyWith(
+        token.copyWith(
           id: i,
           vocabId: entry.vocabId,
           nowShow: entry.isShow,

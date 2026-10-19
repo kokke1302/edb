@@ -4,7 +4,7 @@
 
 本資料は、`edb`（英語学習支援アプリ）のソースコード全文（`all_souses.txt`）・`pubspec.yaml`と組み合わせて使うことを想定した、AIによるコーディング支援用のリファレンスである。
 
-- 実装内容と本資料が矛盾する場合、本資料を正とする。
+- 実装内容と本資料が矛盾する場合、規約については本資料を正としする。ただし、意図を持って改変している場合は、実装を優先して正とする。先方に確認を取ること。
 - テストコードの指示については、テストコード全文（`all_tests.txt`）のヘッダー部を参照せよ。そこは、期待値（その処理が本来どう振る舞うべきか）を示す仕様書として機能する。
 - 本資料はファイル単位の責務・シグネチャ・テスト内容の把握を目的とし、実装の背景や設計判断の理由（なぜこの設計にしたか）は[開発記.md](./開発記.md)、構造の全体像は[人間向け技術資料.md](./人間向け技術資料.md#アーキテクチャの概要)を参照せよ。
 
@@ -12,13 +12,13 @@
 
 コードを追加・変更する際は以下を守ること。
 
-- **依存方向**: `Presentation → Domain ← Data`。Domain層（`entity` / `usecase` / `repository_abstract`）はPresentation・Dataのどちらにも依存しない。
+- **依存方向**: `Presentation → Domain ← Data`。Domain層（`model` / `usecase` / `repository_abstract`）はPresentation・Dataのどちらにも依存しない。
 - **Provider定義の場所**: Riverpodの`Provider`は、対応する`usecase`ファイルや`repository_abstract`ファイル内に直接定義する（`providers.dart`のような集約ファイルは存在しない）。
 - **Notifier間の呼び出し制約**（状態の競合回避のため）:
   - 他Notifierのプロパティは、Notifierの`build()`内でしか`watch`できない。
-  - Notifierのメソッド内では、他のNotifierのメソッドは1度しか呼び出せない。
+  - Notifierのメソッド内から呼べる他Notifierのメソッドは、Notifierごとに1回まで（複数のNotifierをそれぞれ1回ずつ呼ぶのは可）。
 - **UseCaseの粒度**: 1 UseCase = 1メソッド（`execute`）が基本。複数のRepositoryを跨ぐ処理はUseCase内でオーケストレーションする。
-- **Entityの使い分け**: 同じ「単語」でも用途によって型が異なる。新しい処理を書く際は、既存の型（下記「永続化データの定義」「ファイルの責務」参照）を流用できないか先に確認し、安易に新しい型を増やさない。
+- **型の使い分け**: 同じ「単語」でも用途によって型が異なる。新しい処理を書く際は、既存の型（下記「永続化データの定義」「ファイルの責務」参照）を流用できないか先に確認し、安易に新しい型を増やさない。
 
 ## ディレクトリ構造
 
@@ -26,7 +26,7 @@ lib/main.dart                                                   # アプリの�
 
 ### Presentation Layer (View Models & Routing)
 
-lib/presentation/view_models/book_notifier.dart                 # BookNotifier, bookProvider (単語帳の無限スクロール・リスト状態管理)
+lib/presentation/view_models/book_notifier.dart                 # BookNotifier, bookProvider, TypingWordNotifier, typingWordProvider (単語帳の無限スクロール・リスト状態管理／検索バーの入力途中文字列)
 lib/presentation/view_models/dictionary_notifier.dart           # DictionaryNotifier, dictionaryProvider (辞書シートの候補表示・表示切替)
 lib/presentation/view_models/bottom_index_notifier.dart         # BottomNavIndexNotifier, bottomNavIndexProvider (ボトムナビのインデックス管理)
 lib/presentation/view_models/regidata_receiver.dart             # RegiDataReceiver, regiDataReceiver (単語登録画面の初期値受け渡し中継)
@@ -43,11 +43,13 @@ lib/presentation/root/routing.dart                              # EnglishLearnin
 
 lib/presentation/pages/wordbook/book_screen.dart                # MyBookScreen (単語帳画面のルート。検索、ソート、リストの統合)
 lib/presentation/pages/wordbook/list/book_card.dart             # MyBookCard (単語帳リストの1件分のカードUI)
+lib/presentation/pages/wordbook/list/card_list.dart             # MyBookCardList (単語帳カードのSliverList。空状態メッセージとフッターを含む)
 lib/presentation/pages/wordbook/list/book_footer.dart           # MyBookFooter (リスト下部のロード中・エラー・終端状態の出し分け)
 lib/presentation/pages/wordbook/list/initial_error.dart         # MyInitialError (単語帳の初回ロード失敗時のエラー表示とリトライ導線)
 lib/presentation/pages/wordbook/search/searchbar.dart           # MySearchBar (検索キーワード入力バー。入力中と確定状態の分離管理)
 lib/presentation/pages/wordbook/search/sort_dropdown.dart       # MySortDropdownMenu (ソート項目（作成日時/英単語）の選択ドロップダウン)
 lib/presentation/pages/wordbook/search/sort_order.dart          # MySortOrderButton (ソート順序（昇順/降順）の切り替えトグルボタン)
+lib/presentation/pages/wordbook/search/silver_appbar.dart       # MyBookSliverAppBar (単語帳画面のSliverAppBar。検索展開・ソート・初期化・再取得の操作をまとめる)
 lib/presentation/pages/drawer/drawer.dart                       # MyDrawer (アプリ共通のドロワー。保存済み英文履歴や設定への導線)
 lib/presentation/pages/drawer/tile.dart                         # MyTile (Drawer内の保存済み英文1件分のListTile。復元・削除)
 lib/presentation/pages/translation/translation.dart             # TranslationModePage (翻訳モード画面の全体レイアウト専用Widget)
@@ -77,7 +79,7 @@ lib/domain/usecase/save_tile_usecase.dart                       # SaveTileUseCas
 lib/domain/usecase/delete_register_usecase.dart                 # DeleteRegisterUseCase, deleteRegisterUseCaseProvider (単語帳エントリ削除)
 lib/domain/usecase/delete_tile_usecase.dart                     # DeleteTileUseCase, deleteTileUseCaseProvider (指定IDの英文履歴削除)
 lib/domain/usecase/save_register_usecase.dart                   # SaveRegisterUseCase, saveRegisterUseCaseProvider (単語帳エントリの新規追加・更新)
-lib/domain/usecase/toggle_card_visibiliry_usecase.dart          # ToggleCardVisibilityUseCase, toggleCardVisibilityUseCaseProvider (候補表示切替)
+lib/domain/usecase/toggle_card_visibility_usecase.dart          # ToggleCardVisibilityUseCase, toggleCardVisibilityUseCaseProvider (候補表示切替)
 
 ### Domain Layer (Repository Interfaces)
 
@@ -88,29 +90,30 @@ lib/domain/repository_abstract/register_repository.dart         # RegisterReposi
 lib/domain/repository_abstract/translation_repository.dart      # TranslationRepository, translationRepositoryProvider (翻訳用エントリ一括取得定義)
 lib/domain/repository_abstract/tiles_repository.dart            # TilesRepository, tilesRepositoryProvider (英文履歴テーブルのCRUD操作定義)
 
-### Domain Layer (Entities & DTOs)
+### Domain Layer (Models)
 
-lib/domain/entity/value/base_status.dart                        # Based (enum: 出典元（単語帳/内部辞書/初期値）を定義)
-lib/domain/entity/value/sync_status.dart                        # SyncStatus (enum: リスト下部の同期状態（通常/ロード中/エラー）を定義)
-lib/domain/entity/value/sort_field.dart                         # SortField (enum: ソート対象カラム（作成日時/英単語）を定義)
-lib/domain/entity/value/sort_order.dart                         # SortOrder (enum: ソート順（昇順/降順）を定義)
-lib/domain/entity/model/book_data.dart                          # BookData (単語帳画面の状態クラス。ロード済みリストや終端判定)
-lib/domain/entity/model/card_data.dart                          # CardData (表示可否フラグと単語帳エントリを保持するUIモデル)
-lib/domain/entity/model/dictionary_data.dart                    # DictionaryData (辞書機能シートの選択中カード・候補リストを保持)
-lib/domain/entity/model/sorting_data.dart                       # SortingData (ソート項目・順序・検索文字列などの条件保持クラス)
-lib/domain/entity/model/tiles_data.dart                         # TilesData (保存済み英文履歴リストの保持クラス)
-lib/domain/entity/model/token_data.dart                         # TokenData (翻訳トークンの情報クラス。ID・訳・表示フラグ・判定ロジック)
-lib/domain/entity/model/translation_data.dart                   # TranslationData (入力英文全体とパースされたトークン列の保持クラス)
-lib/domain/entity/carry/vocab_entry.dart                        # VocabCore (単語帳/内部辞書の共通データ持ち運び用DTO)
-lib/domain/entity/carry/token_entry.dart                        # TokenEntry (翻訳処理時のトークン割り当て用DTO)
-lib/domain/entity/carry/tile_data.dart                          # TileData (英文履歴リスト表示用の軽量DTO)
-lib/domain/entity/carry/tile_detail.dart                        # TileDetail (英文履歴からの復元用詳細DTO（本文とトークンチェーン）)
+lib/domain/model/enum/base_status.dart                          # Based (enum: 出典元（単語帳/内部辞書/初期値/外部API）を定義)
+lib/domain/model/enum/sync_status.dart                          # SyncStatus (enum: リスト下部の同期状態（通常/ロード中/エラー）を定義)
+lib/domain/model/enum/sort_field.dart                           # SortField (enum: ソート対象カラム（作成日時/英単語）を定義)
+lib/domain/model/enum/sort_order.dart                           # SortOrder (enum: ソート順（昇順/降順）を定義)
+lib/domain/model/value_object/card_data.dart                    # CardData (表示可否フラグと単語帳エントリを保持する。辞書機能シートの候補カードで使用)
+lib/domain/model/value_object/sorting_data.dart                 # SortingData (ソート項目・順序・検索文字列などの条件保持クラス)
+lib/domain/model/value_object/tile_data.dart                    # TileData (英文履歴リスト表示用の軽量DTO)
+lib/domain/model/value_object/tile_detail.dart                  # TileDetail (英文履歴からの復元用詳細DTO（本文とトークンチェーン）)
+lib/domain/model/value_object/token_core.dart                   # TokenCore (翻訳処理時のトークン割り当て用DTO)
+lib/domain/model/value_object/token_data.dart                   # TokenData (翻訳トークンの情報クラス。ID・訳・表示フラグ・判定ロジック)
+lib/domain/model/value_object/vocab_core.dart                   # VocabCore (単語帳/内部辞書の共通データ持ち運び用DTO)
+lib/domain/model/entity/book_data.dart                          # BookData (単語帳画面の状態クラス。ロード済みリストや終端判定)
+lib/domain/model/entity/dictionary_data.dart                    # DictionaryData (辞書機能シートの選択中カード・候補リストを保持)
+lib/domain/model/entity/tiles_data.dart                         # TilesData (保存済み英文履歴リストの保持クラス)
+lib/domain/model/entity/translation_data.dart                   # TranslationData (入力英文全体とパースされたトークン列の保持クラス)
 
 ### Data Layer (Repository Implementations)
 
 lib/data/repository_impl/local_book_repository.dart             # LocalBookRepository (Vocabulariesの検索付きページングクエリ実装)
 lib/data/repository_impl/local_dictionary_repository.dart       # LocalDictionaryRepository (VocabulariesとInternalDictionariesの検索実装)
 lib/data/repository_impl/local_text_processor.dart              # LocalTextProcessor (トークン化、差分計算、辞書検索を組み合わせた解析中核)
+lib/data/repository_impl/remote_text_processor.dart             # RemoteTextProcessor (fullTranslationを外部APIに委譲。失敗時はLocalTextProcessorへフォールバック)
 lib/data/repository_impl/local_register_repository.dart         # LocalRegisterRepository (単語帳のCUD。一単語一表示の排他制御実装)
 lib/data/repository_impl/local_tiles_repository.dart            # LocalTilesRepository (EnglishTextsテーブルへのCRUD操作実装)
 lib/data/repository_impl/local_translation_repository.dart      # LocalTranslationRepository (複数キーに一致する有効な訳語の一括取得実装)
@@ -119,7 +122,7 @@ lib/data/repository_impl/local_translation_repository.dart      # LocalTranslati
 
 lib/data/mapper/tile_mapper.dart                                # TileMapper (EnglishText行 ⇔ TileData/TileDetail 変換、JSONデコード)
 lib/data/mapper/vocab_mapper.dart                               # VocabMapper (Vocabulary/InternalDictionary行 → VocabCore 変換)
-lib/data/mapper/token_mapper.dart                               # TokenMapper (JSON ⇔ TokenData 変換、Vocabulary行 → TokenEntry 変換)
+lib/data/mapper/token_mapper.dart                               # TokenMapper (JSON ⇔ TokenData 変換、Vocabulary行 → TokenCore 変換、外部APIレスポンス → TokenData 変換)
 
 ### Data Layer (Database & Initializers)
 
@@ -148,6 +151,7 @@ test/impl_test/local_dictionary_test.dart                       # LocalDictionar
 test/impl_test/local_tiles_test.dart                            # LocalTilesRepository のテスト
 test/impl_test/local_book_test.dart                             # LocalBookRepository のテスト
 test/impl_test/local_text_processor_test.dart                   # LocalTextProcessor のテスト
+test/impl_test/remote_text_processor_test.dart                  # RemoteTextProcessor のテスト
 test/impl_test/local_translation_test.dart                      # LocalTranslationRepository のテスト
 test/impl_test/local_register_test.dart                         # LocalRegisterRepository のテスト
 
@@ -210,7 +214,7 @@ test/impl_test/local_register_test.dart                         # LocalRegisterR
 ```
 
 - `id`: トークンリスト内での位置インデックス（0始まりの連番）
-- `vocabId`: 対応する単語帳エントリのID（未登録・内部辞書のみの場合は`-1`）
+- `vocabId`: 対応する単語帳エントリのID（未登録・内部辞書のみの場合は`-1`、外部API由来の訳は`-2`）
 - `showWord`: 表示する文字列そのもの（大小文字混合、句読点も含む）
 - `nowShow`: 訳語を翻訳画面に表示するかどうか
 - `translation`: 表示する訳語文字列
@@ -226,22 +230,29 @@ riverpodのNotifierを使用している。
 #### book_notifier.dart
 
 - クラス名: BookNotifier
-- 役割: 単語帳画面のリスト状態（ロード済みカード・ページング・終端判定）を管理し、無限スクロールの取得ロジックを提供するNotifier。
-- 管理する状態: `AsyncValue<BookData>`（ロード済みカード群・終端状態）
+- 役割: 単語帳画面のリスト状態（ロード済み単語・ページング・終端判定）を管理し、無限スクロールの取得ロジックを提供するNotifier。
+- 管理する状態: `AsyncValue<BookData>`（ロード済み単語（VocabCore）のリスト・終端状態）
 - Provider: bookProvider（AsyncNotifierProvider.autoDispose）
 
 build()はsortingProviderをwatchし、変化時に自動で再取得される。
 
+同ファイル内に、検索バーで入力途中の文字列（確定前）を保持する`TypingWordNotifier`も定義している（UI専用の状態のため`SortingData`には含めない）。
+
+- クラス名: TypingWordNotifier
+- 管理する状態: `String`（入力途中の検索文字列）
+- Provider: typingWordProvider（NotifierProvider）
+- メソッド: `void set(String text)`（入力内容をそのまま状態に反映する）
+
 | 型 | 関数名 | 引数 | 説明 | 依存 |
 | :--- | :--- | :--- | :--- | :--- |
 | Future\<void> | loadNextPage | - | 無限スクロールで次のページ分のカードを表示できるようにするために使う。ロード中・データ終端時は何もしない。取得に失敗した場合はリスト下部にエラー状態を表示させる。 | FetchBookDataUseCase |
-| Future\<void> | reload | - | Pull-to-Refreshや検索確定で、一覧を最新の内容に作り直すために使う。 | sortingProvider |
+| Future\<void> | reload | - | Pull-to-Refreshや検索確定で、一覧を最新の内容に作り直すために使う。入力途中の検索文字列は、確定済みの検索文字列で上書きされる。 | sortingProvider, typingWordProvider |
 
 #### sorting_notifier.dart
 
 - クラス名: SortingNotifier
-- 役割: 単語帳画面のソート条件・検索文字列（確定済み／入力中）を管理するNotifier。
-- 管理する状態: `SortingData`（ソート項目・順序・検索文字列・ページサイズ）
+- 役割: 単語帳画面のソート条件・確定済みの検索文字列を管理するNotifier。
+- 管理する状態: `SortingData`（ソート項目・順序・確定済み検索文字列・ページサイズ）
 - Provider: sortingProvider（NotifierProvider）
 
 | 型 | 関数名 | 引数 | 説明 | 依存 |
@@ -249,13 +260,12 @@ build()はsortingProviderをwatchし、変化時に自動で再取得される�
 | void | setField | SortField newField | 単語帳の並び替え基準を切り替えるために使う。 | - |
 | void | setOrder | SortOrder newOrder | 単語帳の並び順（昇順/降順）を切り替えるために使う。 | - |
 | void | setSearchWord | String text | 検索条件を確定させ、絞り込み結果を反映させるために使う（Enter確定時などに使用）。 | - |
-| void | setTypeWord | String text | 検索バーの入力内容をその都度状態へ反映するために使う。 | - |
 
 #### register_notifier.dart
 
 - クラス名: RegisterNotifier
 - 役割: 単語登録・編集画面の入力状態を管理し、保存・削除処理を他Notifierと連携させてオーケストレーションするNotifier。
-- 管理する状態: `AsyncValue<CardData>`（編集中の単語帳エントリ）
+- 管理する状態: `AsyncValue<VocabCore>`（編集中の単語帳エントリ）
 - Provider: registerProvider（AsyncNotifierProvider.autoDispose）
 
 build()で`regiDataReceiver`から初期値を受け取る。
@@ -300,14 +310,12 @@ build()で`regiDataReceiver`から初期値を受け取る。
 
 - クラス名: RegiDataReceiver
 - 役割: 登録・編集画面（RegisterNotifier）の初期状態を受け渡す中継Notifier。単語帳カード・内部辞書カードいずれから遷移しても共通の初期化窓口になる。
-- 管理する状態: `CardData`
+- 管理する状態: `VocabCore`（初期値は`VocabCore.init()`による空の状態）
 - Provider: regiDataReceiver（NotifierProvider）
 
 | 型 | 関数名 | 引数 | 説明 | 依存 |
 | :--- | :--- | :--- | :--- | :--- |
-| void | initialCard | {String word = ''} | 単語を新規登録する画面を、空の状態から開始できるようにするために使う。 | - |
-| void | receiveRegisteredCard | {required CardData card} | 単語帳カードの内容を編集画面に引き継ぎ、編集を開始できるようにするために使う。 | - |
-| void | receiveDictionaryCard | {required CardData card} | 内部辞書カードの内容を登録画面に引き継ぎ、新規登録を開始できるようにするために使う。 | - |
+| void | receiveRegiData | {required VocabCore vocab} | 単語帳または内部辞書の内容を登録・編集画面に引き継ぎ、編集や新規登録を開始できるようにするために使う。同じ値が設定済みの場合は何もしない。空の状態から新規登録する場合の初期値は`VocabCore.init({word})`で作れる。 | - |
 
 #### bottom_index_notifier.dart
 
@@ -331,7 +339,7 @@ build()はselectedTokenProviderを読み取り、FetchDictionaryDataUseCaseで�
 
 | 型 | 関数名 | 引数 | 説明 | 依存 |
 | :--- | :--- | :--- | :--- | :--- |
-| Future\<void> | toggleVisibility | {required CardData card} | 辞書機能シートで選んだ候補を「現在使用する訳」として切り替え、翻訳結果にも反映するために使う。単語帳由来のカード以外や処理中のものは対象外。 | ToggleCardVisibilityUseCase, TranslationNotifier |
+| Future\<void> | toggleVisibility | {required CardData card} | 辞書機能シートで選んだ候補を「現在使用する訳」として切り替え、翻訳結果にも反映するために使う。単語帳由来・外部API由来のカード以外や処理中のものは対象外。 | ToggleCardVisibilityUseCase, TranslationNotifier |
 
 #### tiles_notifier.dart
 
@@ -401,12 +409,8 @@ build()はselectedTokenProviderを読み取り、FetchDictionaryDataUseCaseで�
 
 | 見た目 | クラス名 | 場所 | イベント/関数 | 役割 | 依存 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 検索入力欄 | MySearchBar | AppBarタイトル部 | - | 検索キーワードを入力する（子コンポーネント）。 | sortingProvider, bookProvider |
-| 昇順/降順切替ボタン | MySortOrderButton | AppBar右側（actions先頭） | - | 単語帳の並び順を切り替える（子コンポーネント）。 | sortingProvider |
-| ソート項目ドロップダウン | MySortDropdownMenu | AppBar右側（actions2番目） | - | 並び替え基準を選択する（子コンポーネント）。 | sortingProvider |
-| ホームアイコンボタン | IconButton（Icons.home） | AppBar右端 | onPressed | 検索・ソート条件を初期状態に戻すために使う。 | sortingProvider, bookProvider |
-| 再読み込みアイコンボタン | IconButton（Icons.loop） | AppBar右端 | onPressed | 単語帳一覧を読み込み直すために使う。 | bookProvider |
-| 単語帳カードリスト | MyBookCard（一覧） | 画面中央（CustomScrollViewのSliverList） | scrollListener | リスト終端に近づくと無限スクロールで次ページを自動読み込みする。各行は子コンポーネント。 | bookProvider, Throttle |
+| 検索・ソート用AppBar | MyBookSliverAppBar | 画面上部（CustomScrollViewのSliverAppBar） | - | 検索展開・ソート・初期化・再取得の操作をまとめる（子コンポーネント）。 | sortingProvider, typingWordProvider, bookProvider |
+| 単語帳カードリスト | MyBookCardList | 画面中央（CustomScrollViewのSliverList） | scrollListener | 一覧を表示する（子コンポーネント）。リスト終端に近づくと無限スクロールで次ページを自動読み込みする（スクロール監視は画面側）。 | bookProvider, Throttle |
 | リスト下部フッター | MyBookFooter | リスト最下部 | - | ロード中・エラー・終端の状態に応じた表示を出し分ける（子コンポーネント）。 | bookProvider |
 | 初回ロード中インジケータ | CircularProgressIndicator | 画面中央 | - | 初回データ取得中であることを示す。 | bookProvider |
 | 初回エラー画面 | MyInitialError | 画面中央 | - | 初回データ取得に失敗した際のエラー表示とリトライ導線（子コンポーネント）。 | bookProvider |
@@ -434,6 +438,17 @@ build()はselectedTokenProviderを読み取り、FetchDictionaryDataUseCaseで�
 | エラーメッセージ・詳細テキスト | Text（2行） | 画面中央 | - | 初回ロードに失敗した旨とエラー内容を表示する。 | - |
 | リトライボタン | ElevatedButton「リトライ」 | 画面中央 | onPressed | 初回読み込みに失敗した単語帳一覧を、取得し直すために使う。 | bookProvider |
 
+##### list/card_list.dart
+
+- クラス名: MyBookCardList
+- 役割: 単語帳カード（MyBookCard）をSliverListで並べ、末尾にMyBookFooterを置く。データ終端かつ0件のときは案内メッセージ（検索語があれば「一致する単語は見つかりませんでした」）を表示する。
+
+| 見た目 | クラス名 | 場所 | イベント/関数 | 役割 | 依存 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 空状態メッセージ | Text | 画面中央（0件時のみ） | - | 単語帳が空、または検索に一致する単語がないことを知らせる。 | sortingProvider |
+| 単語帳カード一覧 | MyBookCard | リスト内1件分 | - | 単語帳1件分のカードを表示する（子コンポーネント）。 | - |
+| リスト下部フッター | MyBookFooter | リスト最下部 | - | ロード中・エラー・終端の状態を出し分ける（子コンポーネント）。 | - |
+
 ##### list/book_card.dart
 
 - クラス名: MyBookCard
@@ -448,6 +463,21 @@ build()はselectedTokenProviderを読み取り、FetchDictionaryDataUseCaseで�
 | 非表示アイコン | Icon（visibility_off） | カード下段（isShow=false時のみ） | - | この訳が翻訳で使われない設定であることを示す。 | - |
 | 更新日時表示 | Text「更新: YYYY/MM/DD」 | カード下段右寄り | - | 最終更新日を表示する。 | - |
 | 編集アイコン | IconButton（Icons.more_vert） | カード下段右端 | onPressed | このカードの内容を編集する画面（/registration）を開くために使う。 | regiDataReceiver |
+
+##### search/silver_appbar.dart
+
+- クラス名: MyBookSliverAppBar
+- 役割: 単語帳画面のSliverAppBar。通常時は検索展開・ソート・初期化・再取得の操作を並べ、検索モードでは戻る矢印と検索バーに切り替える（切り替えはローカル状態`isSearching`）。
+
+| 見た目 | クラス名 | 場所 | イベント/関数 | 役割 | 依存 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 検索展開アイコン | IconButton（Icons.search） | 通常時バー左端 | onPressed | 検索モードに切り替える。 | - |
+| 戻る矢印 | IconButton（Icons.arrow_back） | 検索モード時バー左端 | onPressed | 検索モードを閉じて通常表示に戻す。 | - |
+| 検索入力欄 | MySearchBar | 検索モード時バー | - | 検索キーワードを入力する（子コンポーネント）。 | typingWordProvider, sortingProvider, bookProvider |
+| 昇順/降順切替ボタン | MySortOrderButton | 通常時バー | - | 並び順を切り替える（子コンポーネント）。 | sortingProvider |
+| ソート項目ドロップダウン | MySortDropdownMenu | 通常時バー | - | 並び替え基準を選択する（子コンポーネント）。 | sortingProvider |
+| ホームアイコンボタン | IconButton（Icons.home） | 通常時バー右側 | onPressed | 検索・ソート条件（入力途中の文字列を含む）を初期状態に戻し、再取得する。 | sortingProvider, typingWordProvider, bookProvider |
+| 再読み込みアイコンボタン | IconButton（Icons.loop） | 通常時バー右端 | onPressed | 単語帳一覧を読み込み直す。 | bookProvider |
 
 ##### search/sort_order.dart
 
@@ -474,9 +504,9 @@ build()はselectedTokenProviderを読み取り、FetchDictionaryDataUseCaseで�
 
 | 見た目 | クラス名 | 場所 | イベント/関数 | 役割 | 依存 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 検索入力欄 | TextField（検索アイコン付き） | AppBarタイトル部 | onChanged | 検索バーの入力内容をその都度状態に反映するために使う。 | sortingProvider |
+| 検索入力欄 | TextField（検索アイコン付き） | AppBarタイトル部 | onChanged | 検索バーの入力内容をその都度状態に反映するために使う。 | typingWordProvider |
 | 検索入力欄（確定） | 同上 | 同上 | onSubmitted | 入力した検索語を確定させ、単語帳一覧を絞り込むために使う。 | sortingProvider, bookProvider |
-| クリアボタン | IconButton（Icons.clear、suffixIcon） | 検索欄右端（入力中のみ表示） | onPressed | 検索入力をクリアするために使う。 | sortingProvider |
+| クリアボタン | IconButton（Icons.clear、suffixIcon） | 検索欄右端（入力中のみ表示） | onPressed | 検索入力をクリアするために使う。 | typingWordProvider |
 
 #### drawer/
 
@@ -642,21 +672,21 @@ build()はselectedTokenProviderを読み取り、FetchDictionaryDataUseCaseで�
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | 見出し（選択中の単語） | Text | シート上部左 | - | 選択中のトークンの英単語を大きく表示する。 | selectedTokenProvider |
 | 閉じるボタン | IconButton（Icons.close） | シート上部右 | onPressed | 辞書機能シートを閉じるために使う。 | - |
-| 単語帳由来の候補カード一覧 | MyRegisteredCard（一覧） | シート中央 | - | 単語帳に登録済みの訳語候補を表示する（子コンポーネント）。 | dictionaryProvider |
+| 単語帳由来の候補カード一覧 | MyRegisteredCard（一覧） | シート中央 | - | 単語帳に登録済みの訳語候補、および外部API由来の訳（表示中・非表示）を表示する（子コンポーネント）。 | dictionaryProvider |
 | 内部辞書由来の候補カード一覧 | MyDictionaryCard（一覧） | シート中央 | - | 内部辞書由来の訳語候補を表示する（子コンポーネント）。 | dictionaryProvider |
 | オリジナル登録リストタイル | ListTile「オリジナルを登録」 | シート最下部 | onTap | 候補にない単語を新規登録するために、登録画面（/registration）を開く。 | regiDataReceiver |
 
 ##### registered_card.dart
 
 - クラス名: MyRegisteredCard
-- 役割: 単語帳由来の候補カード。表示/非表示切り替えと単語帳編集への導線を持つ。
+- 役割: 単語帳または外部API由来の候補カード。表示/非表示切り替えと登録画面への導線を持つ。
 
 | 見た目 | クラス名 | 場所 | イベント/関数 | 役割 | 依存 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | カード全体 | Card（枠線、選択中は強調） | 候補リスト内1件分 | - | 単語帳由来の訳語候補を表示する。現在選択中の訳は枠線を強調する。 | - |
 | 訳語表示 | Text | カード上段左 | - | 候補の日本語訳を表示する。 | - |
-| 表示切り替えアイコン | IconButton（visibility/visibility_off） | カード上段右（単語帳由来カードのみ表示） | onPressed | この訳を翻訳に使うかどうかを切り替えるために使う。 | dictionaryProvider |
-| 編集アイコン | IconButton（Icons.book） | カード上段右端 | onPressed | このカードの内容を編集する画面（/registration）を開くために使う。 | regiDataReceiver |
+| 表示切り替えアイコン | IconButton（visibility/visibility_off） | カード上段右 | onPressed | この訳を翻訳に使うかどうかを切り替えるために使う。 | dictionaryProvider |
+| 編集アイコン | IconButton（Icons.book） | カード上段右端 | onPressed | このカードの内容を編集する画面（/registration）を開くために使う。外部API由来のカードは`based`が`vocabularies`ではないため、新規登録として開く（訳を引き継ぐ）。 | regiDataReceiver |
 | メモ表示 | Text（アイコン付き） | カード下段 | - | 登録済みのメモを表示する。訳語表示中の場合は目のアイコンを添える。 | - |
 
 ##### dictionary_card.dart
@@ -700,13 +730,13 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 #### fetch_bookdata_usecase.dart
 
 - クラス名: FetchBookDataUseCase
-- 役割: 単語帳データをページング取得し、CardDataへ変換するUseCase。
+- 役割: 単語帳データを、検索語・ソート条件に応じてページ単位で取得するUseCase（BookRepositoryへ委譲）。
 - Provider: fetchBookDataUseCaseProvider
 - 依存: BookRepository
 
 | 型 | メソッド名 | 引数 | 説明 |
 | :--- | :--- | :--- | :--- |
-| Future<\List\<CardData>> | execute | {required int currentCount, required SortingData sorter} | 単語帳一覧を、画面表示にそのまま使える形式（CardData）で取得するために使う。 |
+| Future\<List\<VocabCore>> | execute | {required int currentCount, required SortingData sorter} | 単語帳一覧を、現在のロード済み件数（currentCount）を起点にページ単位で取得するために使う。 |
 
 #### fetch_tile_detail_usecase.dart
 
@@ -722,7 +752,7 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 #### fetch_dictionarydata_usecase.dart
 
 - クラス名: FetchDictionaryDataUseCase
-- 役割: 選択中トークンに対応する単語帳・内部辞書候補を取得し、表示中カード（showCard）と候補リストに振り分けるUseCase。
+- 役割: 選択中トークンに対応する単語帳・内部辞書候補を取得し、単語帳候補は`CardData`に包んで表示中カード（showCard）と候補リスト（vocabularyCards）に振り分け、内部辞書候補は`VocabCore`のまま返すUseCase。単語帳の行で説明できない表示中トークン（外部API由来など）は`VocabCore.fromToken`でカードを作って`showCard`にし、非表示にされた外部APIの訳は再表示できるよう`vocabularyCards`に残す。
 - Provider: fetchDictionaryDataUseCaseProvider
 - 依存: DictionaryRepository
 
@@ -750,7 +780,7 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 
 | 型 | メソッド名 | 引数 | 説明 |
 | :--- | :--- | :--- | :--- |
-| Future\<TokenData> | execute | {required CardData card, required TokenData token} | 単語帳エントリを削除する。翻訳画面側のトークンも未登録の状態に戻す。 |
+| Future\<TokenData> | execute | {required VocabCore vocab, required TokenData token} | 単語帳エントリを削除する。翻訳画面側のトークンも未登録の状態に戻す。 |
 
 #### delete_tile_usecase.dart
 
@@ -772,7 +802,7 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 
 | 型 | メソッド名 | 引数 | 説明 |
 | :--- | :--- | :--- | :--- |
-| Future\<TokenData> | execute | {required CardData card, required TokenData token} | 単語帳エントリを新規登録または更新する。その結果を翻訳画面側のトークンにも反映するために使う。 |
+| Future\<TokenData> | execute | {required VocabCore vocab, required TokenData token} | 単語帳エントリを新規登録または更新する。その結果を翻訳画面側のトークンにも反映するために使う。 |
 
 #### toggle_card_visibility_usecase.dart
 
@@ -804,7 +834,7 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 
 - クラス名: TextProcessor
 - 役割: 翻訳ロジックを定義する抽象interface。
-- Provider: textProcessorProvider（実装: LocalTextProcessor）
+- Provider: textProcessorProvider（実装: LocalTextProcessor。ビルド時に`--dart-define=TRANSLATE_API_URL=<URL>`を指定した場合は RemoteTextProcessor）
 
 | 型 | メソッド名 | 引数 | 説明 |
 | :--- | :--- | :--- | :--- |
@@ -842,7 +872,7 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 
 | 型 | メソッド名 | 引数 | 説明 |
 | :--- | :--- | :--- | :--- |
-| Future\<List\<TokenEntry>> | fetchTranslationsBatch | {required Set\<String> keys} | 翻訳画面に表示する訳語を、複数の単語についてまとめて取得するために使う（非表示設定のエントリは対象外）。 |
+| Future\<List\<TokenCore>> | fetchTranslationsBatch | {required Set\<String> keys} | 翻訳画面に表示する訳語を、複数の単語についてまとめて取得するために使う（非表示設定のエントリは対象外）。 |
 
 #### tiles_repository.dart
 
@@ -857,9 +887,9 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 | Future\<List\<TileData>> | fetchAllTiles | - | 英文履歴の一覧（id・原文のみ）を取得する。 |
 | Future\<TileDetail> | fetchTileDetail | {required int id} | 指定IDの英文履歴（英文・トークン列）を取得する。 |
 
-### entity/
+### model/
 
-#### value/
+#### enum/
 
 ソート順やステータスなど。
 システム内であらかじめ決まった選択肢や概念そのものを定義している。
@@ -873,6 +903,7 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 | vocabularies | enum | 単語帳DB由来 |
 | dictionary | enum | 内部辞書DB由来 |
 | init | enum | 初期値（未登録） |
+| remote | enum | 外部API由来（翻訳APIが返した訳） |
 
 ##### sync_status.dart
 
@@ -902,21 +933,10 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 | asc | enum | 昇順 |
 | desc | enum | 降順 |
 
-#### model
+#### value_object/
 
-画面（UI）に何を表示するか、スクロールがどこまで進んだかなど。
-現在の状態、UIに必要な情報を保持する。
-
-##### book_data.dart
-
-- クラス名: BookData
-
-| フィールド名 | 型 | 説明 |
-| :--- | :--- | :--- |
-| pageSize | int | 1ページあたりの取得件数 |
-| cards | List\<CardData> | ロード済み単語カードのリスト |
-| tailStatus | SyncStatus | リスト下部に表示すべき状態 |
-| isDataEnd | bool | getter: cards.length < pageSize でデータ終端かを判定 |
+アプリケーション内部で値を持ち運んだり受け渡したりするためのデータ構造（DTOを含む）。
+データベース（外部）から取ってきた生データの中継役（`VocabCore`・`TokenCore`など）や、翻訳トークン・ソート条件のような状態の部品がここにある。
 
 ##### card_data.dart
 
@@ -927,88 +947,16 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 | nowShow | bool | 現在この訳語が翻訳に表示されているか |
 | vocab | VocabCore | 単語帳エントリ本体 |
 
-##### dictionary_data.dart
-
-- クラス名: DictionaryData
-
-| フィールド名 | 型 | 説明 |
-| :--- | :--- | :--- |
-| showCard | CardData? | 現在選択・表示中のカード（null = 非選択） |
-| vocabularyCards | List\<CardData> | 単語帳からの候補リスト（未選択分） |
-| dictionaryCards | List\<CardData> | 内部辞書からの候補リスト |
-
 ##### sorting_data.dart
 
 - クラス名: SortingData
 
 | フィールド名 | 型 | 説明 |
 | :--- | :--- | :--- |
-| field | SortField | ソート対象カラム |
-| order | SortOrder | ソート順 |
+| field | SortField | ソート対象カラム（既定値: englishWord） |
+| order | SortOrder | ソート順（既定値: desc） |
 | searchWord | String | 確定済み検索文字列 |
-| typingWord | String | 入力中の検索文字列（未確定） |
 | pageSize | int | 1ページあたりの取得件数（既定値20） |
-
-##### tiles_data.dart
-
-- クラス名: TilesData
-
-| フィールド名 | 型 | 説明 |
-| :--- | :--- | :--- |
-| list | List\<TileData> | 保存済み英文履歴リスト |
-
-##### token_data.dart
-
-- クラス名: TokenData
-
-| フィールド名 | 型 | 説明 |
-| :--- | :--- | :--- |
-| id | int | リスト内の位置インデックス |
-| vocabId | int | 対応する単語帳エントリID（未登録は -1） |
-| showWord | String | 表示する文字列（大小文字混合） |
-| nowShow | bool | 訳語を翻訳画面に表示するか |
-| translation | String | 表示する訳語 |
-| isWord | bool | getter: 単語か句読点かを正規表現で判定 |
-| word | String | getter: showWord.toLowerCase()（DB検索キー） |
-
-##### translation_data.dart
-
-- クラス名: TranslationData
-
-| フィールド名 | 型 | 説明 |
-| :--- | :--- | :--- |
-| originalText | String | 入力された英文全体 |
-| tokens | List\<TokenData> | トークン化・訳語割り当て済みのリスト |
-
-#### carry
-
-データベース（外部）から取ってきた生データを、アプリケーション内部で持ち運んだり受け渡したりするための中継役（=DTO）。
-
-##### vocab_entry.dart
-
-- クラス名: VocabCore
-
-| フィールド名 | 型 | 説明 |
-| :--- | :--- | :--- |
-| id | int | 単語帳DBのID（内部辞書由来は -1） |
-| word | String | 英単語（小文字） |
-| translation | String | 日本語訳 |
-| isShow | bool | 翻訳に使用するか（DBのisHiddenの反転） |
-| memo | String | メモ |
-| createdAt | DateTime | 登録日時 |
-| updatedAt | DateTime | 更新日時 |
-| based | Based | 出典元 |
-
-##### token_entry.dart
-
-- クラス名: TokenEntry
-
-| フィールド名 | 型 | 説明 |
-| :--- | :--- | :--- |
-| vocabId | int | 対応する単語帳エントリID |
-| showWord | String | 英単語（表示用） |
-| translation | String | 日本語訳 |
-| isShow | bool | 翻訳に表示するか |
 
 ##### tile_data.dart
 
@@ -1027,6 +975,93 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 | :--- | :--- | :--- |
 | title | String | 英文テキスト |
 | chain | List\<TokenData> | 訳語割り当て済みトークンリスト（履歴からの復元用） |
+
+##### token_core.dart
+
+- クラス名: TokenCore
+
+| フィールド名 | 型 | 説明 |
+| :--- | :--- | :--- |
+| vocabId | int | 対応する単語帳エントリID |
+| showWord | String | 英単語（表示用） |
+| isShow | bool | 翻訳に表示するか |
+| translation | String | 日本語訳 |
+
+##### token_data.dart
+
+- クラス名: TokenData
+
+| フィールド名 | 型 | 説明 |
+| :--- | :--- | :--- |
+| id | int | リスト内の位置インデックス |
+| vocabId | int | 対応する単語帳エントリID（未登録は -1、外部API由来は -2） |
+| showWord | String | 表示する文字列（大小文字混合） |
+| nowShow | bool | 訳語を翻訳画面に表示するか |
+| translation | String | 表示する訳語 |
+| isWord | bool | getter: 単語か句読点かを正規表現で判定 |
+| word | String | getter: showWord.toLowerCase()（DB検索キー） |
+| isRemote | bool | getter: vocabId == -2（外部APIの訳。単語帳に行を持たない） |
+| isNoRegistered | bool | getter: vocabId < 0（未登録と外部API由来を含む） |
+| noVocabId, remoteVocabId | static const int | vocabIdの特殊値。-1（未登録）、-2（外部APIの訳） |
+
+##### vocab_core.dart
+
+- クラス名: VocabCore
+
+| フィールド名 | 型 | 説明 |
+| :--- | :--- | :--- |
+| id | int | 単語帳DBのID（内部辞書由来は -1、外部API由来は -2） |
+| word | String | 英単語（小文字） |
+| translation | String | 日本語訳 |
+| isShow | bool | 翻訳に使用するか（DBのisHiddenの反転） |
+| memo | String | メモ |
+| createdAt | DateTime | 登録日時 |
+| updatedAt | DateTime | 更新日時 |
+| based | Based | 出典元（vocabularies / dictionary / init / remote） |
+
+`VocabCore.fromToken(TokenData)`: 辞書機能シートで、単語帳の行で説明できない表示中トークン（外部API由来）から候補カードを作る。`token.isRemote`なら`based: remote`、それ以外は`based: init`。
+
+#### entity/
+
+画面（UI）に何を表示するか、スクロールがどこまで進んだかなど。
+現在の状態、UIに必要な情報を保持する。
+
+##### book_data.dart
+
+- クラス名: BookData
+
+| フィールド名 | 型 | 説明 |
+| :--- | :--- | :--- |
+| vocabs | List\<VocabCore> | ロード済み単語帳エントリのリスト |
+| tailStatus | SyncStatus | リスト下部に表示すべき状態（既定値: normal） |
+| isDataEnd | bool | 全てのデータをロード済みか（既定値: false。取得件数がpageSize未満のとき BookNotifier が true にする） |
+
+##### dictionary_data.dart
+
+- クラス名: DictionaryData
+
+| フィールド名 | 型 | 説明 |
+| :--- | :--- | :--- |
+| showCard | CardData? | 現在選択・表示中のカード（null = 非選択） |
+| vocabularyCards | List\<CardData> | 単語帳からの候補リスト（未選択分） |
+| dictionaryCards | List\<VocabCore> | 内部辞書からの候補リスト |
+
+##### tiles_data.dart
+
+- クラス名: TilesData
+
+| フィールド名 | 型 | 説明 |
+| :--- | :--- | :--- |
+| list | List\<TileData> | 保存済み英文履歴リスト |
+
+##### translation_data.dart
+
+- クラス名: TranslationData
+
+| フィールド名 | 型 | 説明 |
+| :--- | :--- | :--- |
+| originalText | String | 入力された英文全体 |
+| tokens | List\<TokenData> | トークン化・訳語割り当て済みのリスト |
 
 ### repository_impl/
 
@@ -1063,6 +1098,16 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 
 備考: 同一検索キーに複数エントリがある場合`isShow: true`のものを優先する。
 
+#### remote_text_processor.dart
+
+- クラス名: RemoteTextProcessor
+- 役割: TextProcessorの実装。`fullTranslation`を外部APIに任せ、`partTranslation`は入力のたびに走る差分更新なので通信せず`LocalTextProcessor`に委譲する。通信失敗・200以外のステータス・不正なレスポンス・タイムアウト（既定10秒）のときは`LocalTextProcessor`にフォールバックする。成功時は単語帳（ローカルDB）を参照しない。
+- API: `POST {endpoint}`（`Content-Type: application/json`）。リクエスト `{"text": "I like apples."}`、レスポンスは原文の出現順に並べた `[{"showWord": "I", "translation": "私は"}, ...]`（`showWord`はローカルと同じ切り方の表層形、`translation`は訳語。無い場合は空文字またはキー省略）。
+
+| 型 | メソッド名 | 引数 | 説明 |
+| :--- | :--- | :--- | :--- |
+| Future\<List\<TokenData>> | _fetchTokens（private） | String text | API呼び出しとトークン変換。空白のみ・空文字のトークンを除外し、`id`を0始まりの連番に振り直す。 |
+
 #### local_translation_repository.dart
 
 - クラス名: LocalTranslationRepository
@@ -1084,7 +1129,7 @@ UseCaseは「1 UseCase = 1メソッド（execute）」の原則に基づく。
 
 ### mapper/
 
-DBの行オブジェクト・JSON・ドメイン層のcarry/model間の変換のみを担う純粋な変換クラス群。
+DBの行オブジェクト・JSON・ドメイン層のvalue_object間の変換のみを担う純粋な変換クラス群。
 Provider定義は持たない。
 
 #### tile_mapper.dart
@@ -1105,17 +1150,18 @@ Provider定義は持たない。
 | 型 | メソッド名 | 引数 | 説明 |
 | :--- | :--- | :--- | :--- |
 | VocabCore | fromVocabularies | {required Vocabulary vocabulary} | Vocabulary行をVocabCoreへ変換する。単語帳の情報を保持させる。isHiddenを反転してisShowにマッピングする。based: Based.vocabulariesを付与する。 |
-| VocabCore | fromDictionary | {required InternalDictionary dictionary} | InternalDictionary行をVocabCoreへ変換する。内部辞書の情報を保持させる。isHiddenを反転してisShowにマッピングする。based: Based.dictionaryを付与する。id: -1固定、isShow: true固定、memoはnull時に空文字を補う。 |
+| VocabCore | fromDictionary | {required InternalDictionary dictionary} | InternalDictionary行をVocabCoreへ変換する。内部辞書の情報を保持させる。based: Based.dictionaryを付与する。id: -1固定、isShow: true固定、wordは小文字化、memoはnull時に空文字を補う。createdAt・updatedAtには現在時刻を入れる。 |
 
 #### token_mapper.dart
 
 - クラス名: TokenMapper
-- 役割: JSON⇔`TokenData`間、`Vocabulary`→`TokenEntry`間の変換。
+- 役割: JSON⇔`TokenData`間、`Vocabulary`→`TokenCore`間、外部APIレスポンス→`TokenData`の変換。
 
 | 型 | メソッド名 | 引数 | 説明 |
 | :--- | :--- | :--- | :--- |
 | TokenData | fromJson | {required Map<String, dynamic> json} | parsedWordsJsonの1要素をTokenDataへ変換する。英文復元に使用。 |
-| TokenEntry | fromVocabularies | {required Vocabulary voc} | Vocabulary行をTokenEntryへ変換する。翻訳時、トークンに訳を表示させるために使用。isHiddenを反転してisShowにマッピングする。 |
+| TokenCore | fromVocabularies | {required Vocabulary voc} | Vocabulary行をTokenCoreへ変換する。翻訳時、トークンに訳を表示させるために使用。isHiddenを反転してisShowにマッピングする。 |
+| TokenData | fromRemoteJson | {required Map<String, dynamic> json} | 外部APIレスポンスの1要素（showWord, translation）をTokenDataへ変換する。単語かつ訳語が非空なら vocabId: -2・nowShow: true・translation付き。句読点・訳語なしは未登録トークンのまま。 |
 
 ### db/
 

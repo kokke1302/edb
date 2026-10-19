@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:edb/presentation/view_models/sorting_notifier.dart';
 import 'package:edb/domain/model/enum/sort_field.dart';
 
-/// ソート項目と順序を選択するドロップダウンメニュー
+// ソート項目と順序を選択するドロップダウンメニュー
 class MySortDropdownMenu extends ConsumerWidget {
   const MySortDropdownMenu({super.key});
 

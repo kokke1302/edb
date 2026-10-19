@@ -23,8 +23,11 @@ class DictionaryNotifier extends AsyncNotifier<DictionaryData> {
 
   // 訳の表示/非表示の切り替え
   Future<void> toggleVisibility({required CardData card}) async {
-    // 単語帳以外からは受け付けない & バリデーション
-    if (card.vocab.based != Based.vocabularies || state.isLoading) return;
+    // 単語帳・外部API由来のカードのみ受け付ける
+    final bool canToggle =
+        (card.vocab.based == Based.vocabularies) ||
+        (card.vocab.based == Based.remote);
+    if (!canToggle || state.isLoading) return;
 
     state = await AsyncValue.guard(() async {
       final currentData = state.requireValue;
@@ -43,6 +46,9 @@ class DictionaryNotifier extends AsyncNotifier<DictionaryData> {
       ref
           .read(translationProvider.notifier)
           .updateToken(updatedToken: newToken);
+
+      // 選択中トークンも最新にする。
+      ref.read(selectedTokenProvider.notifier).selectNew(token: newToken);
 
       return updatedData;
     });

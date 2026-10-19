@@ -12,7 +12,6 @@ import 'package:edb/presentation/view_models/translation_notifier.dart';
 part 'register_notifier.g.dart';
 
 // 画面の状態を管理するRiverpod
-
 @riverpod
 class RegisterNotifier extends _$RegisterNotifier {
   @override

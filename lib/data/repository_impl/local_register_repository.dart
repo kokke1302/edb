@@ -27,26 +27,22 @@ class LocalRegisterRepository implements RegisterRepository {
   // ===============================================
   @override
   Future<VocabCore> addVocabulary({required VocabCore vocab}) async {
-    try {
-      // 排他制御
-      if (vocab.isShow) await _setAllOthersHidden(word: vocab.word);
+    // 排他制御
+    if (vocab.isShow) await _setAllOthersHidden(word: vocab.word);
 
-      // VocabularyCompanion: 仮で行を作る
-      final companion = VocabulariesCompanion.insert(
-        englishWord: vocab.word,
-        japaneseTranslation: vocab.translation,
-        isHidden: !vocab.isShow,
-        memo: vocab.memo,
-      );
+    // VocabularyCompanion: 仮で行を作る
+    final companion = VocabulariesCompanion.insert(
+      englishWord: vocab.word,
+      japaneseTranslation: vocab.translation,
+      isHidden: !vocab.isShow,
+      memo: vocab.memo,
+    );
 
-      final vocabulary = await db
-          .into(db.vocabularies)
-          .insertReturning(companion);
+    final vocabulary = await db
+        .into(db.vocabularies)
+        .insertReturning(companion);
 
-      return VocabMapper.fromVocabularies(vocabulary: vocabulary);
-    } catch (e) {
-      throw Exception('Failed to add vocabulary: $e');
-    }
+    return VocabMapper.fromVocabularies(vocabulary: vocabulary);
   }
 
   // ===============================================
@@ -56,28 +52,23 @@ class LocalRegisterRepository implements RegisterRepository {
   // 更新された行のidを返す
   @override
   Future<VocabCore> updateVocabulary({required VocabCore vocab}) async {
-    try {
-      // 排他制御
-      if (vocab.isShow) await _setAllOthersHidden(word: vocab.word);
+    // 排他制御
+    if (vocab.isShow) await _setAllOthersHidden(word: vocab.word);
 
-      // 更新内容を定義
-      final companion = VocabulariesCompanion(
-        englishWord: Value(vocab.word),
-        japaneseTranslation: Value(vocab.translation),
-        isHidden: Value(!vocab.isShow),
-        memo: Value(vocab.memo),
-      );
+    // 更新内容を定義
+    final companion = VocabulariesCompanion(
+      englishWord: Value(vocab.word),
+      japaneseTranslation: Value(vocab.translation),
+      isHidden: Value(!vocab.isShow),
+      memo: Value(vocab.memo),
+    );
 
-      // companion を getReturning に渡して更新を実行
-      final results =
-          await (db.update(db.vocabularies)
-                ..where((v) => v.id.equals(vocab.id)))
-              .writeReturning(companion); // ここで companion を適用
+    // companion を getReturning に渡して更新を実行
+    final results =
+        await (db.update(db.vocabularies)..where((v) => v.id.equals(vocab.id)))
+            .writeReturning(companion); // ここで companion を適用
 
-      return VocabMapper.fromVocabularies(vocabulary: results.first);
-    } catch (e) {
-      throw Exception('Failed to update vocabulary: $e');
-    }
+    return VocabMapper.fromVocabularies(vocabulary: results.first);
   }
 
   // ===============================================
@@ -86,13 +77,9 @@ class LocalRegisterRepository implements RegisterRepository {
 
   @override
   Future<void> deleteVocabulary({required int id}) async {
-    try {
-      // 削除したい行のidを探す
-      final query = db.delete(db.vocabularies)..where((v) => v.id.equals(id));
-      // 実行
-      await query.go();
-    } catch (e) {
-      throw Exception('Failed to delete vocabulary: $e');
-    }
+    // 削除したい行のidを探す
+    final query = db.delete(db.vocabularies)..where((v) => v.id.equals(id));
+    // 実行
+    await query.go();
   }
 }

@@ -2,7 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/wasm.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
-/// Web環境用の QueryExecutor を返す関数
+// Web環境用の QueryExecutor を返す関数
 QueryExecutor constructDb() {
   return DatabaseConnection.delayed(
     Future(() async {

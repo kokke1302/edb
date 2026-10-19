@@ -301,25 +301,4 @@ void main() {
       });
     });
   });
-
-  // Drift の in-memory DB が例外を投げていない
-  // group('異常系', () {
-  //   test('DB接続が失敗した状態で fetchVocabularies を呼んだとき、Exceptionが投げられること', () async {
-  //     await db.close();
-
-  //     expect(
-  //       () => repository.fetchVocabularies(word: 'apple'),
-  //       throwsA(isA<Exception>()),
-  //     );
-  //   });
-
-  //   test('DB接続が失敗した状態で fetchDictionaries を呼んだとき、Exceptionが投げられること', () async {
-  //     await db.close();
-
-  //     expect(
-  //       () => repository.fetchDictionaries(word: 'run'),
-  //       throwsA(isA<Exception>()),
-  //     );
-  //   });
-  // });
 }

@@ -370,21 +370,5 @@ void main() {
         expect(result, hasLength(5));
       });
     });
-
-    // Drift の in-memory DB が例外を投げていない
-    // group('異常系', () {
-    //   test('DB接続が失敗した状態で呼んだとき、Exceptionが投げられること', () async {
-    //     // DBをクローズしてから呼び出すことで接続失敗を再現する
-    //     await db.close();
-
-    //     expect(
-    //       () => repository.fetchVocabulariesWithPaging(
-    //         offset: 0,
-    //         sorter: _defaultSorter,
-    //       ),
-    //       throwsA(isA<Exception>()),
-    //     );
-    //   });
-    // });
   });
 }

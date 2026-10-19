@@ -21,38 +21,34 @@ class LocalBookRepository implements BookRepository {
     required int offset,
     required SortingData sorter,
   }) async {
-    try {
-      // クエリの開始
-      final query = db.select(db.vocabularies);
+    // クエリの開始
+    final query = db.select(db.vocabularies);
 
-      // フィルタリング条件の動的適用
-      if (sorter.searchWord.isNotEmpty) {
-        final likeArgument = '%${sorter.searchWord}%';
-        query.where(
-          (v) =>
-              v.englishWord.like(likeArgument) |
-              v.japaneseTranslation.like(likeArgument) |
-              v.memo.like(likeArgument),
-        );
-      }
-
-      // ソート条件の動的適用
-      final expression = _getSortExpression(sorter.field);
-      final mode = _getSortMode(sorter.order);
-      query.orderBy([(v) => OrderingTerm(expression: expression, mode: mode)]);
-
-      // ページング条件の適用
-      query.limit(sorter.pageSize, offset: offset);
-
-      final rows = await query.get();
-
-      // データの取得を実行
-      return rows
-          .map((row) => VocabMapper.fromVocabularies(vocabulary: row))
-          .toList();
-    } catch (e) {
-      throw Exception('Failed to fetch paging vocabularies: $e');
+    // フィルタリング条件の動的適用
+    if (sorter.searchWord.isNotEmpty) {
+      final likeArgument = '%${sorter.searchWord}%';
+      query.where(
+        (v) =>
+            v.englishWord.like(likeArgument) |
+            v.japaneseTranslation.like(likeArgument) |
+            v.memo.like(likeArgument),
+      );
     }
+
+    // ソート条件の動的適用
+    final expression = _getSortExpression(sorter.field);
+    final mode = _getSortMode(sorter.order);
+    query.orderBy([(v) => OrderingTerm(expression: expression, mode: mode)]);
+
+    // ページング条件の適用
+    query.limit(sorter.pageSize, offset: offset);
+
+    final rows = await query.get();
+
+    // データの取得を実行
+    return rows
+        .map((row) => VocabMapper.fromVocabularies(vocabulary: row))
+        .toList();
   }
 
   Expression _getSortExpression(SortField field) {

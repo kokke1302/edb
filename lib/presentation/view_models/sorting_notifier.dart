@@ -29,8 +29,4 @@ class SortingNotifier extends Notifier<SortingData> {
   void setSearchWord(String text) {
     state = state.copyWith(searchWord: text);
   }
-
-  void setTypeWord(String text) {
-    state = state.copyWith(typingWord: text);
-  }
 }

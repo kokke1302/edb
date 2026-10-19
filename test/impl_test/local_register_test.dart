@@ -327,36 +327,4 @@ void main() {
       });
     });
   });
-
-  // Drift の in-memory DB が例外を投げていない
-  // group('異常系', () {
-  //   test('DB 接続が失敗した状態で addVocabulary を呼んだとき、Exception が投げられること', () async {
-  //     await db.close();
-  //     final vocab = _makeVocab();
-  //
-  //     expect(
-  //       () => repository.addVocabulary(vocab: vocab),
-  //       throwsA(isA<Exception>()),
-  //     );
-  //   });
-  //
-  //   test('DB 接続が失敗した状態で updateVocabulary を呼んだとき、Exception が投げられること', () async {
-  //     await db.close();
-  //     final vocab = _makeVocab(id: 1);
-  //
-  //     expect(
-  //       () => repository.updateVocabulary(vocab: vocab),
-  //       throwsA(isA<Exception>()),
-  //     );
-  //   });
-  //
-  //   test('DB 接続が失敗した状態で deleteVocabulary を呼んだとき、Exception が投げられること', () async {
-  //     await db.close();
-  //
-  //     expect(
-  //       () => repository.deleteVocabulary(id: 1),
-  //       throwsA(isA<Exception>()),
-  //     );
-  //   });
-  // });
 }

@@ -15,18 +15,14 @@ class LocalDictionaryRepository implements DictionaryRepository {
   // 単語帳（Vocabularies）から特定の英単語に対応する訳語を取得
   @override
   Future<List<VocabCore>> fetchVocabularies({required String word}) async {
-    try {
-      final query = db.select(db.vocabularies)
-        ..where((v) => v.englishWord.lower().equals(word.toLowerCase()));
+    final query = db.select(db.vocabularies)
+      ..where((v) => v.englishWord.lower().equals(word.toLowerCase()));
 
-      final rows = await query.get();
+    final rows = await query.get();
 
-      return rows
-          .map((row) => VocabMapper.fromVocabularies(vocabulary: row))
-          .toList();
-    } catch (e) {
-      throw Exception('Failed to read vocabularies: $e');
-    }
+    return rows
+        .map((row) => VocabMapper.fromVocabularies(vocabulary: row))
+        .toList();
   }
 
   // ===============================================
@@ -35,17 +31,13 @@ class LocalDictionaryRepository implements DictionaryRepository {
   // 内部辞書（InternalDictionaries）から特定の単語に対応する訳語を取得
   @override
   Future<List<VocabCore>> fetchDictionaries({required String word}) async {
-    try {
-      final query = db.select(db.internalDictionaries)
-        ..where((d) => d.key.lower().equals(word.toLowerCase()));
+    final query = db.select(db.internalDictionaries)
+      ..where((d) => d.key.lower().equals(word.toLowerCase()));
 
-      final rows = await query.get();
+    final rows = await query.get();
 
-      return rows
-          .map((row) => VocabMapper.fromDictionary(dictionary: row))
-          .toList();
-    } catch (e) {
-      throw Exception('Failed to read vocabularies: $e');
-    }
+    return rows
+        .map((row) => VocabMapper.fromDictionary(dictionary: row))
+        .toList();
   }
 }
