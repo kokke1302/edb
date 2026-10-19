@@ -25,11 +25,11 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:edb/domain/usecase/toggle_card_visibility_usecase.dart';
-import 'package:edb/domain/entity/model/card_data.dart';
-import 'package:edb/domain/entity/model/token_data.dart';
-import 'package:edb/domain/entity/carry/vocab_entry.dart';
-import 'package:edb/domain/entity/model/dictionary_data.dart';
-import 'package:edb/domain/entity/value/base_status.dart';
+import 'package:edb/domain/model/value_object/card_data.dart';
+import 'package:edb/domain/model/value_object/token_data.dart';
+import 'package:edb/domain/model/value_object/vocab_core.dart';
+import 'package:edb/domain/model/entity/dictionary_data.dart';
+import 'package:edb/domain/model/enum/base_status.dart';
 
 void main() {
   late ToggleCardVisibilityUseCase useCase;
@@ -37,8 +37,8 @@ void main() {
   // テスト共通で使用するベースのDateTime
   final now = DateTime.now();
 
-  // テスト用のダミーVocabEntryデータ
-  final vocabApple = VocabEntry(
+  // テスト用のダミーVocabCoreデータ
+  final vocabApple = VocabCore(
     id: 1,
     word: 'apple',
     translation: 'りんご',
@@ -48,7 +48,7 @@ void main() {
     updatedAt: now,
     based: Based.vocabularies,
   );
-  final vocabBanana = VocabEntry(
+  final vocabBanana = VocabCore(
     id: 2,
     word: 'banana',
     translation: 'バナナ',

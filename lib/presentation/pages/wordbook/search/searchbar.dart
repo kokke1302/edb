@@ -10,17 +10,19 @@ class MySearchBar extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 検索バー内の文字列（初期値は現在の検索文字列）
-    final currentQuery = ref.watch(sortingProvider.select((s) => s.typingWord));
+    final typingNotifier = ref.read(typingWordProvider.notifier);
 
-    final notifier = ref.read(sortingProvider.notifier);
-
-    // 初回
-    final textController = useTextEditingController(
-      text: ref.read(sortingProvider).searchWord,
+    // クリアボタンの表示判定だけに使う（空かどうかが変わったときだけ再描画）
+    final isTypingEmpty = ref.watch(
+      typingWordProvider.select((s) => s.isEmpty),
     );
 
-    ref.listen(sortingProvider.select((s) => s.typingWord), (previous, next) {
+    // 初期値は入力途中の文字列（確定済みの検索文字列ではない）
+    final textController = useTextEditingController(
+      text: ref.read(typingWordProvider),
+    );
+
+    ref.listen(typingWordProvider, (previous, next) {
       if (next != textController.text) {
         // 現在の入力内容と異なる場合のみ更新（無限ループ防止）
         textController.text = next;
@@ -48,23 +50,22 @@ class MySearchBar extends HookConsumerWidget {
         ),
         border: const UnderlineInputBorder(),
         prefixIcon: const Icon(Icons.search),
-        suffixIcon: currentQuery.isEmpty
+        suffixIcon: isTypingEmpty
             ? const SizedBox.shrink()
             : IconButton(
                 icon: const Icon(Icons.clear),
-                onPressed: () => notifier.setTypeWord(''),
+                onPressed: () => typingNotifier.set(''),
               ),
       ),
 
       onTapOutside: (_) => FocusScope.of(context).unfocus(), // 外側タップで閉じる
 
-      onChanged: (text) => notifier.setTypeWord(text),
+      onChanged: (text) => typingNotifier.set(text),
 
       // Enterを押したとき
       onSubmitted: (text) {
-        notifier.setTypeWord(text);
         // 検索文字列の確定
-        notifier.setSearchWord(text);
+        ref.read(sortingProvider.notifier).setSearchWord(text);
         // データベースにクエリを投げる
         ref.read(bookProvider.notifier).reload();
         // Enterでキーボードを閉じる

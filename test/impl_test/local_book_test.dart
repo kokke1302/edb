@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------
 // - 正常系（基本取得）:
 //   - 返り値のリスト件数が DB の行数と一致すること
-//   - 各 VocabEntry の word / translation / memo / isShow が DB の該当行と一致すること
+//   - 各 VocabCore の word / translation / memo / isShow が DB の該当行と一致すること
 //   - DB が空のとき、空リストが返ること
 //
 // - 境界値（フィルタリング: searchWord）:
@@ -32,9 +32,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:edb/data/db/app_database.dart';
 import 'package:edb/data/repository_impl/local_book_repository.dart';
-import 'package:edb/domain/entity/model/sorting_data.dart';
-import 'package:edb/domain/entity/value/sort_field.dart';
-import 'package:edb/domain/entity/value/sort_order.dart';
+import 'package:edb/domain/model/value_object/sorting_data.dart';
+import 'package:edb/domain/model/enum/sort_field.dart';
+import 'package:edb/domain/model/enum/sort_order.dart';
 
 // ---------------------------------------------------------------------------
 // ヘルパー: テスト用インメモリDB
@@ -129,7 +129,7 @@ void main() {
       });
 
       test(
-        '各VocabEntryのword / translation / memo / isShowがDBの該当行と一致すること',
+        '各VocabCoreのword / translation / memo / isShowがDBの該当行と一致すること',
         () async {
           await _insertVocab(
             db,
@@ -370,21 +370,5 @@ void main() {
         expect(result, hasLength(5));
       });
     });
-
-    // Drift の in-memory DB が例外を投げていない
-    // group('異常系', () {
-    //   test('DB接続が失敗した状態で呼んだとき、Exceptionが投げられること', () async {
-    //     // DBをクローズしてから呼び出すことで接続失敗を再現する
-    //     await db.close();
-
-    //     expect(
-    //       () => repository.fetchVocabulariesWithPaging(
-    //         offset: 0,
-    //         sorter: _defaultSorter,
-    //       ),
-    //       throwsA(isA<Exception>()),
-    //     );
-    //   });
-    // });
   });
 }

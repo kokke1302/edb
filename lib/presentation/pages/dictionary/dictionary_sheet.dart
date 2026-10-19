@@ -1,8 +1,9 @@
+import 'package:edb/domain/model/value_object/vocab_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:edb/domain/entity/model/dictionary_data.dart';
+import 'package:edb/domain/model/entity/dictionary_data.dart';
 import 'package:edb/presentation/view_models/dictionary_notifier.dart';
 import 'package:edb/presentation/pages/dictionary/registered_card.dart';
 import 'package:edb/presentation/pages/dictionary/dictionary_card.dart';
@@ -16,54 +17,7 @@ class MyDictionarySheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final token = ref.watch(selectedTokenProvider);
-    final headerWord = token.word;
-
-    // CardListStateを正常に読み込めた場合
-    Widget buildCardList({
-      required String headerWord,
-      required DictionaryData list,
-    }) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (list.showCard != null) MyRegisteredCard(card: list.showCard!),
-
-          Divider(color: Theme.of(context).colorScheme.outlineVariant),
-          const Text('単語帳からの候補', style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-
-          // 登録済みリストを展開
-          ...list.vocabularyCards.map((card) {
-            return MyRegisteredCard(card: card);
-          }),
-
-          Divider(color: Theme.of(context).colorScheme.outlineVariant),
-          const Text(
-            '内部辞書からの候補',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-
-          // 内部辞書リストを展開
-          ...list.dictionaryCards.map((card) {
-            return MyDictionaryCard(card: card);
-          }),
-
-          // オリジナル登録フィールドへ遷移するセクション（リストの最後に配置）
-          const SizedBox(height: 8),
-          ListTile(
-            title: const Text('オリジナルを登録'),
-            trailing: const Icon(Icons.edit),
-            onTap: () {
-              ref.read(regiDataReceiver.notifier).initialCard(word: headerWord);
-              context.pop();
-              context.push('/registration');
-            },
-          ),
-        ],
-      );
-    }
+    final headerWord = token.showWord;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -123,10 +77,7 @@ class MyDictionarySheet extends ConsumerWidget {
                       error: (err, _) => Center(child: Text('エラー: $err')),
                       data: (list) => Padding(
                         padding: const EdgeInsets.fromLTRB(4, 8, 4, 16),
-                        child: buildCardList(
-                          headerWord: headerWord,
-                          list: list,
-                        ),
+                        child: _CardList(headerWord: headerWord, list: list),
                       ),
                     );
                   },
@@ -136,6 +87,56 @@ class MyDictionarySheet extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// CardListStateを正常に読み込めた場合
+class _CardList extends ConsumerWidget {
+  const _CardList({required this.headerWord, required this.list});
+  final String headerWord;
+  final DictionaryData list;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (list.showCard != null) MyRegisteredCard(card: list.showCard!),
+
+        Divider(color: Theme.of(context).colorScheme.outlineVariant),
+        const Text('単語帳からの候補', style: TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+
+        // 登録済みリストを展開
+        ...list.vocabularyCards.map((card) {
+          return MyRegisteredCard(card: card);
+        }),
+
+        Divider(color: Theme.of(context).colorScheme.outlineVariant),
+        const Text('内部辞書からの候補', style: TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+
+        // 内部辞書リストを展開
+        ...list.dictionaryCards.map((vocab) {
+          return MyDictionaryCard(vocab: vocab);
+        }),
+
+        // オリジナル登録フィールドへ遷移するセクション（リストの最後に配置）
+        const SizedBox(height: 8),
+        ListTile(
+          title: const Text('オリジナルを登録'),
+          trailing: const Icon(Icons.edit),
+          onTap: () {
+            ref
+                .read(regiDataReceiver.notifier)
+                .receiveRegiData(vocab: VocabCore.init(word: headerWord));
+            context.pop();
+            context.push('/registration');
+          },
+        ),
+      ],
     );
   }
 }

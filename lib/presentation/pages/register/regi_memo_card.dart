@@ -29,7 +29,7 @@ class MyMemoCard extends HookConsumerWidget {
                   horizontal: 10.0,
                 ),
               ),
-              controller: useTextEditingController(text: regiData.vocab.memo),
+              controller: useTextEditingController(text: regiData.memo),
               keyboardType: TextInputType.text,
               onChanged: ref
                   .read(registerProvider.notifier)

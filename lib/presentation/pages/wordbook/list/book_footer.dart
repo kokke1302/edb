@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:edb/domain/entity/value/sync_status.dart';
+import 'package:edb/domain/model/enum/sync_status.dart';
 import 'package:edb/presentation/view_models/book_notifier.dart';
 
 // -----------------------------------------------------------------------------

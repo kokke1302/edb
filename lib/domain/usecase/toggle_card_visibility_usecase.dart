@@ -1,15 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:edb/domain/entity/model/card_data.dart';
-import 'package:edb/domain/entity/model/dictionary_data.dart';
-import 'package:edb/domain/entity/model/token_data.dart';
+import 'package:edb/domain/model/value_object/card_data.dart';
+import 'package:edb/domain/model/entity/dictionary_data.dart';
+import 'package:edb/domain/model/value_object/token_data.dart';
 
 final toggleCardVisibilityUseCaseProvider = Provider((ref) {
   return ToggleCardVisibilityUseCase();
 });
 
 class ToggleCardVisibilityUseCase {
-  // 現在のデータ状態と対象カードを受け取り、新しい DictionaryData と 更新後の VocabEntry を返す
+  // 現在のデータ状態と対象カードを受け取り、新しい DictionaryData と 更新後の VocabCore を返す
   (DictionaryData, TokenData) execute({
     required DictionaryData currentData,
     required CardData targetCard,

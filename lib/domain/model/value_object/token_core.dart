@@ -1,23 +1,23 @@
-class TokenEntry {
+class TokenCore {
   final int vocabId;
   final String showWord;
   final bool isShow;
   final String translation;
 
-  TokenEntry({
+  TokenCore({
     required this.vocabId,
     required this.showWord,
     required this.translation,
     required this.isShow,
   });
 
-  TokenEntry copyWith({
+  TokenCore copyWith({
     int? vocabId,
     String? showWord,
     String? translation,
     bool? isShow,
   }) {
-    return TokenEntry(
+    return TokenCore(
       vocabId: vocabId ?? this.vocabId,
       showWord: showWord ?? this.showWord,
       translation: translation ?? this.translation,

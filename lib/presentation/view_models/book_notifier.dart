@@ -1,8 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:edb/domain/entity/model/book_data.dart';
-import 'package:edb/domain/entity/model/sorting_data.dart';
-import 'package:edb/domain/entity/value/sync_status.dart';
+import 'package:edb/domain/model/entity/book_data.dart';
+import 'package:edb/domain/model/enum/sync_status.dart';
 import 'package:edb/domain/usecase/fetch_bookdata_usecase.dart';
 import 'package:edb/presentation/view_models/sorting_notifier.dart';
 
@@ -10,36 +9,35 @@ final bookProvider = AsyncNotifierProvider.autoDispose<BookNotifier, BookData>(
   () => BookNotifier(),
 );
 
-/// BookDataの管理
+// 検索バーで入力途中の文字列（確定前）。UI専用の状態なのでSortingDataには含めない。
+final typingWordProvider = NotifierProvider<TypingWordNotifier, String>(
+  () => TypingWordNotifier(),
+);
+
+class TypingWordNotifier extends Notifier<String> {
+  @override
+  String build() => '';
+
+  void set(String text) => state = text;
+}
+
+// BookDataの管理
 class BookNotifier extends AsyncNotifier<BookData> {
   // 状態の初期化と最初のロード
   @override
   Future<BookData> build() async {
     // 更新の監視
-    final (searchWord, field, order, pageSize) = ref.watch(
-      sortingProvider.select(
-        (s) => (s.searchWord, s.field, s.order, s.pageSize),
-      ),
-    );
+    final sorter = ref.watch(sortingProvider);
 
     // 最初のページを要求
     final initialList = await ref
         .read(fetchBookDataUseCaseProvider)
-        .execute(
-          currentCount: 0,
-          sorter: SortingData(
-            field: field,
-            order: order,
-            searchWord: searchWord,
-            pageSize: pageSize,
-          ),
-        );
+        .execute(currentCount: 0, sorter: sorter);
 
     // 初期ロードの結果を返す
     return BookData(
-      pageSize: initialList.length, // 今回取得できた件数
-      cards: initialList,
-      isDataEnd: initialList.length < pageSize, // 要求件数に満たなければ終端
+      vocabs: initialList,
+      isDataEnd: initialList.length < sorter.pageSize, // 要求件数に満たなければ終端
     );
   }
 
@@ -61,17 +59,16 @@ class BookNotifier extends AsyncNotifier<BookData> {
       final sorter = ref.read(sortingProvider);
 
       // データの取得
-      final newCards = await ref
+      final newVocabs = await ref
           .read(fetchBookDataUseCaseProvider)
-          .execute(currentCount: currentState.cards.length, sorter: sorter);
+          .execute(currentCount: currentState.vocabs.length, sorter: sorter);
 
       // 新しいリストと状態を更新
       state = AsyncData(
         currentState.copyWith(
-          pageSize: newCards.length, // 今回取得できた件数
-          cards: [...currentState.cards, ...newCards],
+          vocabs: [...currentState.vocabs, ...newVocabs],
           tailStatus: SyncStatus.normal,
-          isDataEnd: newCards.length < sorter.pageSize, // 要求件数に満たなければ終端
+          isDataEnd: newVocabs.length < sorter.pageSize, // 要求件数に満たなければ終端
         ),
       );
     } catch (e) {
@@ -84,7 +81,7 @@ class BookNotifier extends AsyncNotifier<BookData> {
   Future<void> reload() async {
     // 入力途中の言葉は確定文字列で上書き
     final currentWord = ref.read(sortingProvider).searchWord;
-    ref.read(sortingProvider.notifier).setTypeWord(currentWord);
+    ref.read(typingWordProvider.notifier).set(currentWord);
 
     state = const AsyncValue.loading();
 

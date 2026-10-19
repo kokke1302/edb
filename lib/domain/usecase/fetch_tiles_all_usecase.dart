@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:edb/domain/entity/carry/tile_data.dart';
+import 'package:edb/domain/model/value_object/tile_data.dart';
 import 'package:edb/domain/repository_abstract/tiles_repository.dart';
 
 final fetchAllTilesUseCaseProvider = Provider(

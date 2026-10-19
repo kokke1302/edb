@@ -41,12 +41,15 @@ lib/
 │   ├── pages/         # 画面・UIコンポーネント
 │   └── root/          # 共通画面・ルーティング
 ├── domain/                     # ビジネスロジック
-│   ├── entity/                # データ構造（Model / Value Object）
+│   ├── model/                 # データ構造
+│   │   ├── enum/             # 選択肢・ステータス
+│   │   ├── value_object/     # 値の持ち運び・受け渡し
+│   │   └── entity/           # 画面の状態を保持するデータ
 │   ├── usecase/               # アプリのユースケース
 │   └── repository_abstract/   # リポジトリの抽象クラス
 └── data/                  # DBアクセス・データ変換
     ├── repository_impl/   # リポジトリの実装
-    ├── mapper/            # DBデータとEntityの相互変換
+    ├── mapper/            # DBデータとモデルの相互変換
     └── db/                # データベース（DriftのローカルDB接続設定）
 ```
 

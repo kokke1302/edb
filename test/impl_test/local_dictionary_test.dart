@@ -33,7 +33,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:edb/data/db/app_database.dart';
 import 'package:edb/data/repository_impl/local_dictionary_repository.dart';
-import 'package:edb/domain/entity/value/base_status.dart';
+import 'package:edb/domain/model/enum/base_status.dart';
 
 // ---------------------------------------------------------------------------
 // ヘルパー: テスト用インメモリDB
@@ -301,25 +301,4 @@ void main() {
       });
     });
   });
-
-  // Drift の in-memory DB が例外を投げていない
-  // group('異常系', () {
-  //   test('DB接続が失敗した状態で fetchVocabularies を呼んだとき、Exceptionが投げられること', () async {
-  //     await db.close();
-
-  //     expect(
-  //       () => repository.fetchVocabularies(word: 'apple'),
-  //       throwsA(isA<Exception>()),
-  //     );
-  //   });
-
-  //   test('DB接続が失敗した状態で fetchDictionaries を呼んだとき、Exceptionが投げられること', () async {
-  //     await db.close();
-
-  //     expect(
-  //       () => repository.fetchDictionaries(word: 'run'),
-  //       throwsA(isA<Exception>()),
-  //     );
-  //   });
-  // });
 }

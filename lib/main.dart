@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:edb/data/db/app_database.dart';
 import 'package:edb/data/db/database_initializer.dart';
+import 'package:edb/data/repository_impl/local_setting_repository.dart';
 import 'package:edb/presentation/root/routing.dart';
 
 // -----------------------------------------------------------------------------
@@ -20,5 +22,13 @@ void main() async {
   // 単語帳初期データ投入を実行
   await DatabaseInitializer(appDb).insertManualVocabularies();
 
-  runApp(const ProviderScope(child: EnglishLearningApp()));
+  // API設定などの保存先を取得
+  final prefs = await SharedPreferences.getInstance();
+
+  runApp(
+    ProviderScope(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      child: const EnglishLearningApp(),
+    ),
+  );
 }

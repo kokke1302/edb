@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:edb/domain/entity/model/card_data.dart';
+import 'package:edb/domain/model/value_object/vocab_core.dart';
 import 'package:edb/presentation/view_models/regidata_receiver.dart';
 
 class MyDictionaryCard extends ConsumerWidget {
-  final CardData card;
+  final VocabCore vocab;
 
-  const MyDictionaryCard({super.key, required this.card});
+  const MyDictionaryCard({super.key, required this.vocab});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,7 +38,7 @@ class MyDictionaryCard extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    card.vocab.translation,
+                    vocab.translation,
                     style: Theme.of(context).textTheme.titleMedium,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
@@ -48,7 +48,7 @@ class MyDictionaryCard extends ConsumerWidget {
                   onPressed: () {
                     ref
                         .read(regiDataReceiver.notifier)
-                        .receiveDictionaryCard(card: card);
+                        .receiveRegiData(vocab: vocab);
                     context.pop();
                     context.push('/registration');
                   },
@@ -58,11 +58,11 @@ class MyDictionaryCard extends ConsumerWidget {
             ),
 
             // 下段
-            if (card.vocab.memo.isNotEmpty)
+            if (vocab.memo.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 6.0),
                 child: Text(
-                  card.vocab.memo,
+                  vocab.memo,
                   style: Theme.of(
                     context,
                   ).textTheme.bodySmall!.copyWith(color: colorScheme.outline),

@@ -1,10 +1,11 @@
-import 'package:edb/domain/entity/model/card_data.dart';
+import 'package:edb/domain/model/value_object/vocab_core.dart';
+import 'package:edb/domain/model/value_object/card_data.dart';
 
 // 単語カードと順番を保持するクラス
 class DictionaryData {
   final CardData? showCard;
   final List<CardData> vocabularyCards;
-  final List<CardData> dictionaryCards;
+  final List<VocabCore> dictionaryCards;
 
   DictionaryData({
     this.showCard,
@@ -16,7 +17,7 @@ class DictionaryData {
   DictionaryData copyWith({
     CardData? showCard,
     List<CardData>? vocabularyCards,
-    List<CardData>? dictionaryCards,
+    List<VocabCore>? dictionaryCards,
   }) {
     return DictionaryData(
       showCard: showCard,

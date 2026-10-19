@@ -68,6 +68,7 @@ class MyBookSliverAppBar extends HookConsumerWidget {
                   IconButton(
                     onPressed: () {
                       ref.invalidate(sortingProvider);
+                      ref.invalidate(typingWordProvider);
                       ref.invalidate(bookProvider);
                     },
                     icon: const Icon(Icons.home),

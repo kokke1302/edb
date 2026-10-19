@@ -6,7 +6,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:edb/data/db/database_initializer.dart';
 
-/// ネイティブ環境用の QueryExecutor を返す関数
+// ネイティブ環境用の QueryExecutor を返す関数
 QueryExecutor constructDb() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationSupportDirectory();

@@ -6,6 +6,14 @@
 //   - 返り値の nowShow が card.nowShow になること
 //   - 元の TokenData の id / showWord / translation が変わらないこと
 //
+// - 正常系（新規登録: based が remote）:
+//   - addVocabulary が card.vocab を引数に1回呼ばれること
+//   - updateVocabulary が呼ばれないこと
+//   - 返り値の vocabId が addVocabulary の返り値の id になり、remote のトークンではなくなること（isRemote が false）
+//   - 返り値の nowShow が card.nowShow になること
+//   - 返り値の translation が addVocabulary の返り値の translation になること
+//   - 元の TokenData の id / showWord が変わらないこと
+//
 // - 正常系（更新: based が vocabularies）:
 //   - updateVocabulary が card.vocab を引数に1回呼ばれること
 //   - addVocabulary が呼ばれないこと
@@ -23,16 +31,15 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:edb/domain/usecase/save_register_usecase.dart';
 import 'package:edb/domain/repository_abstract/register_repository.dart';
-import 'package:edb/domain/entity/model/card_data.dart';
-import 'package:edb/domain/entity/model/token_data.dart';
-import 'package:edb/domain/entity/carry/vocab_entry.dart';
-import 'package:edb/domain/entity/value/base_status.dart';
+import 'package:edb/domain/model/value_object/token_data.dart';
+import 'package:edb/domain/model/value_object/vocab_core.dart';
+import 'package:edb/domain/model/enum/base_status.dart';
 
 // RegisterRepositoryのモッククラスを作成
 class MockRegisterRepository extends Mock implements RegisterRepository {}
 
 // mocktailで any() を独自クラスに適用するためのFakeクラス
-class FakeVocabEntry extends Fake implements VocabEntry {}
+class FakeVocabCore extends Fake implements VocabCore {}
 
 void main() {
   late MockRegisterRepository mockRepository;
@@ -40,7 +47,7 @@ void main() {
 
   setUpAll(() {
     // mocktailで any(named: 'vocab') を使用するために必要
-    registerFallbackValue(FakeVocabEntry());
+    registerFallbackValue(FakeVocabCore());
   });
 
   setUp(() {
@@ -52,7 +59,7 @@ void main() {
     // テスト共通で使用するダミーデータのベース
     final now = DateTime.now();
 
-    final baseVocab = VocabEntry(
+    final baseVocab = VocabCore(
       id: 42,
       word: 'apple',
       translation: 'りんご',
@@ -74,22 +81,23 @@ void main() {
     group('正常系（新規登録: based が vocabularies 以外）', () {
       test('addVocabulary が呼ばれ、期待通りのTokenDataが返却されること', () async {
         // Arrange: basedをvocabularies以外（dictionaryなど）に設定
-        final cardVocab = baseVocab.copyWith(based: Based.dictionary);
-        final card = CardData(nowShow: false, vocab: cardVocab);
-
-        // リポジトリから返される想定の新しいVocabEntry（IDが採番されたと仮定）
-        final expectedVocabEntry = cardVocab.copyWith(id: 999);
+        final testVocab = baseVocab.copyWith(based: Based.dictionary);
+        // リポジトリから返される想定の新しいVocabCore（IDが採番されたと仮定）
+        final expectedVocabCore = testVocab.copyWith(id: 999);
 
         when(
           () => mockRepository.addVocabulary(vocab: any(named: 'vocab')),
-        ).thenAnswer((_) async => expectedVocabEntry);
+        ).thenAnswer((_) async => expectedVocabCore);
 
         // Act: ユースケースの実行
-        final result = await useCase.execute(card: card, token: testToken);
+        final result = await useCase.execute(
+          vocab: testVocab,
+          token: testToken,
+        );
 
         // Assert:
-        // 1. addVocabulary が card.vocab を引数に1回呼ばれること
-        verify(() => mockRepository.addVocabulary(vocab: card.vocab)).called(1);
+        // 1. addVocabulary が vocab を引数に1回呼ばれること
+        verify(() => mockRepository.addVocabulary(vocab: testVocab)).called(1);
 
         // 2. updateVocabulary が呼ばれないこと
         verifyNever(
@@ -100,7 +108,7 @@ void main() {
         expect(result.vocabId, 999);
 
         // 4. 返り値の nowShow が card.nowShow になること
-        expect(result.nowShow, card.nowShow);
+        expect(result.nowShow, testToken.nowShow);
 
         // 5. 元の TokenData の id / showWord / translation が変わらないこと
         expect(result.id, testToken.id);
@@ -109,26 +117,83 @@ void main() {
       });
     });
 
+    group('正常系（新規登録: based が remote）', () {
+      test('addVocabulary が呼ばれ、remote のトークンが通常の登録済みトークンになって返却されること', () async {
+        // Arrange: 外部APIの訳を表示中のトークン（vocabId: -2）から、登録用の VocabCore を作る
+        final remoteToken = TokenData(
+          id: 1,
+          vocabId: TokenData.remoteVocabId,
+          showWord: 'Apple',
+          nowShow: true,
+          translation: 'API訳',
+        );
+        final testVocab = VocabCore.fromToken(
+          remoteToken,
+        ).copyWith(isShow: true, memo: 'api memo');
+        expect(testVocab.based, Based.remote); // 前提の確認
+
+        // リポジトリから返される想定の新しいVocabCore（IDが採番され、単語帳の行になる）
+        final expectedVocabCore = testVocab.copyWith(
+          id: 777,
+          based: Based.vocabularies,
+        );
+
+        when(
+          () => mockRepository.addVocabulary(vocab: any(named: 'vocab')),
+        ).thenAnswer((_) async => expectedVocabCore);
+
+        // Act: ユースケースの実行
+        final result = await useCase.execute(
+          vocab: testVocab,
+          token: remoteToken,
+        );
+
+        // Assert:
+        // 1. addVocabulary が vocab を引数に1回呼ばれること
+        verify(() => mockRepository.addVocabulary(vocab: testVocab)).called(1);
+
+        // 2. updateVocabulary が呼ばれないこと
+        verifyNever(
+          () => mockRepository.updateVocabulary(vocab: any(named: 'vocab')),
+        );
+
+        // 3. 返り値の vocabId が採番された id になり、remote のトークンではなくなること
+        expect(result.vocabId, 777);
+        expect(result.isRemote, isFalse);
+        expect(result.isNoRegistered, isFalse);
+
+        // 4. 返り値の nowShow が card.nowShow になること
+        expect(result.nowShow, remoteToken.nowShow);
+
+        // 5. 返り値の translation が addVocabulary の返り値の translation になること
+        expect(result.translation, expectedVocabCore.translation);
+
+        // 6. 元の TokenData の id / showWord が変わらないこと
+        expect(result.id, remoteToken.id);
+        expect(result.showWord, remoteToken.showWord);
+      });
+    });
+
     group('正常系（更新: based が vocabularies）', () {
       test('updateVocabulary が呼ばれ、期待通りのTokenDataが返却されること', () async {
         // Arrange: basedをvocabulariesに設定
-        final cardVocab = baseVocab.copyWith(based: Based.vocabularies);
-        final card = CardData(nowShow: true, vocab: cardVocab);
-
-        // リポジトリから返される想定の更新後のVocabEntry
-        final expectedVocabEntry = cardVocab.copyWith(id: 888);
+        final testVocab = baseVocab.copyWith(based: Based.vocabularies);
+        final expectedVocabCore = testVocab.copyWith(id: 888);
 
         when(
           () => mockRepository.updateVocabulary(vocab: any(named: 'vocab')),
-        ).thenAnswer((_) async => expectedVocabEntry);
+        ).thenAnswer((_) async => expectedVocabCore);
 
         // Act: ユースケースの実行
-        final result = await useCase.execute(card: card, token: testToken);
+        final result = await useCase.execute(
+          vocab: testVocab,
+          token: testToken,
+        );
 
         // Assert:
         // 1. updateVocabulary が card.vocab を引数に1回呼ばれること
         verify(
-          () => mockRepository.updateVocabulary(vocab: card.vocab),
+          () => mockRepository.updateVocabulary(vocab: testVocab),
         ).called(1);
 
         // 2. addVocabulary が呼ばれないこと
@@ -140,7 +205,7 @@ void main() {
         expect(result.vocabId, 888);
 
         // 4. 返り値の nowShow が card.nowShow になること
-        expect(result.nowShow, card.nowShow);
+        expect(result.nowShow, testToken.nowShow);
 
         // 5. 元の TokenData の id / showWord / translation が変わらないこと
         expect(result.id, testToken.id);
@@ -154,8 +219,7 @@ void main() {
         'addVocabulary が Exception を throw したとき、usecase もそのまま投げること',
         () async {
           // Arrange: 新規登録ルートを通るデータを用意
-          final cardVocab = baseVocab.copyWith(based: Based.init);
-          final card = CardData(nowShow: true, vocab: cardVocab);
+          final testVocab = baseVocab.copyWith(based: Based.init);
           final testException = Exception('レポジトリでの新規登録エラー');
 
           when(
@@ -164,14 +228,8 @@ void main() {
 
           // Act & Assert: 例外の発生と、意図したメソッドが呼ばれたかを検証
           expect(
-            () => useCase.execute(card: card, token: testToken),
+            () => useCase.execute(vocab: testVocab, token: testToken),
             throwsA(equals(testException)),
-          );
-          verify(
-            () => mockRepository.addVocabulary(vocab: card.vocab),
-          ).called(1);
-          verifyNever(
-            () => mockRepository.updateVocabulary(vocab: any(named: 'vocab')),
           );
         },
       );
@@ -180,8 +238,7 @@ void main() {
         'updateVocabulary が Exception を throw したとき、usecase もそのまま投げること',
         () async {
           // Arrange: 更新ルートを通るデータを用意
-          final cardVocab = baseVocab.copyWith(based: Based.vocabularies);
-          final card = CardData(nowShow: true, vocab: cardVocab);
+          final testVocab = baseVocab.copyWith(based: Based.vocabularies);
           final testException = Exception('レポジトリでの更新エラー');
 
           when(
@@ -190,14 +247,8 @@ void main() {
 
           // Act & Assert: 例外の発生と、意図したメソッドが呼ばれたかを検証
           expect(
-            () => useCase.execute(card: card, token: testToken),
+            () => useCase.execute(vocab: testVocab, token: testToken),
             throwsA(equals(testException)),
-          );
-          verify(
-            () => mockRepository.updateVocabulary(vocab: card.vocab),
-          ).called(1);
-          verifyNever(
-            () => mockRepository.addVocabulary(vocab: any(named: 'vocab')),
           );
         },
       );

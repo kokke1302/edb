@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:edb/presentation/root/common_screen.dart';
+import 'package:edb/presentation/pages/drawer/setting_page.dart';
 import 'package:edb/presentation/pages/translation/translation.dart';
 import 'package:edb/presentation/pages/register/registration_page.dart';
 import 'package:edb/presentation/pages/wordbook/book_screen.dart';
@@ -37,7 +38,7 @@ class EnglishLearningApp extends StatelessWidget {
       // 独立した画面
       GoRoute(
         path: '/registration',
-        builder: (context, state) => const MyEntryScreen(),
+        builder: (context, state) => const MyRegisterScreen(),
       ),
       GoRoute(
         path: '/setting',
@@ -76,30 +77,6 @@ class EnglishLearningApp extends StatelessWidget {
 // -----------------------------------------------------------------------------
 // 画面の定義
 // -----------------------------------------------------------------------------
-
-// 設定画面
-class SettingPage extends StatelessWidget {
-  const SettingPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('設定'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-      body: const SafeArea(
-        child: Center(
-          child: Text(
-            '設定画面',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 24),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 // ヘルプ画面
 class HelpPage extends StatelessWidget {

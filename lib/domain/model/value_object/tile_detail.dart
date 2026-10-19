@@ -1,4 +1,4 @@
-import 'package:edb/domain/entity/model/token_data.dart';
+import 'package:edb/domain/model/value_object/token_data.dart';
 
 class TileDetail {
   final String title;

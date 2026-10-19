@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:edb/domain/entity/value/base_status.dart';
-import 'package:edb/domain/entity/model/card_data.dart';
+import 'package:edb/domain/model/value_object/card_data.dart';
 import 'package:edb/presentation/view_models/dictionary_notifier.dart';
 import 'package:edb/presentation/view_models/regidata_receiver.dart';
 
@@ -53,26 +52,24 @@ class MyRegisteredCard extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    // 訳を表示するかどうか
-                    if (card.vocab.based == Based.vocabularies) ...[
-                      IconButton(
-                        onPressed: () {
-                          ref
-                              .read(dictionaryProvider.notifier)
-                              .toggleVisibility(card: card);
-                        },
-                        icon: card.nowShow
-                            ? const Icon(Icons.visibility)
-                            : const Icon(Icons.visibility_off),
-                        tooltip: card.nowShow ? '訳語を非表示にする' : '訳語を表示する',
-                      ),
-                      const SizedBox(width: 8),
-                    ],
+                    IconButton(
+                      onPressed: () {
+                        ref
+                            .read(dictionaryProvider.notifier)
+                            .toggleVisibility(card: card);
+                      },
+                      icon: card.nowShow
+                          ? const Icon(Icons.visibility)
+                          : const Icon(Icons.visibility_off),
+                      tooltip: card.nowShow ? '訳語を非表示にする' : '訳語を表示する',
+                    ),
+                    const SizedBox(width: 8),
+
                     IconButton(
                       onPressed: () {
                         ref
                             .read(regiDataReceiver.notifier)
-                            .receiveRegisteredCard(card: card);
+                            .receiveRegiData(vocab: card.vocab);
                         context.pop();
                         context.push('/registration');
                       },

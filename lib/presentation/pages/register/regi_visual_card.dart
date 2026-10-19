@@ -32,10 +32,10 @@ class MyVisibilitySwitchCard extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              regiData.vocab.isShow ? '常に翻訳でこの訳を用いる' : '翻訳でこの訳を使わない',
+              regiData.isShow ? '常に翻訳でこの訳を用いる' : '翻訳でこの訳を使わない',
               style: const TextStyle(fontSize: 16),
             ),
-            regiData.vocab.isShow ? show : hidden,
+            regiData.isShow ? show : hidden,
           ],
         ),
       ),

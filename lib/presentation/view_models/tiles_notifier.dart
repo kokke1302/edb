@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:edb/domain/entity/model/tiles_data.dart';
+import 'package:edb/domain/model/entity/tiles_data.dart';
 import 'package:edb/domain/usecase/save_tile_usecase.dart';
 import 'package:edb/domain/usecase/delete_tile_usecase.dart';
 import 'package:edb/domain/usecase/fetch_tiles_all_usecase.dart';

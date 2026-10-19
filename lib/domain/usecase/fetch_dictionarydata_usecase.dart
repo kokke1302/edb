@@ -1,8 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:edb/domain/entity/model/card_data.dart';
-import 'package:edb/domain/entity/model/dictionary_data.dart';
-import 'package:edb/domain/entity/model/token_data.dart';
+import 'package:edb/domain/model/value_object/card_data.dart';
+import 'package:edb/domain/model/entity/dictionary_data.dart';
+import 'package:edb/domain/model/value_object/token_data.dart';
+import 'package:edb/domain/model/value_object/vocab_core.dart';
 import 'package:edb/domain/repository_abstract/dictionary_repository.dart';
 
 final fetchDictionaryDataUseCaseProvider = Provider(
@@ -24,11 +25,9 @@ class FetchDictionaryDataUseCase {
 
     // 2. マッピング
     final allCardData = vocabularyWords
-        .map((ve) => CardData.fromVocabEntry(ve: ve))
+        .map((ve) => CardData(nowShow: ve.isShow, vocab: ve))
         .toList();
-    final dictionaryCards = dictionaryWords
-        .map((ve) => CardData.fromVocabEntry(ve: ve))
-        .toList();
+    final dictionaryCards = dictionaryWords;
 
     // 3. 表示・非表示の振り分けロジック
     CardData? showCard;
@@ -42,6 +41,16 @@ class FetchDictionaryDataUseCase {
         // 単語帳未登録単語　または　nowShow = false　または　例外
         vocabularyCards.add(card.copyWith(nowShow: false));
       }
+    }
+
+    // 4. 単語帳の行で説明できないトークンの訳は、トークン自身の値からカードを作る
+    if (showCard == null && token.nowShow) {
+      showCard = CardData(nowShow: true, vocab: VocabCore.fromToken(token));
+    } else if (token.isRemote && !token.nowShow) {
+      // 非表示にされた外部APIの訳。再表示できるよう候補に残す
+      vocabularyCards.add(
+        CardData(nowShow: false, vocab: VocabCore.fromToken(token)),
+      );
     }
 
     return DictionaryData(

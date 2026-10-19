@@ -26,9 +26,7 @@ class MyTranslationCard extends HookConsumerWidget {
               horizontal: 10.0,
             ),
           ),
-          controller: useTextEditingController(
-            text: regiData.vocab.translation,
-          ),
+          controller: useTextEditingController(text: regiData.translation),
           keyboardType: TextInputType.text,
           onChanged: ref.read(registerProvider.notifier).updateTranslation,
         ),

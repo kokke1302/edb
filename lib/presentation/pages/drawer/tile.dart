@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:edb/domain/entity/carry/tile_data.dart';
+import 'package:edb/domain/model/value_object/tile_data.dart';
 import 'package:edb/presentation/view_models/tiles_notifier.dart';
 
 class MyTile extends ConsumerWidget {
